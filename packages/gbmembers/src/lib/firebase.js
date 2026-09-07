@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { getAttributeValue } from '../utils/utils';
 
 /**
@@ -77,7 +77,42 @@ export const getFirebaseApp = () => {
  * Firestore handle for the shared conversation store. Returns undefined
  * until initialiseFirebase has run with a valid config.
  */
+/**
+ * Firestore's default transport is a streaming WebChannel to
+ * firestore.googleapis.com. Ad and privacy blockers frequently kill parts of
+ * that stream -- the `TYPE=terminate` beacon is on several filter lists --
+ * and corporate proxies mangle it, both of which leave listeners hanging with
+ * no error. Auto-detect falls back to long polling when the stream does not
+ * come up, which is plain HTTPS requests and survives all of that.
+ *
+ * It is only a fallback for the TRANSPORT. A blocker that blocks
+ * firestore.googleapis.com outright cannot be worked around from here: the SDK
+ * has to reach that host, and nothing in this app can proxy it.
+ *
+ * initializeFirestore must run before anything calls getFirestore for this
+ * app, and throws if called twice, so the instance is cached and the second
+ * call falls back to fetching the existing one (which a hot reload will hit).
+ */
+let conversationStore = null;
+
 export const getConversationStore = () => {
   const app = getFirebaseApp();
-  return app ? getFirestore(app) : undefined;
+  if (!app) {
+    return undefined;
+  }
+
+  if (conversationStore) {
+    return conversationStore;
+  }
+
+  try {
+    conversationStore = initializeFirestore(app, {
+      experimentalAutoDetectLongPolling: true,
+    });
+  } catch (e) {
+    // Already initialised for this app -- reuse it rather than failing.
+    conversationStore = getFirestore(app);
+  }
+
+  return conversationStore;
 };

@@ -19,6 +19,7 @@ import {
   indexMembersById,
   participantName,
   conversationTitle,
+  lastMessageSenderLabel,
   matchesConversationKind,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
@@ -274,6 +275,17 @@ export class Conversations extends Component {
     );
   }
 
+  /**
+   * This staff member's own participant id, for telling their own messages
+   * apart from a student's. Null until the profile and space have loaded.
+   */
+  viewerParticipantId() {
+    const username = this.props.profile && this.props.profile.username;
+    return username && this.props.spaceSlug
+      ? staffParticipantId(this.props.spaceSlug, username)
+      : null;
+  }
+
   renderList(membersById) {
     const { conversations, loading, error } = this.props;
 
@@ -315,44 +327,61 @@ export class Conversations extends Component {
       );
     }
 
+    const viewerId = this.viewerParticipantId();
+
     return (
       <React.Fragment>
         {this.renderKindFilter()}
         <ul className="list-group">
-          {sorted.map(conversation => (
-            <li
-              key={conversation.id}
-              className={
-                'list-group-item' +
-                (conversation.id === this.state.selectedId ? ' active' : '')
-              }
-              role="button"
-              tabIndex="0"
-              onClick={() => this.selectConversation(conversation)}
-              onKeyPress={() => this.selectConversation(conversation)}
-            >
-              <div>
-                <strong>{conversationTitle(conversation, membersById)}</strong>
-                {conversation.isGroup && (
-                  <span className="badge badge-secondary ml-2">
-                    Group · {(conversation.participantIds || []).length}
-                  </span>
-                )}
-                {conversation.isBroadcast && (
-                  <span className="badge badge-warning ml-2">Broadcast</span>
-                )}
-                {conversation.isAnnouncement && (
-                  <span className="badge badge-info ml-2">Announcement</span>
-                )}
-              </div>
-              {conversation.lastMessage && (
+          {sorted.map(conversation => {
+            // Groups are named after the group, so the sender of the latest
+            // message would otherwise be invisible in this list.
+            const senderLabel = lastMessageSenderLabel(
+              conversation,
+              membersById,
+              viewerId,
+            );
+
+            return (
+              <li
+                key={conversation.id}
+                className={
+                  'list-group-item' +
+                  (conversation.id === this.state.selectedId ? ' active' : '')
+                }
+                role="button"
+                tabIndex="0"
+                onClick={() => this.selectConversation(conversation)}
+                onKeyPress={() => this.selectConversation(conversation)}
+              >
                 <div>
-                  <small>{conversation.lastMessage.text}</small>
+                  <strong>
+                    {conversationTitle(conversation, membersById)}
+                  </strong>
+                  {conversation.isGroup && (
+                    <span className="badge badge-secondary ml-2">
+                      Group · {(conversation.participantIds || []).length}
+                    </span>
+                  )}
+                  {conversation.isBroadcast && (
+                    <span className="badge badge-warning ml-2">Broadcast</span>
+                  )}
+                  {conversation.isAnnouncement && (
+                    <span className="badge badge-info ml-2">Announcement</span>
+                  )}
                 </div>
-              )}
-              <small>{when(conversation.updatedAt)}</small>
-            </li>
-          ))}
+                {conversation.lastMessage && (
+                  <div>
+                    <small>
+                      {senderLabel && <strong>{senderLabel}: </strong>}
+                      {conversation.lastMessage.text}
+                    </small>
+                  </div>
+                )}
+                <small>{when(conversation.updatedAt)}</small>
+              </li>
+            );
+          })}
         </ul>
       </React.Fragment>
     );

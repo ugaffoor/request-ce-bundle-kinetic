@@ -277,6 +277,35 @@ export const conversationTitle = (conversation, membersById) => {
 };
 
 /**
+ * Who sent a thread's most recent message, labelled for a list row.
+ *
+ * Only meaningful for a group. In a 1:1 the sender is either you or the person
+ * the row is already named after, so labelling it adds noise -- but a group row
+ * is named after the GROUP, which leaves the sender invisible: you can see that
+ * a message arrived without seeing who it came from.
+ *
+ * Returns null when there is nothing worth showing, so callers can render the
+ * message text alone.
+ */
+export const lastMessageSenderLabel = (conversation, membersById, viewerId) => {
+  if (!conversation || !conversation.isGroup || !conversation.lastMessage) {
+    return null;
+  }
+
+  const senderId = conversation.lastMessage.senderId;
+  if (!senderId) {
+    return null;
+  }
+
+  // Your own messages read oddly under your own name in a list.
+  if (viewerId && senderId === viewerId) {
+    return 'You';
+  }
+
+  return participantName(senderId, membersById);
+};
+
+/**
  * Collapses a conversation list into one entry per person.
  *
  * A single member normally has one thread per staff member, since the id is

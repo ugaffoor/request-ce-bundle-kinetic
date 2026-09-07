@@ -47,6 +47,13 @@ let stashedCredentials = null;
 // which only loads after authentication.
 let pendingToken = null;
 
+// Why the last token exchange failed, if it did. Without this a blocked
+// request is indistinguishable from never having tried, and both surface as
+// the same unhelpful "not signed in to Firebase".
+let lastTokenFailure = null;
+
+export const getLastTokenFailure = () => lastTokenFailure;
+
 // Which Kinetic login the current Firebase session belongs to. Persisted
 // because the Firebase session itself is persisted: without this, a session
 // minted for one user is silently reused by the next person to sign into the
@@ -131,22 +138,34 @@ export const requestFirebaseToken = async ({ userName, password }) => {
 
     if (!response.ok) {
       console.warn('[firebase] mintFirebaseToken HTTP', response.status);
+      lastTokenFailure = `the sign-in service refused the request (HTTP ${
+        response.status
+      })`;
       return null;
     }
 
     const { token, memberGuid } = await response.json();
     if (!token) {
       console.warn('[firebase] mintFirebaseToken returned no token');
+      lastTokenFailure = 'the sign-in service returned no token';
       return null;
     }
 
+    lastTokenFailure = null;
     pendingToken = token;
     rememberMintedFor(identityKey(spaceSlug, userName));
     return memberGuid || null;
   } catch (e) {
-    // Also the path taken when the browser blocks the request at the CORS
-    // preflight, which it will until mintFirebaseToken declares a cors option.
+    // fetch() rejects with a TypeError for anything that never reached the
+    // server: an extension blocking the request, DNS or TLS failure, or a
+    // CORS preflight that was refused. An ad blocker is much the most likely
+    // of those here, and it is invisible in the response -- so name it.
     console.warn('[firebase] mintFirebaseToken request failed', e);
+    lastTokenFailure =
+      `could not reach the sign-in service at ${FUNCTIONS_BASE_URL} ` +
+      `(${e && e.message ? e.message : e}). An ad or privacy blocker will ` +
+      `do this -- allow cloudfunctions.net and firestore.googleapis.com, ` +
+      `then sign out and in again`;
     return null;
   }
 };
@@ -239,7 +258,9 @@ export const describeMemberProfile = async uid => {
 export const describeAuthState = async () => {
   const uid = getSignedInUid();
   if (!uid) {
-    return 'not signed in to Firebase - sign out of GB Members and sign in again';
+    return lastTokenFailure
+      ? `not signed in to Firebase: ${lastTokenFailure}`
+      : 'not signed in to Firebase - sign out of GB Members and sign in again';
   }
   const claims = await getIdTokenClaims();
   if (!claims) {
