@@ -12,7 +12,7 @@
  * should stay a subset of what counts as staff there -- widening it here
  * would show the feature to someone whose every query is then refused.
  */
-export const CONVERSATION_ROLES = ['Role::Program Managers', 'Role::Kiosk'];
+export const CONVERSATION_ROLES = ['Role::Program Managers'];
 
 /**
  * Team membership only. Being a space admin does NOT grant access on its own

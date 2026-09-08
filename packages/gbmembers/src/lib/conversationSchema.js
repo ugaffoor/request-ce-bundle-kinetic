@@ -225,6 +225,38 @@ export const matchesConversationKind = (conversation, kind) =>
  */
 let membersByIdCache = null;
 
+/**
+ * Tiny Champions are the platform's youngest members, and messaging them is
+ * treated differently: a Tiny Champion is contacted through whoever pays for
+ * them, not directly.
+ *
+ * The definition matches TINY_CHAMPIONS in the app's functions/src/index.ts,
+ * which builds the safeguarding/{spaceSlug} index the security rules test
+ * against -- a member enrolled in the Tiny Champions program under any of
+ * their three program slots. Derived from the member record the portal
+ * already holds, so this needs no extra read.
+ */
+export const TINY_CHAMPIONS_PROGRAM = 'Tiny Champions';
+
+export const isTinyChampion = member =>
+  !!member &&
+  !!member.values &&
+  [
+    member.values['Ranking Program'],
+    member.values['Additional Program 1'],
+    member.values['Additional Program 2'],
+  ].indexOf(TINY_CHAMPIONS_PROGRAM) !== -1;
+
+/**
+ * The member who pays for this one, when they are a dependent. This is who
+ * should be contacted about a Tiny Champion.
+ */
+export const billingOwnerIdOf = member => {
+  const parent =
+    member && member.values && member.values['Billing Parent Member'];
+  return parent && parent !== member.id ? parent : null;
+};
+
 export const indexMembersById = allMembers => {
   const list = allMembers || [];
 

@@ -527,7 +527,7 @@ export class Conversations extends Component {
             <h4 className="title">Conversations</h4>
             <p>
               You do not have access to conversations. Ask a space admin to add
-              you to the Program Managers or Kiosk role.
+              you to the Program Managers role.
             </p>
           </div>
         </div>

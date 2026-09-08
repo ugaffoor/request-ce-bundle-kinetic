@@ -13,7 +13,11 @@ import {
   identityKey,
   FRANCHISE_DOMAIN,
 } from '../../lib/firebaseAuth';
-import { SEND_KINDS } from '../../lib/conversationSchema';
+import {
+  SEND_KINDS,
+  isTinyChampion,
+  billingOwnerIdOf,
+} from '../../lib/conversationSchema';
 import { removeExcludedMembers, matchesMemberFilter } from '../../utils/utils';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
@@ -56,7 +60,16 @@ const memberName = member => {
 const memberLabel = member => {
   const status = member.values['Status'];
   const name = memberName(member);
-  return status && status !== 'Active' ? `${name} (${status})` : name;
+  const parts = [];
+  if (status && status !== 'Active') {
+    parts.push(status);
+  }
+  // Shown so a coach can see who they are about to contact before sending,
+  // rather than the safeguarding rule living only in a rules file.
+  if (isTinyChampion(member)) {
+    parts.push('Tiny Champion');
+  }
+  return parts.length ? `${name} (${parts.join(', ')})` : name;
 };
 
 const byName = (a, b) => {
@@ -162,13 +175,33 @@ export class NewConversation extends Component {
       ? allMembers.filter(member => listOption.ids.includes(member.id))
       : allMembers;
 
+    const byId = {};
+    allMembers.forEach(member => {
+      byId[member.id] = member;
+    });
+
     const value = pool
       .slice()
       .sort(byName)
-      .map(member => ({
-        value: member.id,
-        label: memberLabel(member),
-      }));
+      .map(member => {
+        const tiny = isTinyChampion(member);
+        const ownerId = tiny ? billingOwnerIdOf(member) : null;
+        const owner = ownerId ? byId[ownerId] : null;
+        return {
+          value: member.id,
+          // A blocked option still says who to contact instead, so the rule
+          // is actionable at the point it stops someone rather than just
+          // refusing them.
+          label: tiny
+            ? `${memberLabel(member)}${
+                owner
+                  ? ` - contact ${memberName(owner)}`
+                  : ' - no billing owner on record'
+              }`
+            : memberLabel(member),
+          isTiny: tiny,
+        };
+      });
     this.studentOptionsCache = { allMembers, listOption, value };
     return value;
   }
@@ -205,6 +238,31 @@ export class NewConversation extends Component {
 
   isGroup() {
     return this.state.kind === SEND_KINDS.GROUP;
+  }
+
+  /**
+   * Selected Tiny Champions. A group is refused when this is non-empty: a
+   * group is irreversible once created -- every participant has already seen
+   * every other participant -- so this blocks rather than warns.
+   */
+  selectedTinyChampions() {
+    const byId = {};
+    this.props.allMembers.forEach(member => {
+      byId[member.id] = member;
+    });
+    return this.state.memberOptions
+      .map(option => byId[option.value])
+      .filter(isTinyChampion);
+  }
+
+  /** Who to contact instead: the payer on the account. */
+  billingOwnerNameFor(member) {
+    const ownerId = billingOwnerIdOf(member);
+    if (!ownerId) {
+      return null;
+    }
+    const owner = this.props.allMembers.find(m => m.id === ownerId);
+    return owner ? memberName(owner) : null;
   }
 
   handleSend = () => {
@@ -294,7 +352,7 @@ export class NewConversation extends Component {
               <h4 className="title">New Conversation</h4>
               <p>
                 You do not have access to conversations. Ask a space admin to
-                add you to the Program Managers or Kiosk role.
+                add you to the Program Managers role.
               </p>
             </div>
           </div>
@@ -307,6 +365,11 @@ export class NewConversation extends Component {
       (this.isAnnouncement() || this.state.memberOptions.length > 0) &&
       // A group without a name shows as a blank row in everyone's list.
       (!this.isGroup() || this.state.groupName.trim() !== '') &&
+      // Safeguarding: a Tiny Champion is contacted through whoever pays for
+      // them, never directly -- for any kind of send, not just groups. The
+      // picker disables them, so this only catches a selection that survived
+      // a change of list filter or send kind.
+      this.selectedTinyChampions().length === 0 &&
       this.state.message.trim() !== '' &&
       !this.props.sending &&
       !!this.senderId();
@@ -390,10 +453,37 @@ export class NewConversation extends Component {
                         isMulti={true}
                         isClearable={true}
                         closeMenuOnSelect={false}
+                        isOptionDisabled={option => option.isTiny}
                         noOptionsMessage={() => 'No matching students'}
                       />
+                      <small className="text-muted">
+                        Tiny Champions are listed but cannot be selected.
+                        Contact the person who pays for them instead.
+                      </small>
                     </div>
                   </React.Fragment>
+                )}
+                {this.selectedTinyChampions().length > 0 && (
+                  <div className="alert alert-danger">
+                    <strong>Tiny Champions cannot be messaged directly.</strong>
+                    <div>
+                      Remove them from the selection and contact the person who
+                      pays for them instead:
+                    </div>
+                    <ul className="mb-0">
+                      {this.selectedTinyChampions().map(member => {
+                        const owner = this.billingOwnerNameFor(member);
+                        return (
+                          <li key={member.id}>
+                            {memberName(member)} &mdash;{' '}
+                            {owner
+                              ? `contact ${owner}`
+                              : 'no billing owner on this record, check the member in GB Members'}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 )}
                 {this.isGroup() && (
                   <div className="form-group">
