@@ -177,9 +177,9 @@ export class Conversations extends Component {
     // it. firestore.rules enforces that -- broadcastWritable() permits a write
     // only from broadcastSender.
     //
-    // The recipient does NOT see it labelled as a broadcast: the BJJ Members
-    // app has no broadcast concept, so on their phone it is an ordinary thread
-    // from a staff member that they cannot reply to.
+    // The recipient does see it as a broadcast: the BJJ Members app hides
+    // staffBroadcast threads from Messages (MessagesScreen) and surfaces them
+    // as a "New broadcast" notification and in BroadcastInboxScreen instead.
     //
     // Announcements are the other feature and are NOT restricted here: a
     // student can reply to one and staff can answer back.

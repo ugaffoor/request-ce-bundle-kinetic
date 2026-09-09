@@ -274,9 +274,10 @@ function* deliverTo({
       // reply into it. That rule is the ONLY thing enforcing this -- the
       // portal hiding its reply box is a convenience, not a control.
       //
-      // The recipient sees an ordinary thread from a staff member: the BJJ
-      // Members app has no broadcast concept and never reads staffBroadcast,
-      // so nothing on their phone marks it as a broadcast.
+      // The BJJ Members app reads staffBroadcast: it hides these threads from
+      // the recipient's Messages list and surfaces them as a broadcast
+      // notification, readable in BroadcastInboxScreen. The app can post
+      // broadcasts too, via the Repliable toggle on its Announcements screen.
       //
       // Named staffBroadcast because `broadcast` on a MESSAGE means something
       // else entirely -- a fanned-out announcement delivery.
