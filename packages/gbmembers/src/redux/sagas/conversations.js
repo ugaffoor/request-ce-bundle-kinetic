@@ -17,6 +17,7 @@ import { describeAuthState } from '../../lib/firebaseAuth';
 import {
   announcementThreadId,
   announcementThreadName,
+  announcementCopyId,
   conversationId,
   broadcastConversationId,
   SEND_KINDS,
@@ -189,15 +190,18 @@ function* deliverTo({
   text,
   existingConversationId,
   broadcast,
+  announcementCopy,
 }) {
-  // A broadcast MUST NOT resolve to the 1:1 pair id: that is the same
-  // document as the member's ordinary conversation, and the merge below would
-  // rewrite their existing chat into a broadcast.
+  // Neither a broadcast nor an announcement copy may resolve to the 1:1 pair
+  // id: that is the same document as the member's ordinary conversation, and
+  // the merge below would rewrite their existing chat into something else.
   const id =
     existingConversationId ||
     (broadcast
       ? broadcastConversationId(memberId, staffId)
-      : conversationId(memberId, staffId));
+      : announcementCopy
+        ? announcementCopyId(memberId, staffId)
+        : conversationId(memberId, staffId));
 
   // Only when starting a thread. Replying into an existing one must not
   // touch the conversation document: merging staffChat/participantIds onto
@@ -213,12 +217,25 @@ function* deliverTo({
       conversation.spaceSlug = spaceSlug;
     }
     if (broadcast) {
-      // One-way: the recipient sees it in Notifications, not Messages, and
-      // broadcastWritable() in firestore.rules stops them replying. Named
-      // staffBroadcast because `broadcast` on a MESSAGE means something else
-      // entirely -- a fanned-out announcement delivery.
+      // One-way: broadcastWritable() in firestore.rules permits a write only
+      // from broadcastSender, so a recipient can read the thread but not
+      // reply into it. That rule is the ONLY thing enforcing this -- the
+      // portal hiding its reply box is a convenience, not a control.
+      //
+      // The recipient sees an ordinary thread from a staff member: the BJJ
+      // Members app has no broadcast concept and never reads staffBroadcast,
+      // so nothing on their phone marks it as a broadcast.
+      //
+      // Named staffBroadcast because `broadcast` on a MESSAGE means something
+      // else entirely -- a fanned-out announcement delivery.
       conversation.staffBroadcast = true;
       conversation.broadcastSender = staffId;
+    }
+    if (announcementCopy) {
+      // Marks the thread as an announcement so the portal labels it as one.
+      // Unlike a broadcast it is NOT one-way: staffChat above lets the member
+      // reply, which is the documented difference between the two.
+      conversation.announcementCopy = true;
     }
 
     yield call(setDoc, doc(store, CONVERSATIONS_COLLECTION, id), conversation, {
@@ -349,13 +366,16 @@ export function* sendMessage({ payload } = {}) {
 
   const isAnnouncement = kind === SEND_KINDS.ANNOUNCEMENT;
 
+  // An announcement can be aimed at chosen members or at the whole school.
+  // With recipients it fans out as one thread each; without, it goes to the
+  // school's single announcement thread, which needs to know which school.
+  const isSchoolWideAnnouncement = isAnnouncement && recipients.length < 1;
+
   if (
     !store ||
     !text ||
     !staffId ||
-    // An announcement is addressed to the whole school, so it needs no
-    // recipients -- but it does need to know which school.
-    (isAnnouncement && (!spaceSlug || !domain)) ||
+    (isSchoolWideAnnouncement && (!spaceSlug || !domain)) ||
     (!isAnnouncement && !existingConversationId && recipients.length < 1)
   ) {
     yield put(
@@ -367,7 +387,7 @@ export function* sendMessage({ payload } = {}) {
   yield put(actions.setSending(true));
 
   try {
-    if (kind === SEND_KINDS.ANNOUNCEMENT) {
+    if (isSchoolWideAnnouncement) {
       yield call(deliverAnnouncement, {
         store,
         staffId,
@@ -414,6 +434,10 @@ export function* sendMessage({ payload } = {}) {
             spaceSlug,
             text,
             broadcast: kind === SEND_KINDS.BROADCAST,
+            // A targeted announcement is delivered per member rather than to
+            // the school thread, so the audience stays private and each
+            // recipient can reply in their own thread.
+            announcementCopy: isAnnouncement,
           });
         } catch (e) {
           failures.push(`${recipients[i]}: ${e.message || String(e)}`);
@@ -421,27 +445,40 @@ export function* sendMessage({ payload } = {}) {
       }
 
       if (failures.length) {
+        const summary =
+          `Sent to ${recipients.length - failures.length} of ` +
+          `${recipients.length}. Failed: ${failures.join('; ')}`;
+
+        // Report BEFORE running diagnostics. setSendError is what clears
+        // `sending`, and describeAuthState() does a Firestore read that can
+        // hang after a permission failure -- reporting afterwards leaves the
+        // Send button disabled with no way back.
+        yield put(actions.setSendError(summary));
         const detail = yield call(describeAuthState);
-        yield put(
-          actions.setSendError(
-            `Sent to ${recipients.length - failures.length} of ` +
-              `${recipients.length}. Failed: ${failures.join(
-                '; ',
-              )} (${detail})`,
-          ),
-        );
+        yield put(actions.setSendError(`${summary} (${detail})`));
         return;
       }
     }
 
     yield put(actions.messageSent(Date.now()));
   } catch (e) {
+    // Naming the kind matters: the four send paths write very different
+    // documents, and a rules rejection on one says nothing about the others.
+    const base = `${kind || SEND_KINDS.CONVERSATION}: ${e.message ||
+      String(e)}`;
+
+    // Report BEFORE running diagnostics. setSendError is what clears
+    // `sending`, and describeAuthState() does a Firestore read that can hang
+    // after a permission failure -- reporting afterwards leaves the Send
+    // button disabled for the rest of the session with no way back.
+    yield put(actions.setSendError(base));
+
     // permission-denied covers three different situations that look
     // identical: no session, a session whose token has lost the staff claim,
     // and a genuine rules rejection. Name which one, or this points everyone
     // at the rules regardless of cause.
     const detail = yield call(describeAuthState);
-    yield put(actions.setSendError(`${e.message || String(e)} (${detail})`));
+    yield put(actions.setSendError(`${base} (${detail})`));
   }
 }
 

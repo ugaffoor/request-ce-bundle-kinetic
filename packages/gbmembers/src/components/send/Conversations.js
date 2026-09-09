@@ -172,9 +172,13 @@ export class Conversations extends Component {
     }
 
     // A broadcast is one-way by design: the same message sent to several
-    // members in separate threads, which the recipient sees in Notifications
-    // rather than as a chat. firestore.rules enforces it -- broadcastWritable()
-    // rejects a write from anyone but the original sender.
+    // members in separate threads, so no recipient learns who else received
+    // it. firestore.rules enforces that -- broadcastWritable() permits a write
+    // only from broadcastSender.
+    //
+    // The recipient does NOT see it labelled as a broadcast: the BJJ Members
+    // app has no broadcast concept, so on their phone it is an ordinary thread
+    // from a staff member that they cannot reply to.
     //
     // Announcements are the other feature and are NOT restricted here: a
     // student can reply to one and staff can answer back.

@@ -107,6 +107,28 @@ export const announcementThreadId = (spaceSlug, domain) =>
 export const announcementThreadName = spaceSlug =>
   `${String(spaceSlug || '').trim()} Announcements`;
 
+/**
+ * A per-member announcement delivery.
+ *
+ * An announcement aimed at particular members is delivered as one thread per
+ * recipient rather than to the school-wide thread: the audience is a chosen
+ * few, and nobody should learn who else received it. Each copy therefore
+ * carries real participantIds -- which is also why this path works under the
+ * current security rules while the school-wide thread does not.
+ *
+ * Its own id namespace, for the same reason broadcasts have one: reusing the
+ * 1:1 pair id would resolve to the member's ordinary conversation and rewrite
+ * it into an announcement.
+ *
+ * Distinct from ANNOUNCEMENT_ID_PREFIX ('announcements_') on purpose -- these
+ * are copies, not the school thread, and nothing should mistake one for the
+ * other by prefix.
+ */
+export const ANNOUNCEMENT_COPY_ID_PREFIX = 'announcementcopy_';
+
+export const announcementCopyId = (memberId, staffId) =>
+  ANNOUNCEMENT_COPY_ID_PREFIX + [memberId, staffId].sort().join('_');
+
 /** The three things this page can send. */
 export const SEND_KINDS = {
   CONVERSATION: 'conversation',

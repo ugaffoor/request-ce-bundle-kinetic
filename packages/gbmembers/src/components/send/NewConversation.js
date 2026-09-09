@@ -271,9 +271,10 @@ export class NewConversation extends Component {
       return;
     }
 
-    // An announcement goes to the school's own thread, so it takes no
-    // recipients at all -- picking students for one would be misleading.
-    if (this.isAnnouncement()) {
+    // With nobody selected an announcement goes to the school's own thread.
+    // Select members and it fans out to them instead (below), so the audience
+    // stays private and each recipient can reply in their own thread.
+    if (this.isAnnouncement() && this.state.memberOptions.length < 1) {
       this.props.sendMessage({
         kind: SEND_KINDS.ANNOUNCEMENT,
         staffId: senderId,
@@ -296,6 +297,7 @@ export class NewConversation extends Component {
       memberIds: this.state.memberOptions.map(option => option.value),
       staffId: senderId,
       spaceSlug: this.props.spaceSlug,
+      domain: FRANCHISE_DOMAIN,
       text: this.state.message.trim(),
     });
   };
@@ -414,55 +416,56 @@ export class NewConversation extends Component {
                   </select>
                   {this.isAnnouncement() && (
                     <small className="text-muted">
-                      Goes to every member of {this.props.spaceSlug}, so there
-                      is no one to pick.
+                      {this.state.memberOptions.length > 0
+                        ? 'Goes to the members selected below, each in their own thread, so nobody sees who else received it.'
+                        : `Leave the selection empty to post to every member of ${
+                            this.props.spaceSlug
+                          }.`}
                     </small>
                   )}
                 </div>
-                {!this.isAnnouncement() && (
-                  <React.Fragment>
-                    <div className="form-group">
-                      <label htmlFor="conversation-list">
-                        Filter by list <small>(optional)</small>
-                      </label>
-                      <Select
-                        inputId="conversation-list"
-                        value={this.state.listOption}
-                        onChange={this.handleListChange}
-                        options={this.getListOptions()}
-                        placeholder="All members"
-                        isClearable={true}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="conversation-student">
-                        Students{' '}
-                        <small>
-                          ({this.state.memberOptions.length} selected of{' '}
-                          {studentOptions.length} available)
-                        </small>
-                      </label>
-                      <Select
-                        inputId="conversation-student"
-                        value={this.state.memberOptions}
-                        onChange={memberOptions =>
-                          this.setState({ memberOptions: memberOptions || [] })
-                        }
-                        options={studentOptions}
-                        placeholder="Search for students by name"
-                        isMulti={true}
-                        isClearable={true}
-                        closeMenuOnSelect={false}
-                        isOptionDisabled={option => option.isTiny}
-                        noOptionsMessage={() => 'No matching students'}
-                      />
-                      <small className="text-muted">
-                        Tiny Champions are listed but cannot be selected.
-                        Contact the person who pays for them instead.
+                <React.Fragment>
+                  <div className="form-group">
+                    <label htmlFor="conversation-list">
+                      Filter by list <small>(optional)</small>
+                    </label>
+                    <Select
+                      inputId="conversation-list"
+                      value={this.state.listOption}
+                      onChange={this.handleListChange}
+                      options={this.getListOptions()}
+                      placeholder="All members"
+                      isClearable={true}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="conversation-student">
+                      Students{' '}
+                      <small>
+                        ({this.state.memberOptions.length} selected of{' '}
+                        {studentOptions.length} available)
                       </small>
-                    </div>
-                  </React.Fragment>
-                )}
+                    </label>
+                    <Select
+                      inputId="conversation-student"
+                      value={this.state.memberOptions}
+                      onChange={memberOptions =>
+                        this.setState({ memberOptions: memberOptions || [] })
+                      }
+                      options={studentOptions}
+                      placeholder="Search for students by name"
+                      isMulti={true}
+                      isClearable={true}
+                      closeMenuOnSelect={false}
+                      isOptionDisabled={option => option.isTiny}
+                      noOptionsMessage={() => 'No matching students'}
+                    />
+                    <small className="text-muted">
+                      Tiny Champions are listed but cannot be selected. Contact
+                      the person who pays for them instead.
+                    </small>
+                  </div>
+                </React.Fragment>
                 {this.selectedTinyChampions().length > 0 && (
                   <div className="alert alert-danger">
                     <strong>Tiny Champions cannot be messaged directly.</strong>
