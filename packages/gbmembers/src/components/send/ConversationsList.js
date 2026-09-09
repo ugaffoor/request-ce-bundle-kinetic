@@ -9,6 +9,7 @@ import { initialiseFirebase } from '../../lib/firebase';
 import {
   ensureFirebaseSignIn,
   identityKey,
+  FRANCHISE_DOMAIN,
 } from '../../lib/firebaseAuth';
 import {
   indexMembersById,
@@ -263,7 +264,13 @@ export const ConversationsListContainer = compose(
           // who has a member record. The rules compare against
           // request.auth.uid, so filtering on anything else returns documents
           // the rule then refuses, surfacing as permission-denied.
-          this.props.subscribeConversations({ participantId: uid });
+          // spaceSlug and domain let the saga also follow the school's
+          // announcement thread, which no participant query can return.
+          this.props.subscribeConversations({
+            participantId: uid,
+            spaceSlug: this.props.spaceSlug,
+            domain: FRANCHISE_DOMAIN,
+          });
         })
         .catch(e => {
           this.props.setConversationsError(

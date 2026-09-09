@@ -17,7 +17,6 @@ import { describeAuthState } from '../../lib/firebaseAuth';
 import {
   announcementThreadId,
   announcementThreadName,
-  announcementCopyId,
   conversationId,
   broadcastConversationId,
   SEND_KINDS,
@@ -131,6 +130,62 @@ export function* watchConversationSnapshots({ payload } = {}) {
   }
 }
 
+/**
+ * The school's single announcement thread.
+ *
+ * Followed by id rather than by query: it deliberately carries no
+ * participantIds, and the conversation query matches on participation, so no
+ * query can ever return it. Without this listener the thread is written and
+ * protected correctly but never appears anywhere.
+ *
+ * Failures are deliberately swallowed. A school that has never posted an
+ * announcement has no such document, and rules that do not yet permit reading
+ * one are a deployment state rather than a bug -- neither should take the rest
+ * of the conversation list down with it.
+ */
+export function* watchAnnouncementThread({ payload } = {}) {
+  const store = getConversationStore();
+  const spaceSlug = payload && payload.spaceSlug;
+  const domain = payload && payload.domain;
+  const viewerId = payload && payload.participantId;
+
+  if (!store || !spaceSlug || !domain) {
+    return;
+  }
+
+  const channel = yield call(
+    registerSnapshotChannel,
+    doc(
+      store,
+      CONVERSATIONS_COLLECTION,
+      announcementThreadId(spaceSlug, domain),
+    ),
+    snapshot =>
+      snapshot.exists()
+        ? normaliseConversation(snapshot.id, snapshot.data(), viewerId)
+        : null,
+  );
+
+  try {
+    while (true) {
+      const event = yield take(channel);
+      if (event.error) {
+        console.warn(
+          '[conversations] announcement thread unavailable',
+          event.error,
+        );
+        yield put(actions.setAnnouncementThread(null));
+      } else {
+        yield put(actions.setAnnouncementThread(event.data));
+      }
+    }
+  } finally {
+    if (yield cancelled()) {
+      channel.close();
+    }
+  }
+}
+
 export function* watchMessageSnapshots({ payload } = {}) {
   const store = getConversationStore();
 
@@ -190,18 +245,15 @@ function* deliverTo({
   text,
   existingConversationId,
   broadcast,
-  announcementCopy,
 }) {
-  // Neither a broadcast nor an announcement copy may resolve to the 1:1 pair
-  // id: that is the same document as the member's ordinary conversation, and
-  // the merge below would rewrite their existing chat into something else.
+  // A broadcast MUST NOT resolve to the 1:1 pair id: that is the same
+  // document as the member's ordinary conversation, and the merge below would
+  // rewrite their existing chat into a broadcast.
   const id =
     existingConversationId ||
     (broadcast
       ? broadcastConversationId(memberId, staffId)
-      : announcementCopy
-        ? announcementCopyId(memberId, staffId)
-        : conversationId(memberId, staffId));
+      : conversationId(memberId, staffId));
 
   // Only when starting a thread. Replying into an existing one must not
   // touch the conversation document: merging staffChat/participantIds onto
@@ -230,12 +282,6 @@ function* deliverTo({
       // else entirely -- a fanned-out announcement delivery.
       conversation.staffBroadcast = true;
       conversation.broadcastSender = staffId;
-    }
-    if (announcementCopy) {
-      // Marks the thread as an announcement so the portal labels it as one.
-      // Unlike a broadcast it is NOT one-way: staffChat above lets the member
-      // reply, which is the documented difference between the two.
-      conversation.announcementCopy = true;
     }
 
     yield call(setDoc, doc(store, CONVERSATIONS_COLLECTION, id), conversation, {
@@ -366,16 +412,13 @@ export function* sendMessage({ payload } = {}) {
 
   const isAnnouncement = kind === SEND_KINDS.ANNOUNCEMENT;
 
-  // An announcement can be aimed at chosen members or at the whole school.
-  // With recipients it fans out as one thread each; without, it goes to the
-  // school's single announcement thread, which needs to know which school.
-  const isSchoolWideAnnouncement = isAnnouncement && recipients.length < 1;
-
   if (
     !store ||
     !text ||
     !staffId ||
-    (isSchoolWideAnnouncement && (!spaceSlug || !domain)) ||
+    // An announcement is addressed to the whole school, so it needs no
+    // recipients -- but it does need to know which school.
+    (isAnnouncement && (!spaceSlug || !domain)) ||
     (!isAnnouncement && !existingConversationId && recipients.length < 1)
   ) {
     yield put(
@@ -387,7 +430,7 @@ export function* sendMessage({ payload } = {}) {
   yield put(actions.setSending(true));
 
   try {
-    if (isSchoolWideAnnouncement) {
+    if (kind === SEND_KINDS.ANNOUNCEMENT) {
       yield call(deliverAnnouncement, {
         store,
         staffId,
@@ -434,10 +477,6 @@ export function* sendMessage({ payload } = {}) {
             spaceSlug,
             text,
             broadcast: kind === SEND_KINDS.BROADCAST,
-            // A targeted announcement is delivered per member rather than to
-            // the school thread, so the audience stays private and each
-            // recipient can reply in their own thread.
-            announcementCopy: isAnnouncement,
           });
         } catch (e) {
           failures.push(`${recipients[i]}: ${e.message || String(e)}`);
@@ -484,6 +523,9 @@ export function* sendMessage({ payload } = {}) {
 
 export function* watchConversations() {
   yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchConversationSnapshots);
+  // Same action, second listener: the announcement thread is fetched by id
+  // because no participant query can reach it.
+  yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchAnnouncementThread);
   yield takeEvery(types.SUBSCRIBE_MESSAGES, watchMessageSnapshots);
   yield takeEvery(types.SEND_MESSAGE, sendMessage);
 }

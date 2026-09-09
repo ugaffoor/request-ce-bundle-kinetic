@@ -16,6 +16,13 @@ export const types = {
     'conversations',
     'SET_CONVERSATIONS_ERROR',
   ),
+  // The school's single announcement thread, which arrives on its own
+  // listener: it carries no participantIds, so the conversation query -- which
+  // matches on participation -- can never return it.
+  SET_ANNOUNCEMENT_THREAD: namespace(
+    'conversations',
+    'SET_ANNOUNCEMENT_THREAD',
+  ),
   // Live listener over the messages inside one conversation.
   SUBSCRIBE_MESSAGES: namespace('conversations', 'SUBSCRIBE_MESSAGES'),
   SET_MESSAGES: namespace('conversations', 'SET_MESSAGES'),
@@ -33,6 +40,8 @@ export const actions = {
   unsubscribeConversations: noPayload(types.UNSUBSCRIBE_CONVERSATIONS),
   setConversations: withPayload(types.SET_CONVERSATIONS),
   setConversationsError: withPayload(types.SET_CONVERSATIONS_ERROR),
+  // The announcement thread, or null when the school has none.
+  setAnnouncementThread: withPayload(types.SET_ANNOUNCEMENT_THREAD),
   // Pass { conversationId }.
   subscribeMessages: withPayload(types.SUBSCRIBE_MESSAGES),
   setMessages: withPayload(types.SET_MESSAGES),
@@ -47,7 +56,12 @@ export const actions = {
 export const State = Record({
   loading: true,
   error: null,
+  // What every screen reads. Built from the two sources below.
   data: List(),
+  // Kept apart so either listener can update without discarding the other's
+  // result: they arrive independently and at different times.
+  participantConversations: List(),
+  announcementThread: null,
   messagesLoading: true,
   messagesError: null,
   messages: List(),
@@ -57,15 +71,36 @@ export const State = Record({
   lastSentAt: null,
 });
 
+/**
+ * Rebuilds `data` from its two sources.
+ *
+ * The school's announcement thread cannot come back from the conversation
+ * query -- that query matches on participantIds and the thread deliberately
+ * has none -- so it is listened to separately and stitched in here. Screens
+ * then filter and sort `data` as before, with no knowledge of the split.
+ */
+const withMergedData = state => {
+  const participant = state.get('participantConversations');
+  const announcement = state.get('announcementThread');
+  return state.set(
+    'data',
+    announcement ? participant.push(announcement) : participant,
+  );
+};
+
 export const reducer = (state = State(), { type, payload }) => {
   switch (type) {
     case types.SUBSCRIBE_CONVERSATIONS:
       return state.set('loading', true).set('error', null);
     case types.SET_CONVERSATIONS:
-      return state
-        .set('loading', false)
-        .set('error', null)
-        .set('data', List(payload));
+      return withMergedData(
+        state
+          .set('loading', false)
+          .set('error', null)
+          .set('participantConversations', List(payload)),
+      );
+    case types.SET_ANNOUNCEMENT_THREAD:
+      return withMergedData(state.set('announcementThread', payload || null));
     case types.SET_CONVERSATIONS_ERROR:
       return state.set('loading', false).set('error', payload);
     case types.UNSUBSCRIBE_CONVERSATIONS:
