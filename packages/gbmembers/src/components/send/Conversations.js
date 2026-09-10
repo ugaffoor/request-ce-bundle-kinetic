@@ -4,6 +4,7 @@ import { compose, lifecycle } from 'recompose';
 import moment from 'moment';
 import ReactSpinner from 'react16-spinjs';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { confirm } from '../helpers/Confirmation';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { actions as memberActions } from '../../redux/modules/members';
 import { canUseConversations } from '../../lib/conversationAccess';
@@ -20,6 +21,7 @@ import {
   participantName,
   conversationTitle,
   lastMessageSenderLabel,
+  isConversationCleared,
   matchesConversationKind,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
@@ -40,6 +42,8 @@ const mapStateToProps = state => ({
   sending: state.member.conversations.sending,
   sendError: state.member.conversations.sendError,
   lastSentAt: state.member.conversations.lastSentAt,
+  deletingId: state.member.conversations.deletingId,
+  deleteError: state.member.conversations.deleteError,
 });
 
 const mapDispatchToProps = {
@@ -47,6 +51,8 @@ const mapDispatchToProps = {
   subscribeMessages: conversationActions.subscribeMessages,
   setConversationsError: conversationActions.setConversationsError,
   sendMessage: conversationActions.sendMessage,
+  deleteMessage: conversationActions.deleteMessage,
+  clearConversation: conversationActions.clearConversation,
   fetchMembers: memberActions.fetchMembers,
 };
 
@@ -264,6 +270,9 @@ export class Conversations extends Component {
 
     const sorted = conversations
       .toArray()
+      // Threads this viewer removed stay hidden until something newer
+      // arrives, matching how the app treats them.
+      .filter(conversation => !isConversationCleared(conversation))
       .filter(conversation =>
         matchesConversationKind(conversation, this.state.kind),
       )
@@ -401,6 +410,105 @@ export class Conversations extends Component {
     );
   }
 
+  /**
+   * Withdrawing applies to announcements and broadcasts only: those are
+   * published outward, and a mistake in one is worth taking back. An ordinary
+   * chat message is half of a two-way conversation the student has already
+   * read and may have answered -- removing it would leave a gap in something
+   * they can still see.
+   */
+  canRemove(conversation, message) {
+    if (!conversation || !message || message.deleted) {
+      return false;
+    }
+    // Only your own messages. The rules decide this too, but offering a
+    // control that always fails is worse than not offering it.
+    return message.senderId === getSignedInUid();
+  }
+
+  /**
+   * Sits above the thread rather than in the group header, which only renders
+   * for groups -- a 1:1 chat needs removing just as much.
+   */
+  renderThreadActions() {
+    if (!this.getSelectedConversation()) {
+      return null;
+    }
+    return (
+      <div className="text-right mb-2">
+        <button
+          type="button"
+          className="btn btn-link btn-sm p-0"
+          onClick={this.removeConversation}
+        >
+          <small>Remove from my list</small>
+        </button>
+      </div>
+    );
+  }
+
+  removeConversation = async () => {
+    const conversation = this.getSelectedConversation();
+    const viewerId = getSignedInUid();
+    if (!conversation || !viewerId) {
+      return;
+    }
+
+    const confirmed = await confirm(
+      <span>
+        <span>
+          This removes the thread from <strong>your</strong> list only &mdash;
+          the other person keeps it and sees no change. It comes back if they
+          send something new.
+        </span>
+      </span>,
+      'Remove from my list',
+      'Cancel',
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.props.clearConversation({
+      conversationId: conversation.id,
+      viewerId,
+    });
+    this.setState({ selectedId: null, reply: '', failed: [] });
+  };
+
+  removeMessage = async message => {
+    const conversation = this.getSelectedConversation();
+    // Only the school's OWN thread may be hard-deleted -- that is what
+    // triggers the fan-out cleanup. A delivered copy is not
+    // `announcement: true`, so the same delete is refused; it gets a
+    // tombstone like any other message.
+    const announcement = !!(conversation && conversation.isAnnouncementThread);
+
+    const confirmed = await confirm(
+      <span>
+        <span>
+          {announcement
+            ? 'This announcement will be withdrawn from everyone who received it.'
+            : 'This message will be removed for everyone. They will see "Message deleted" in its place.'}{' '}
+          It cannot be restored.
+        </span>
+      </span>,
+      announcement ? 'Withdraw announcement' : 'Remove message',
+      'Cancel',
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.props.deleteMessage({
+      conversationId: this.state.selectedId,
+      messageId: message.id,
+      // Announcements are deleted outright so the fan-out copies go too;
+      // everything else leaves a tombstone.
+      announcement,
+    });
+  };
+
   renderThread(membersById) {
     const { messages, messagesLoading, messagesError } = this.props;
 
@@ -430,6 +538,7 @@ export class Conversations extends Component {
       );
     }
 
+    const selectedConversation = this.getSelectedConversation();
     const username = this.props.profile && this.props.profile.username;
     const senderName =
       username && this.props.spaceSlug
@@ -442,6 +551,12 @@ export class Conversations extends Component {
     return (
       <React.Fragment>
         {this.renderGroupHeader(membersById)}
+        {this.props.deleteError && (
+          <div className="alert alert-danger">
+            <strong>Could not remove that.</strong>
+            <div>{this.props.deleteError}</div>
+          </div>
+        )}
         <ul className="list-unstyled">
           {messages.toArray().map(message => (
             <li key={message.id} className="mb-3">
@@ -450,8 +565,28 @@ export class Conversations extends Component {
                   {participantName(message.senderId, membersById)}
                 </strong>{' '}
                 <small>{when(message.createdAt)}</small>
+                {this.canRemove(selectedConversation, message) && (
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm p-0 ml-2"
+                    disabled={this.props.deletingId === message.id}
+                    onClick={() => this.removeMessage(message)}
+                  >
+                    <small>
+                      {this.props.deletingId === message.id
+                        ? 'Removing...'
+                        : 'Remove'}
+                    </small>
+                  </button>
+                )}
               </div>
-              <div>{message.text}</div>
+              <div>
+                {message.deleted ? (
+                  <em className="text-muted">Message deleted</em>
+                ) : (
+                  message.text
+                )}
+              </div>
             </li>
           ))}
 
@@ -508,6 +643,7 @@ export class Conversations extends Component {
             <div className="row">
               <div className="col-md-4">{this.renderList(membersById)}</div>
               <div className="col-md-8">
+                {this.state.selectedId && this.renderThreadActions()}
                 {this.renderThread(membersById)}
                 {this.state.selectedId && this.renderComposer()}
               </div>

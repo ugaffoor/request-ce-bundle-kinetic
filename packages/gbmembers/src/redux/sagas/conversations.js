@@ -3,7 +3,9 @@ import { call, cancelled, put, take, takeEvery } from 'redux-saga/effects';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
+  updateDoc,
   onSnapshot,
   orderBy,
   query,
@@ -522,6 +524,96 @@ export function* sendMessage({ payload } = {}) {
   }
 }
 
+/**
+ * Withdraws one message that has already been posted.
+ *
+ * Deleting the document is the whole action -- the Cloud Functions in the BJJ
+ * Members project pick it up from there (onAnnouncementDeleted removes the
+ * per-member copies that were fanned out). Nothing else is written here.
+ *
+ * Only meaningful for announcements and broadcasts: an ordinary chat message
+ * is part of a two-way conversation the student can see and answer, so
+ * removing it half-way through would leave them reading a gap.
+ */
+export function* deleteMessage({ payload } = {}) {
+  const store = getConversationStore();
+  const { conversationId: id, messageId, announcement } = payload || {};
+
+  if (!store || !id || !messageId) {
+    yield put(actions.setDeleteError('Cannot remove: nothing to remove.'));
+    return;
+  }
+
+  yield put(actions.setDeleting(messageId));
+
+  const ref = doc(
+    store,
+    CONVERSATIONS_COLLECTION,
+    id,
+    MESSAGES_SUBCOLLECTION,
+    messageId,
+  );
+
+  try {
+    if (announcement) {
+      // Announcements come out entirely: deleting the post is what triggers
+      // onAnnouncementDeleted, which withdraws every delivered copy. A
+      // tombstone here would leave those copies in place.
+      yield call(deleteDoc, ref);
+    } else {
+      // Everywhere else, leave a tombstone both clients render as "Message
+      // deleted" -- the other person should see that something was removed
+      // rather than the thread quietly changing shape. text is cleared in the
+      // same write, which firestore.rules requires.
+      yield call(updateDoc, ref, { deleted: true, text: '' });
+    }
+    // The snapshot listener updates the row on its own, so there is nothing
+    // to do here beyond clearing the pending state.
+    yield put(actions.setDeleting(null));
+  } catch (e) {
+    const detail = yield call(describeAuthState);
+    yield put(actions.setDeleteError(`${e.message || String(e)} (${detail})`));
+  }
+}
+
+/**
+ * Removes a thread from THIS viewer's list only.
+ *
+ * Stamps their clearedAt and zeroes their unread badge, exactly as
+ * clearConversationForMe() does in the app. Everything up to now is hidden
+ * from them and the thread drops out of their list -- until someone sends a
+ * newer message, which brings it back with only the new messages showing. The
+ * other participant sees no change at all.
+ *
+ * Deliberately not a delete: the conversation belongs to both sides, and one
+ * person tidying their own list should not destroy the other's history.
+ */
+export function* clearConversation({ payload } = {}) {
+  const store = getConversationStore();
+  const { conversationId: id, viewerId } = payload || {};
+
+  if (!store || !id || !viewerId) {
+    yield put(actions.setDeleteError('Cannot remove: nothing to remove.'));
+    return;
+  }
+
+  try {
+    yield call(
+      setDoc,
+      doc(store, CONVERSATIONS_COLLECTION, id),
+      {
+        [CONVERSATION_FIELDS.participantsMeta]: {
+          [viewerId]: { clearedAt: serverTimestamp(), unreadCount: 0 },
+        },
+      },
+      { merge: true },
+    );
+  } catch (e) {
+    const detail = yield call(describeAuthState);
+    yield put(actions.setDeleteError(`${e.message || String(e)} (${detail})`));
+  }
+}
+
 export function* watchConversations() {
   yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchConversationSnapshots);
   // Same action, second listener: the announcement thread is fetched by id
@@ -529,4 +621,6 @@ export function* watchConversations() {
   yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchAnnouncementThread);
   yield takeEvery(types.SUBSCRIBE_MESSAGES, watchMessageSnapshots);
   yield takeEvery(types.SEND_MESSAGE, sendMessage);
+  yield takeEvery(types.DELETE_MESSAGE, deleteMessage);
+  yield takeEvery(types.CLEAR_CONVERSATION, clearConversation);
 }

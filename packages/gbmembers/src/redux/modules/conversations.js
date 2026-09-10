@@ -32,6 +32,12 @@ export const types = {
   SET_SENDING: namespace('conversations', 'SET_SENDING'),
   SET_SEND_ERROR: namespace('conversations', 'SET_SEND_ERROR'),
   MESSAGE_SENT: namespace('conversations', 'MESSAGE_SENT'),
+  // Withdrawing a post that has already gone out.
+  DELETE_MESSAGE: namespace('conversations', 'DELETE_MESSAGE'),
+  SET_DELETING: namespace('conversations', 'SET_DELETING'),
+  SET_DELETE_ERROR: namespace('conversations', 'SET_DELETE_ERROR'),
+  // Removing a whole thread from this viewer's list.
+  CLEAR_CONVERSATION: namespace('conversations', 'CLEAR_CONVERSATION'),
 };
 
 export const actions = {
@@ -51,6 +57,12 @@ export const actions = {
   setSending: withPayload(types.SET_SENDING),
   setSendError: withPayload(types.SET_SEND_ERROR),
   messageSent: withPayload(types.MESSAGE_SENT),
+  // Pass { conversationId, messageId }.
+  deleteMessage: withPayload(types.DELETE_MESSAGE),
+  setDeleting: withPayload(types.SET_DELETING),
+  setDeleteError: withPayload(types.SET_DELETE_ERROR),
+  // Pass { conversationId, viewerId }.
+  clearConversation: withPayload(types.CLEAR_CONVERSATION),
 };
 
 export const State = Record({
@@ -69,6 +81,10 @@ export const State = Record({
   sendError: null,
   // Bumped on each successful send so the composer knows to clear itself.
   lastSentAt: null,
+  // The message currently being withdrawn, so only its own row shows a
+  // pending state rather than the whole thread locking up.
+  deletingId: null,
+  deleteError: null,
 });
 
 /**
@@ -123,6 +139,10 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('sending', false)
         .set('sendError', null)
         .set('lastSentAt', payload);
+    case types.SET_DELETING:
+      return state.set('deletingId', payload).set('deleteError', null);
+    case types.SET_DELETE_ERROR:
+      return state.set('deletingId', null).set('deleteError', payload);
     default:
       return state;
   }

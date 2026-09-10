@@ -138,6 +138,22 @@ export const isAnnouncementConversation = (id, participantIds, data) =>
   !!(data && (data.announcement || data.announcementCopy));
 
 /**
+ * The school's own announcement thread, as opposed to a per-member delivery.
+ *
+ * Both share the `announcements_` id prefix -- a copy is the thread id with
+ * the member's guid appended -- so the prefix alone cannot tell them apart.
+ * The distinction matters for removal: firestore.rules lets staff DELETE a
+ * post from the school thread, which triggers the fan-out cleanup, but a copy
+ * is not `announcement: true` and the same delete is refused.
+ *
+ * Staff receive copies too (the fan-out always includes them), so a staff
+ * member's own copy WILL appear in their conversation list.
+ */
+export const isAnnouncementThread = data => !!(data && data.announcement);
+
+export const isAnnouncementCopy = data => !!(data && data.announcementCopy);
+
+/**
  * Broadcast vs announcement, per the BJJ Members app (src/firebase/chat.ts).
  * They are separate features and behave differently, so they are detected
  * separately here.
@@ -456,14 +472,23 @@ export const toDate = value => {
 export const normaliseConversation = (id, data, viewerId) => {
   const participantIds = data[CONVERSATION_FIELDS.participantIds] || [];
   const lastMessage = data[CONVERSATION_FIELDS.lastMessage];
+  const meta = data[CONVERSATION_FIELDS.participantsMeta] || {};
+  const mine = (viewerId && meta[viewerId]) || {};
 
   return {
     id,
+    // When this viewer last removed the thread. Per-viewer, not shared: the
+    // other participant sees no change. Matches clearConversationForMe() in
+    // the app, which writes the same field.
+    clearedAt: toDate(mine.clearedAt),
     participantIds,
     otherParticipantId: participantIds.find(pid => pid !== viewerId),
     isGroup: !!data[CONVERSATION_FIELDS.isGroup],
     name: data[CONVERSATION_FIELDS.name] || null,
     isAnnouncement: isAnnouncementConversation(id, participantIds, data),
+    // Only the school thread may be hard-deleted; a delivered copy may not.
+    isAnnouncementThread: isAnnouncementThread(data),
+    isAnnouncementCopy: isAnnouncementCopy(data),
     isBroadcast: isBroadcastConversation(data),
     broadcastSender: broadcastSenderOf(data),
     hasJunior: !!data[CONVERSATION_FIELDS.hasJunior],
@@ -483,8 +508,24 @@ export const normaliseConversation = (id, data, viewerId) => {
   };
 };
 
+/**
+ * A thread the viewer has removed stays hidden until someone sends something
+ * newer -- then it returns, showing only what arrived since. Mirrors
+ * isConversationCleared() in the app so both clients hide the same threads.
+ */
+export const isConversationCleared = conversation => {
+  if (!conversation || !conversation.clearedAt) {
+    return false;
+  }
+  const last = conversation.updatedAt;
+  return !last || last.getTime() <= conversation.clearedAt.getTime();
+};
+
 export const normaliseMessage = (id, data) => ({
   id,
+  // Withdrawn for everyone by its sender. text is '' when set, so the UI
+  // shows a tombstone rather than an empty bubble.
+  deleted: !!data.deleted,
   text: data[MESSAGE_FIELDS.body],
   senderId: data[MESSAGE_FIELDS.senderId],
   createdAt: toDate(data[MESSAGE_FIELDS.createdAt]),
