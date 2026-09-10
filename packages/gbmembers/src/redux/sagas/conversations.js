@@ -6,6 +6,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
   updateDoc,
   onSnapshot,
   orderBy,
@@ -659,6 +660,46 @@ export function* clearConversation({ payload } = {}) {
   }
 }
 
+/**
+ * Removes a broadcast outright.
+ *
+ * A broadcast is a thread rather than a single post, and its cached
+ * lastMessage carries no id -- so there is nothing to target the way a normal
+ * message delete does. Every message in the thread is deleted instead, which
+ * is what "delete the broadcast" means: it was one-way, so there is no
+ * conversation to leave coherent.
+ *
+ * The conversation document itself stays: no rule permits deleting one, and
+ * an empty thread is harmless once its content is gone.
+ */
+export function* deleteBroadcast({ payload } = {}) {
+  const store = getConversationStore();
+  const { conversationId: id } = payload || {};
+
+  if (!store || !id) {
+    yield put(actions.setDeleteError('Cannot delete: nothing to delete.'));
+    return;
+  }
+
+  yield put(actions.setDeleting(id));
+
+  try {
+    const snap = yield call(
+      getDocs,
+      collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
+    );
+
+    for (let i = 0; i < snap.docs.length; i++) {
+      yield call(deleteDoc, snap.docs[i].ref);
+    }
+
+    yield put(actions.setDeleting(null));
+  } catch (e) {
+    const detail = yield call(describeAuthState);
+    yield put(actions.setDeleteError(`${e.message || String(e)} (${detail})`));
+  }
+}
+
 export function* watchConversations() {
   yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchConversationSnapshots);
   // Same action, second listener: the announcement thread is fetched by id
@@ -668,4 +709,5 @@ export function* watchConversations() {
   yield takeEvery(types.SEND_MESSAGE, sendMessage);
   yield takeEvery(types.DELETE_MESSAGE, deleteMessage);
   yield takeEvery(types.CLEAR_CONVERSATION, clearConversation);
+  yield takeEvery(types.DELETE_BROADCAST, deleteBroadcast);
 }

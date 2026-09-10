@@ -38,6 +38,8 @@ export const types = {
   SET_DELETE_ERROR: namespace('conversations', 'SET_DELETE_ERROR'),
   // Removing a whole thread from this viewer's list.
   CLEAR_CONVERSATION: namespace('conversations', 'CLEAR_CONVERSATION'),
+  // Removing a whole broadcast, which is a thread rather than one message.
+  DELETE_BROADCAST: namespace('conversations', 'DELETE_BROADCAST'),
 };
 
 export const actions = {
@@ -63,6 +65,8 @@ export const actions = {
   setDeleteError: withPayload(types.SET_DELETE_ERROR),
   // Pass { conversationId, viewerId }.
   clearConversation: withPayload(types.CLEAR_CONVERSATION),
+  // Pass { conversationId }.
+  deleteBroadcast: withPayload(types.DELETE_BROADCAST),
 };
 
 export const State = Record({

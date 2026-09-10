@@ -103,6 +103,11 @@ const NewConversationContainer = lazy(() =>
     default: m.NewConversationContainer,
   })),
 );
+const AnnouncementsContainer = lazy(() =>
+  import('./send/Announcements').then(m => ({
+    default: m.AnnouncementsContainer,
+  })),
+);
 const ConversationsContainer = lazy(() =>
   import('./send/Conversations').then(m => ({
     default: m.ConversationsContainer,
@@ -180,6 +185,7 @@ export const Content = ({ isKiosk }) => (
         component={SmsCampaignContainer}
       />
       <Route path="/NewConversation" component={NewConversationContainer} />
+      <Route path="/Announcements" component={AnnouncementsContainer} />
       <Route
         path="/Conversations/:conversationId?"
         component={ConversationsContainer}

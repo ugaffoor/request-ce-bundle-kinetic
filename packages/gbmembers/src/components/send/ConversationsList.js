@@ -172,6 +172,12 @@ export class ConversationsList extends Component {
           <NavLink to="/NewConversation" className="btn btn-primary pull-right">
             New Conversation
           </NavLink>
+          <NavLink
+            to="/Announcements"
+            className="btn btn-secondary pull-right mr-2"
+          >
+            Announcements &amp; broadcasts
+          </NavLink>
         </h4>
 
         <div className="form-group">
