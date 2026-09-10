@@ -5,6 +5,7 @@ import { KappNavLink as NavLink } from 'common';
 import Select from 'react-select';
 import ReactSpinner from 'react16-spinjs';
 import { StatusMessagesContainer } from '../StatusMessages';
+import { confirm } from '../helpers/Confirmation';
 import { actions as memberActions } from '../../redux/modules/members';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import {
@@ -265,7 +266,7 @@ export class NewConversation extends Component {
     return owner ? memberName(owner) : null;
   }
 
-  handleSend = () => {
+  handleSend = async () => {
     const senderId = this.senderId();
     if (!senderId) {
       return;
@@ -274,6 +275,24 @@ export class NewConversation extends Component {
     // An announcement goes to the school's own thread, so it takes no
     // recipients at all -- picking students for one would be misleading.
     if (this.isAnnouncement()) {
+      // Confirmed because it reaches the whole school at once and there is no
+      // way to withdraw it from here. The audience is what is worth checking,
+      // so it leads.
+      const confirmed = await confirm(
+        <span>
+          <span>
+            This will be posted to <strong>everyone</strong> at{' '}
+            {this.props.spaceSlug} &mdash; around {this.props.allMembers.length}{' '}
+            members. It cannot be edited or taken back.
+          </span>
+        </span>,
+        'Post announcement',
+        'Cancel',
+      );
+      if (!confirmed) {
+        return;
+      }
+
       this.props.sendMessage({
         kind: SEND_KINDS.ANNOUNCEMENT,
         staffId: senderId,
@@ -286,6 +305,26 @@ export class NewConversation extends Component {
 
     if (this.state.memberOptions.length < 1) {
       return;
+    }
+
+    // Broadcasts are confirmed too: the recipient cannot reply, so a mistake
+    // leaves them with no way to say so.
+    if (this.state.kind === SEND_KINDS.BROADCAST) {
+      const count = this.state.memberOptions.length;
+      const confirmed = await confirm(
+        <span>
+          <span>
+            This will be sent to {count} {count === 1 ? 'member' : 'members'} as
+            a one-way message. They will see it, but{' '}
+            <strong>cannot reply</strong>. It cannot be taken back.
+          </span>
+        </span>,
+        'Send broadcast',
+        'Cancel',
+      );
+      if (!confirmed) {
+        return;
+      }
     }
 
     this.props.sendMessage({
