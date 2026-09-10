@@ -521,6 +521,14 @@ export const isConversationCleared = conversation => {
   return !last || last.getTime() <= conversation.clearedAt.getTime();
 };
 
+/**
+ * The tombstone text. Must match DELETED_MESSAGE_TEXT in the app's
+ * src/firebase/chat.ts -- it is written into the conversation's cached
+ * lastMessage preview, so both clients have to agree on the wording or the
+ * list and the thread will disagree about the same message.
+ */
+export const DELETED_MESSAGE_TEXT = 'This message was deleted';
+
 export const normaliseMessage = (id, data) => ({
   id,
   // Withdrawn for everyone by its sender. text is '' when set, so the UI

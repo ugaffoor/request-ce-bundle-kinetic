@@ -5,6 +5,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   updateDoc,
   onSnapshot,
   orderBy,
@@ -24,6 +25,7 @@ import {
   SEND_KINDS,
   CONVERSATIONS_COLLECTION,
   CONVERSATION_FIELDS,
+  DELETED_MESSAGE_TEXT,
   MESSAGES_SUBCOLLECTION,
   MESSAGE_FIELDS,
   normaliseConversation,
@@ -565,7 +567,50 @@ export function* deleteMessage({ payload } = {}) {
       // deleted" -- the other person should see that something was removed
       // rather than the thread quietly changing shape. text is cleared in the
       // same write, which firestore.rules requires.
+      // Mirrors deleteMessageForEveryone() in the app, including the preview
+      // patch below -- both clients must leave the same trace or the list and
+      // the thread will disagree about the same message.
+      const before = yield call(getDoc, ref);
       yield call(updateDoc, ref, { deleted: true, text: '' });
+
+      // The conversation caches lastMessage for the list to render directly.
+      // Without patching it, the text just withdrawn keeps showing there --
+      // the one place the other person is most likely to still read it.
+      // Matched on timestamp and sender because that is all the cache carries.
+      const data = before.exists() ? before.data() : null;
+      const createdAt = data && data[MESSAGE_FIELDS.createdAt];
+      const senderId = data && data[MESSAGE_FIELDS.senderId];
+      if (createdAt && senderId) {
+        try {
+          const conversationRef = doc(store, CONVERSATIONS_COLLECTION, id);
+          const snap = yield call(getDoc, conversationRef);
+          const last =
+            snap.exists() && snap.data()[CONVERSATION_FIELDS.lastMessage];
+          if (
+            last &&
+            last[MESSAGE_FIELDS.senderId] === senderId &&
+            last[MESSAGE_FIELDS.createdAt] &&
+            last[MESSAGE_FIELDS.createdAt].isEqual &&
+            last[MESSAGE_FIELDS.createdAt].isEqual(createdAt)
+          ) {
+            yield call(
+              setDoc,
+              conversationRef,
+              {
+                [CONVERSATION_FIELDS.lastMessage]: {
+                  [MESSAGE_FIELDS.body]: DELETED_MESSAGE_TEXT,
+                },
+              },
+              { merge: true },
+            );
+          }
+        } catch (e) {
+          // Best-effort, as in the app: the message itself is already
+          // withdrawn, which is the part that matters. A stale preview is
+          // wrong but is not a disclosure the thread still carries.
+          console.warn('[conversations] preview patch failed', e);
+        }
+      }
     }
     // The snapshot listener updates the row on its own, so there is nothing
     // to do here beyond clearing the pending state.

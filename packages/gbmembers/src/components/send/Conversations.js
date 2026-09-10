@@ -22,6 +22,7 @@ import {
   conversationTitle,
   lastMessageSenderLabel,
   isConversationCleared,
+  DELETED_MESSAGE_TEXT,
   matchesConversationKind,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
@@ -489,11 +490,10 @@ export class Conversations extends Component {
         <span>
           {announcement
             ? 'This announcement will be withdrawn from everyone who received it.'
-            : 'This message will be removed for everyone. They will see "Message deleted" in its place.'}{' '}
-          It cannot be restored.
+            : `This replaces it with “${DELETED_MESSAGE_TEXT}” for everyone in the chat. If they have already read it, or seen the notification, you cannot undo that.`}
         </span>
       </span>,
-      announcement ? 'Withdraw announcement' : 'Remove message',
+      announcement ? 'Withdraw announcement' : 'Delete for everyone',
       'Cancel',
     );
     if (!confirmed) {
@@ -574,15 +574,15 @@ export class Conversations extends Component {
                   >
                     <small>
                       {this.props.deletingId === message.id
-                        ? 'Removing...'
-                        : 'Remove'}
+                        ? 'Deleting...'
+                        : 'Delete for everyone'}
                     </small>
                   </button>
                 )}
               </div>
               <div>
                 {message.deleted ? (
-                  <em className="text-muted">Message deleted</em>
+                  <em className="text-muted">{DELETED_MESSAGE_TEXT}</em>
                 ) : (
                   message.text
                 )}
