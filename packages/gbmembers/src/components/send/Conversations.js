@@ -14,7 +14,6 @@ import {
   identityKey,
   FRANCHISE_DOMAIN,
 } from '../../lib/firebaseAuth';
-import { runConversationDiagnostics } from '../../lib/firestoreDiagnostics';
 import {
   staffParticipantId,
   indexMembersById,
@@ -66,8 +65,6 @@ export class Conversations extends Component {
       selectedId: routeConversationId(props),
       reply: '',
       kind: CONVERSATION_KINDS.ALL,
-      diagnostics: null,
-      diagnosing: false,
       // Sends the server rejected. Kept locally because a failed write never
       // reaches Firestore, so the snapshot listener will never return it --
       // without this the message would just vanish on failure.
@@ -234,52 +231,6 @@ export class Conversations extends Component {
     this.openConversation(conversation.id);
   };
 
-  runDiagnostics = () => {
-    this.setState({ diagnosing: true });
-    runConversationDiagnostics({ spaceSlug: this.props.spaceSlug })
-      .then(diagnostics => this.setState({ diagnostics, diagnosing: false }))
-      .catch(e =>
-        this.setState({
-          diagnostics: [
-            { name: 'diagnostics', ok: false, detail: e.message || String(e) },
-          ],
-          diagnosing: false,
-        }),
-      );
-  };
-
-  renderDiagnostics() {
-    return (
-      <div className="mt-2">
-        <button
-          type="button"
-          className="btn btn-secondary btn-sm"
-          onClick={this.runDiagnostics}
-          disabled={this.state.diagnosing}
-        >
-          {this.state.diagnosing ? 'Checking...' : 'Diagnose permissions'}
-        </button>
-        {this.state.diagnostics && (
-          <ul className="list-unstyled mt-2">
-            {this.state.diagnostics.map((result, i) => (
-              <li key={i}>
-                <strong>{result.ok ? 'PASS' : 'FAIL'}</strong> {result.name}
-                <div>
-                  <small>{result.detail}</small>
-                </div>
-                {result.expectation && (
-                  <div>
-                    <small className="text-muted">{result.expectation}</small>
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    );
-  }
-
   /**
    * This staff member's own participant id, for telling their own messages
    * apart from a student's. Null until the profile and space have loaded.
@@ -303,7 +254,6 @@ export class Conversations extends Component {
         <div className="alert alert-danger">
           <strong>Could not load conversations.</strong>
           <div>{error}</div>
-          {this.renderDiagnostics()}
         </div>
       );
     }

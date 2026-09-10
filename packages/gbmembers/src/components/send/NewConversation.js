@@ -318,27 +318,32 @@ export class NewConversation extends Component {
     }
   }
 
+  /**
+   * Only shown when messaging is unavailable. A working connection says
+   * nothing: the page itself is the confirmation, and naming the project it
+   * connected to is of no use to the person sending a message.
+   */
   renderConnectionStatus() {
     const config = getFirebaseConfig(this.props.space);
     if (!config) {
       return (
-        <p style={{ color: '#97292c' }}>
-          Not connected to Firebase &mdash; no configuration found for this
-          space.
-        </p>
+        <div className="alert alert-danger">
+          Messaging is not set up for this space, so nothing can be sent. Ask an
+          administrator to configure it.
+        </div>
       );
     }
 
-    const app = initialiseFirebase(this.props.space);
-    return app ? (
-      <p style={{ color: '#1f6047' }}>
-        Connected to Firebase project <strong>{config.projectId}</strong>.
-      </p>
-    ) : (
-      <p style={{ color: '#97292c' }}>
-        Firebase configuration found but the app failed to initialise.
-      </p>
-    );
+    if (!initialiseFirebase(this.props.space)) {
+      return (
+        <div className="alert alert-danger">
+          Messaging could not start. Reload the page, and if it keeps happening,
+          report it.
+        </div>
+      );
+    }
+
+    return null;
   }
 
   render() {
