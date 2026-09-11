@@ -32,7 +32,6 @@ const mapStateToProps = state => ({
   memberLists: state.member.app.memberLists,
   space: state.member.app.space,
   spaceSlug: state.member.app.spaceSlug,
-  kappSlug: state.app.config.kappSlug,
   profile: state.member.app.profile,
   sending: state.member.conversations.sending,
   sendError: state.member.conversations.sendError,
@@ -73,6 +72,34 @@ const memberLabel = member => {
   return parts.length ? `${name} (${parts.join(', ')})` : name;
 };
 
+// How long a send confirmation stays on screen.
+const TOAST_MILLIS = 6000;
+
+const KIND_LABELS = {
+  [SEND_KINDS.CONVERSATION]: 'Conversation',
+  [SEND_KINDS.GROUP]: 'Group',
+  [SEND_KINDS.BROADCAST]: 'Broadcast',
+  [SEND_KINDS.ANNOUNCEMENT]: 'Announcement',
+};
+
+/**
+ * Recipients in words. Named individually up to a point, because "sent to 14
+ * members" leaves someone wondering whether the right 14 -- but a long run of
+ * names is unreadable in a toast, so the tail is counted instead.
+ */
+const listNames = names => {
+  if (names.length < 1) {
+    return 'nobody';
+  }
+  if (names.length <= 3) {
+    return names.join(', ');
+  }
+  const rest = names.length - 3;
+  return `${names.slice(0, 3).join(', ')} and ${rest} ${
+    rest === 1 ? 'other' : 'others'
+  }`;
+};
+
 const byName = (a, b) => {
   const aName = memberName(a).toLowerCase();
   const bName = memberName(b).toLowerCase();
@@ -90,6 +117,10 @@ export class NewConversation extends Component {
       kind: SEND_KINDS.CONVERSATION,
       groupName: '',
       message: '',
+      // What the last send was -- the feature used and who received it --
+      // shown as a confirmation without navigating away. Cleared when the next
+      // message is typed.
+      sent: null,
     };
   }
 
@@ -346,15 +377,106 @@ export class NewConversation extends Component {
       this.props.lastSentAt &&
       this.props.lastSentAt !== prevProps.lastSentAt
     ) {
-      this.setState({ message: '' });
+      // Stay on this page. Sending is usually one of several in a row, and
+      // navigating to the thread list meant coming back here every time. The
+      // toast reports the send instead.
+      this.setState({ message: '', sent: this.describeSend() });
 
-      // Hand the user to the thread list, where the conversation they just
-      // started appears alongside the existing ones, rather than leaving
-      // them looking at an empty composer with no sign anything happened.
-      if (this.props.history && this.props.kappSlug) {
-        this.props.history.push(`/kapps/${this.props.kappSlug}/Conversations`);
-      }
+      // Retired on a timer so a run of sends doesn't leave a stack of
+      // confirmations on screen. Cleared on unmount, or this sets state on a
+      // component that has gone.
+      clearTimeout(this.dismissTimer);
+      this.dismissTimer = setTimeout(
+        () => this.setState({ sent: null }),
+        TOAST_MILLIS,
+      );
     }
+  }
+
+  componentWillUnmount() {
+    clearTimeout(this.dismissTimer);
+  }
+
+  /**
+   * What was just sent, in words: which feature, and who received it.
+   *
+   * Read from state at send time because the recipient selection is
+   * deliberately NOT cleared after a send -- sending again to the same people
+   * should need no re-picking -- so it is still accurate here.
+   */
+  describeSend() {
+    const kind = KIND_LABELS[this.state.kind] || 'Message';
+
+    const names = this.state.memberOptions.map(option => {
+      const member = this.props.allMembers.find(m => m.id === option.value);
+      return member ? memberName(member) : option.value;
+    });
+
+    // An announcement with nobody picked goes to the school's own thread
+    // rather than to individuals.
+    if (this.isAnnouncement() && names.length < 1) {
+      return {
+        kind,
+        to: `everyone at ${this.props.spaceSlug || 'this school'}`,
+      };
+    }
+
+    if (this.isGroup()) {
+      const groupName = this.state.groupName.trim();
+      return {
+        kind,
+        to: `${groupName} (${names.length} ${
+          names.length === 1 ? 'member' : 'members'
+        })`,
+      };
+    }
+
+    return { kind, to: listNames(names) };
+  }
+
+  /**
+   * Confirmation of the last send, bottom right.
+   *
+   * Fixed rather than inline so it reads as something that just happened and
+   * does not shift the form under the cursor mid-typing. Suppressed while a
+   * send error is showing, since the two would contradict each other.
+   */
+  renderSentToast() {
+    const sent = this.state.sent;
+    if (!sent || this.props.sendError) {
+      return null;
+    }
+
+    return (
+      <div
+        // aria-live so it is announced rather than only seen: the form keeps
+        // focus after a send, so a screen reader would otherwise miss it.
+        role="status"
+        aria-live="polite"
+        style={{
+          position: 'fixed',
+          right: '1rem',
+          bottom: '1rem',
+          zIndex: 1050,
+          maxWidth: '22rem',
+        }}
+      >
+        <div className="alert alert-success alert-dismissible shadow mb-0">
+          <button
+            type="button"
+            className="close"
+            aria-label="Dismiss"
+            onClick={() => this.setState({ sent: null })}
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <strong>{sent.kind} sent</strong>
+          <div>
+            <small>to {sent.to}</small>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   /**
@@ -420,6 +542,7 @@ export class NewConversation extends Component {
 
     return (
       <div className="container-fluid leads">
+        {this.renderSentToast()}
         <StatusMessagesContainer />
         <div className="leadContents">
           <div className="options">
@@ -551,7 +674,11 @@ export class NewConversation extends Component {
                     className="form-control"
                     rows="6"
                     value={this.state.message}
-                    onChange={e => this.setState({ message: e.target.value })}
+                    onChange={e =>
+                      // Typing the next message retires the confirmation, so a
+                      // stale "sent" banner can't sit above an unsent draft.
+                      this.setState({ message: e.target.value, sent: null })
+                    }
                   />
                 </div>
                 <div className="form-group">
