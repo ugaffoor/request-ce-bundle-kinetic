@@ -72,6 +72,7 @@ export class Conversations extends Component {
       selectedId: routeConversationId(props),
       reply: '',
       kind: CONVERSATION_KINDS.ALL,
+      search: '',
       // Sends the server rejected. Kept locally because a failed write never
       // reaches Firestore, so the snapshot listener will never return it --
       // without this the message would just vanish on failure.
@@ -277,6 +278,7 @@ export class Conversations extends Component {
       .filter(conversation =>
         matchesConversationKind(conversation, this.state.kind),
       )
+      .filter(conversation => this.matchesSearch(conversation, membersById))
       .sort(
         (a, b) =>
           (b.updatedAt ? b.updatedAt.getTime() : 0) -
@@ -287,7 +289,12 @@ export class Conversations extends Component {
       return (
         <React.Fragment>
           {this.renderKindFilter()}
-          <p>Nothing matches this filter.</p>
+          {this.renderSearch()}
+          <p>
+            {this.state.search.trim()
+              ? `No conversations match "${this.state.search.trim()}".`
+              : 'Nothing matches this filter.'}
+          </p>
         </React.Fragment>
       );
     }
@@ -297,6 +304,7 @@ export class Conversations extends Component {
     return (
       <React.Fragment>
         {this.renderKindFilter()}
+        {this.renderSearch()}
         <ul className="list-group">
           {sorted.map(conversation => {
             // Groups are named after the group, so the sender of the latest
@@ -349,6 +357,53 @@ export class Conversations extends Component {
           })}
         </ul>
       </React.Fragment>
+    );
+  }
+
+  /**
+   * Whether a thread matches the search box.
+   *
+   * Matches the name the row actually shows, so what you type lines up with
+   * what you can see. For a group it also matches any participant, since a
+   * group is titled by its own name -- searching a student should still find
+   * the group they are in rather than appearing to lose them.
+   */
+  matchesSearch(conversation, membersById) {
+    const query = this.state.search.trim().toLowerCase();
+    if (!query) {
+      return true;
+    }
+
+    if (
+      conversationTitle(conversation, membersById)
+        .toLowerCase()
+        .includes(query)
+    ) {
+      return true;
+    }
+
+    return (conversation.participantIds || []).some(participantId =>
+      participantName(participantId, membersById)
+        .toLowerCase()
+        .includes(query),
+    );
+  }
+
+  renderSearch() {
+    return (
+      <div className="form-group">
+        <label className="sr-only" htmlFor="conversation-search">
+          Search conversations by name
+        </label>
+        <input
+          id="conversation-search"
+          type="search"
+          className="form-control"
+          placeholder="Search by name"
+          value={this.state.search}
+          onChange={e => this.setState({ search: e.target.value })}
+        />
+      </div>
     );
   }
 
