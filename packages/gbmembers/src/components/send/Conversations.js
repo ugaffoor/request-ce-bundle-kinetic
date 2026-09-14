@@ -22,6 +22,7 @@ import {
   conversationTitle,
   lastMessageSenderLabel,
   isConversationCleared,
+  ANNOUNCEMENT_REMOVED_TEXT,
   DELETED_MESSAGE_TEXT,
   matchesConversationKind,
   CONVERSATION_KINDS,
@@ -637,7 +638,11 @@ export class Conversations extends Component {
               </div>
               <div>
                 {message.deleted ? (
-                  <em className="text-muted">{DELETED_MESSAGE_TEXT}</em>
+                  <em className="text-muted">
+                    {message.announcementRemoved
+                      ? ANNOUNCEMENT_REMOVED_TEXT
+                      : DELETED_MESSAGE_TEXT}
+                  </em>
                 ) : (
                   message.text
                 )}

@@ -529,11 +529,22 @@ export const isConversationCleared = conversation => {
  */
 export const DELETED_MESSAGE_TEXT = 'This message was deleted';
 
+/**
+ * The tombstone for an announcement copy whose original was withdrawn by the
+ * school. onAnnouncementDeleted stamps the copy with announcementRemoved so
+ * the member sees that the SCHOOL took it back, not that a message in the
+ * chat was deleted. Must match ANNOUNCEMENT_REMOVED_TEXT in the app.
+ */
+export const ANNOUNCEMENT_REMOVED_TEXT = 'Announcement was removed';
+
 export const normaliseMessage = (id, data) => ({
   id,
   // Withdrawn for everyone by its sender. text is '' when set, so the UI
   // shows a tombstone rather than an empty bubble.
   deleted: !!data.deleted,
+  // Set alongside deleted when the tombstone came from a withdrawn
+  // announcement rather than the sender deleting their own post.
+  announcementRemoved: !!data.announcementRemoved,
   text: data[MESSAGE_FIELDS.body],
   senderId: data[MESSAGE_FIELDS.senderId],
   createdAt: toDate(data[MESSAGE_FIELDS.createdAt]),
