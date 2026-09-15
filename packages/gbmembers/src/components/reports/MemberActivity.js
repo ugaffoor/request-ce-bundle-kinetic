@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import $ from 'jquery';
 import moment from 'moment';
+import ReactSpinner from 'react16-spinjs';
 import 'bootstrap/scss/bootstrap.scss';
 import _ from 'lodash';
 import 'react-tabulator/lib/styles.css'; // default theme
@@ -2321,7 +2322,15 @@ export class MemberActivityReport extends Component {
       downloadReady: (fileContents, blob) => blob,
       layout: 'fitColumns',
     };
-    return (
+    // Mirrors the leads report: a spinner only while there is nothing at all
+    // to show. Once any members have arrived the grid renders and fills in,
+    // rather than hiding data that is already here behind a spinner.
+    return this.props.membersLoading && this.props.members.length === 0 ? (
+      <div style={{ margin: '10px' }}>
+        <p>Loading member activity report ...</p>
+        <ReactSpinner />{' '}
+      </div>
+    ) : (
       <span className="reportContent">
         <div className="header">
           <h6>Member Activity Report</h6>

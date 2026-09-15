@@ -321,6 +321,7 @@ export const ReportsView = ({
                 memberLastFetchTime={memberLastFetchTime}
                 memberNotesLoaded={memberNotesLoaded}
                 memberNotesLoading={memberNotesLoading}
+                membersLoading={membersLoading}
               />
             </div>
           )}
