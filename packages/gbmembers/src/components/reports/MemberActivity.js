@@ -23,6 +23,7 @@ import MomentLocaleUtils, {
 } from 'react-day-picker/moment';
 import { getLocalePreference } from '../Member/MemberUtils';
 import { I18n } from '@kineticdata/react';
+import { translate } from '../../lib/translate';
 import { Utils } from 'common';
 
 export const contact_date_format = 'YYYY-MM-DD HH:mm';
@@ -207,9 +208,9 @@ export class MemberActivityReport extends Component {
       { title: 'Phone', field: 'phone', tooltip: true },
       { title: 'Additional Phone', field: 'additionalPhone', tooltip: true },
       { title: 'Address', field: 'address', tooltip: true },
-      { title: K.translate('Suburb'), field: 'suburb', tooltip: true },
+      { title: translate('Suburb'), field: 'suburb', tooltip: true },
       { title: 'State', field: 'state' },
-      { title: K.translate('Postcode'), field: 'postcode' },
+      { title: translate('Postcode'), field: 'postcode' },
       { title: 'Age (Years)', field: 'age' },
       { title: 'DOB (Year)', field: 'year' },
       { title: 'DOB', field: 'dob' },
@@ -381,8 +382,8 @@ export class MemberActivityReport extends Component {
       { label: 'Phone', value: 'phone' },
       { label: 'Additional Phone', value: 'additionalPhone' },
       { label: 'Address', value: 'address' },
-      { label: K.translate('Suburb'), value: 'suburb' },
-      { label: K.translate('Postcode'), value: 'postcode' },
+      { label: translate('Suburb'), value: 'suburb' },
+      { label: translate('Postcode'), value: 'postcode' },
       { label: 'State', value: 'state' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'DOB (Year)', value: 'year' },
@@ -463,9 +464,9 @@ export class MemberActivityReport extends Component {
           { label: 'Phone', value: 'phone' },
           { label: 'Additional Phone', value: 'additionalPhone' },
           { label: 'Address', value: 'address' },
-          { label: K.translate('Suburb'), value: 'suburb' },
+          { label: translate('Suburb'), value: 'suburb' },
           { label: 'State', value: 'state' },
-          { label: K.translate('Postcode'), value: 'postcode' },
+          { label: translate('Postcode'), value: 'postcode' },
           { label: 'Age (Years)', value: 'age' },
           { label: 'DOB (Year)', value: 'year' },
           { label: 'DOB', value: 'dob' },
@@ -573,9 +574,9 @@ export class MemberActivityReport extends Component {
       { label: 'Phone', value: 'phone' },
       { label: 'Additional Phone', value: 'additionalPhone' },
       { label: 'Address', value: 'address' },
-      { label: K.translate('Suburb'), value: 'suburb' },
+      { label: translate('Suburb'), value: 'suburb' },
       { label: 'State', value: 'state' },
-      { label: K.translate('Postcode'), value: 'postcode' },
+      { label: translate('Postcode'), value: 'postcode' },
       { label: 'Age (Years)', value: 'age' },
       { label: 'DOB (Year)', value: 'year' },
       { label: 'DOB', value: 'dob' },
@@ -1541,7 +1542,7 @@ export class MemberActivityReport extends Component {
             : '',
         paymentPeriod:
           member.values['Billing User'] === 'YES'
-            ? K.translate(member.values['Billing Payment Period'])
+            ? translate(member.values['Billing Payment Period'])
             : '',
         paymentType:
           member.values['Billing User'] === 'YES'
@@ -2433,8 +2434,8 @@ export class MemberActivityReport extends Component {
                     className="filter-value-select"
                   >
                     {this.state.selectedFilterValueOptions.map((fo, index) => (
-                      <option key={fo + index} value={K.translate(fo)}>
-                        {K.translate(fo)}
+                      <option key={fo + index} value={translate(fo)}>
+                        {translate(fo)}
                       </option>
                     ))}
                   </select>

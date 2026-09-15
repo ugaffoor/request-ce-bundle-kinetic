@@ -532,6 +532,13 @@ export class ClassesCalendar extends Component {
             step={this.state.stepValue}
             defaultView={Views.WEEK}
             views={['week']}
+            // This is a weekly timetable drawn onto the current week, not a
+            // calendar of dated events: every class is placed relative to
+            // today. Back/Next therefore only ever led to an empty week, and
+            // the date range in the heading was misleading for the same
+            // reason. With week the only view there is nothing else the
+            // toolbar was for.
+            toolbar={false}
             onDoubleClickEvent={event => this.handleSelectEvent(event)}
             onSelectSlot={this.handleSelect}
             eventPropGetter={this.customEventPropGetter}
