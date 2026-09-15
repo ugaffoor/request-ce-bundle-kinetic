@@ -586,35 +586,37 @@ Indications in the application will identify members not compliant."
             />
           </span>
         )}
+        <span className="detailsSection">
+          <h6>POS Taxes</h6>
+          <EditAttributeValue
+            attributeID="posTax1Label"
+            attributeName="POS Sales Tax Label"
+            inputType="Text"
+            labelName="POS Tax Label"
+            helpText="Label applied to the POS Tax value .<br/>Eg, GST 5%"
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+          <EditAttributeValue
+            attributeID="posTax1Value"
+            attributeName="POS Sales Tax"
+            inputType="Percentage"
+            width="60px"
+            labelName="POS Tax Percentage"
+            helpText="POS Tax percentage value applied to products."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+        </span>
         {(Utils.getAttributeValue(this.props.space, 'Billing Company') ===
           'Bambora' ||
           Utils.getAttributeValue(this.props.space, 'Billing Company') ===
             'Stripe') && (
           <span className="detailsSection">
-            <h6>POS Taxes</h6>
-            <EditAttributeValue
-              attributeID="posTax1Label"
-              attributeName="POS Sales Tax Label"
-              inputType="Text"
-              labelName="POS Tax Label"
-              helpText="Label applied to the POS Tax value .<br/>Eg, GST 5%"
-              updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.props.space}
-              appSpace={this.props.appSpace}
-              profile={this.props.profile}
-            />
-            <EditAttributeValue
-              attributeID="posTax1Value"
-              attributeName="POS Sales Tax"
-              inputType="Percentage"
-              width="60px"
-              labelName="POS Tax Percentage"
-              helpText="POS Tax percentage value applied to products."
-              updateSpaceAttribute={this.props.updateSpaceAttribute}
-              space={this.props.space}
-              appSpace={this.props.appSpace}
-              profile={this.props.profile}
-            />
             <EditAttributeValue
               attributeID="posTax2Label"
               attributeName="POS Sales Tax Label 2"

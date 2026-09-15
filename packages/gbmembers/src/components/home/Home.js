@@ -240,6 +240,9 @@ export const HomeView = ({
                 SUCCESSFULpaymentHistoryLoading={
                   SUCCESSFULpaymentHistoryLoading
                 }
+                fetchCashPaymentsByDate={fetchCashPaymentsByDate}
+                cashPaymentsByDate={cashPaymentsByDate}
+                cashPaymentsByDateLoading={cashPaymentsByDateLoading}
                 space={space}
                 locale={locale}
                 profile={profile}

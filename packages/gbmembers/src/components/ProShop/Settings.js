@@ -10,6 +10,7 @@ import { StockReport } from './StockReport';
 import { PurchaseItemsReportContainer } from './PurchaseItemsReport';
 import { OrdersReportContainer } from './OrdersReport';
 import { POSTaxSettingsContainer } from './POSTaxSettings';
+import { ProShopPriceIncreaseContainer } from './ProShopPriceIncrease';
 import { actions } from '../../redux/modules/pos';
 import { CoreForm } from '@kineticdata/react';
 import { Utils } from 'common';
@@ -140,6 +141,29 @@ export class Settings extends Component {
               </div>
             )}
           </div>
+          <div style={{ margin: '20px 0px 0px 10px' }} id="price-increase">
+            <div className="row">
+              <button
+                type="button"
+                className="btn btn-primary report-btn-default"
+                disabled={!this.props.dummyFormLoaded}
+                onClick={() => {
+                  this.props.setShowPriceIncrease(
+                    this.props.showPriceIncrease ? false : true,
+                  );
+                }}
+              >
+                {this.props.showPriceIncrease
+                  ? 'Hide Price Increase'
+                  : 'Show Price Increase'}
+              </button>
+            </div>
+            {!this.props.showPriceIncrease ? null : (
+              <div className="row">
+                <ProShopPriceIncreaseContainer />
+              </div>
+            )}
+          </div>
           {!Utils.isMemberOf(this.props.profile, 'Role::Data Admin') ? (
             <div />
           ) : (
@@ -191,6 +215,7 @@ const enhance = compose(
   withState('showStockReport', 'setShowStockReport', false),
   withState('showPurchaseItemsReport', 'setShowPurchaseItemsReport', false),
   withState('showOrdersReport', 'setShowOrdersReport', false),
+  withState('showPriceIncrease', 'setShowPriceIncrease', false),
   withState('showPOSTaxSettings', 'setShowPOSTaxSettings', false),
   withState('dummyFormLoaded', 'setDummyFormLoaded', false),
   withHandlers({

@@ -2698,7 +2698,7 @@ class PayNow extends Component {
                     script={[
                       {
                         src:
-                          'https://libs.na.bambora.com/customcheckout/1/customcheckout.js',
+                          'https://libs.bam.shift4api.net/customcheckout/2/customcheckout.js ',
                       },
                     ]}
                     // Helmet doesn't support `onload` in script objects so we have to hack in our own
@@ -4354,17 +4354,14 @@ export class ProShop extends Component {
   }
   render() {
     const productSortFn = (a, b) => {
-      if (
-        b.values['Display Order'] === undefined ||
-        a.values['Display Order'] < b.values['Display Order']
-      )
-        return -1;
-      if (
-        a.values['Display Order'] === undefined ||
-        a.values['Display Order'] > b.values['Display Order']
-      )
-        return 1;
-      return 0;
+      const aOrder = a.values['Display Order'];
+      const bOrder = b.values['Display Order'];
+      const aHas = aOrder !== undefined && aOrder !== null && aOrder !== '';
+      const bHas = bOrder !== undefined && bOrder !== null && bOrder !== '';
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      if (!aHas && !bHas) return 0;
+      return Number(aOrder) - Number(bOrder);
     };
     const editProducts = this.state.editProductsSwitch
       ? (() => {

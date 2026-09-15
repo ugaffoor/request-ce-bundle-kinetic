@@ -1204,6 +1204,8 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
           return 'Active';
         } else if (statusHistorySorted[i]['status'] === 'Inactive') {
           return 'Inactive';
+        } else if (statusHistorySorted[i]['status'] === 'Deleted') {
+          return 'Deleted';
         } else if (statusHistorySorted[i]['status'] === 'Casual') {
           return 'Casual';
         } else if (
@@ -1228,6 +1230,38 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       } else {
       }
     }
+
+    if (statusHistorySorted.length > 0 && returnStatus) {
+      let lastStatus = statusHistorySorted[statusHistorySorted.length - 1];
+      if (
+        moment(lastStatus['date'], [
+          'dd MMM DD YYYY hh:mm:ss Z',
+          'YYYY-MM-DD hh:mm:ss Z',
+        ]).isSameOrBefore(toDate, 'day')
+      ) {
+        if (lastStatus['status'] === 'Active') {
+          return 'Active';
+        } else if (lastStatus['status'] === 'Casual') {
+          return 'Casual';
+        } else if (lastStatus['status'] === 'Pending Cancellation') {
+          return 'Pending Cancellation';
+        } else if (lastStatus['status'] === 'Pending Registration') {
+          return 'Pending Registration';
+        } else if (
+          lastStatus['status'] === 'Frozen' ||
+          lastStatus['status'] === 'Suspended'
+        ) {
+          return 'Frozen';
+        } else if (
+          lastStatus['status'] === 'Pending Freeze' ||
+          lastStatus['status'] === 'Pending Suspension'
+        ) {
+          return 'Pending Freeze';
+        }
+      } else {
+      }
+    }
+
     if (
       member['values']['Date Joined'] !== undefined &&
       member['values']['Date Joined'] !== null &&
@@ -1266,7 +1300,7 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
           'day',
         )
       ) {
-        return status;
+        return 'Active';
       }
       return '';
     }

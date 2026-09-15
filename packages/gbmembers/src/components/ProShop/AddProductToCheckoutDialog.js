@@ -130,17 +130,18 @@ export class AddProductToCheckoutDialog extends Component {
                     ID:{this.state.style}
                   </div>
                 )}
-                {this.props.product.values['Details'] !== null && (
-                  <div
-                    className="info"
-                    dangerouslySetInnerHTML={{
-                      __html: this.props.product.values['Details'].replace(
-                        /(?:\r\n|\r|\n)/g,
-                        '<br>',
-                      ),
-                    }}
-                  />
-                )}
+                {this.props.product.values['Details'] !== undefined &&
+                  this.props.product.values['Details'] !== null && (
+                    <div
+                      className="info"
+                      dangerouslySetInnerHTML={{
+                        __html: this.props.product.values['Details'].replace(
+                          /(?:\r\n|\r|\n)/g,
+                          '<br>',
+                        ),
+                      }}
+                    />
+                  )}
                 <div className="prices">
                   {this.props.product.values['Display Type'] === 'Sale' ? (
                     <div className="sale">

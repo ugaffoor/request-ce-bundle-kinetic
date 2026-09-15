@@ -112,16 +112,30 @@ export function* fetchPOSProducts(action) {
     }
 
     var products = allSubmissions;
-    const stocksSubmissions = yield all({
-      submissions: call(searchSubmissions, {
+    const firstStockPage = yield call(searchSubmissions, {
+      get: true,
+      datastore: true,
+      form: 'pos-stock',
+      search: SEARCH_STOCK,
+    });
+    var stocks = firstStockPage.submissions;
+    let stockPageToken = firstStockPage.nextPageToken;
+
+    while (stockPageToken) {
+      const stockSearch = new SubmissionSearch(true)
+        .includes(['details', 'values'])
+        .limit(1000)
+        .pageToken(stockPageToken)
+        .build();
+      const nextStockPage = yield call(searchSubmissions, {
         get: true,
         datastore: true,
         form: 'pos-stock',
-        search: SEARCH_STOCK,
-      }),
-    });
-
-    var stocks = stocksSubmissions.submissions.submissions;
+        search: stockSearch,
+      });
+      stocks = stocks.concat(nextStockPage.submissions);
+      stockPageToken = nextStockPage.nextPageToken;
+    }
     for (var i = 0; i < products.length; i++) {
       if (products[i].stock === undefined) products[i].stock = [];
       for (var x = 0; x < stocks.length; x++) {
@@ -158,7 +172,7 @@ export function* fetchPOSProducts(action) {
 
     console.log(products);
     yield put(actions.setPOSProducts(products));
-    yield put(actions.setPOSStock(stocksSubmissions.submissions.submissions));
+    yield put(actions.setPOSStock(stocks));
   } catch (error) {
     console.log('Error in fetchPOSProducts: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -476,7 +490,12 @@ export function* savePOSStock(action) {
       .includes(['details', 'values'])
       .index('values[Product ID],values[Colour],values[Size]')
       .eq('values[Product ID]', action.payload.product.id)
-      .eq('values[Colour]', action.payload.product.values['Colour'])
+      .eq(
+        'values[Colour]',
+        action.payload.product.values['Colour'] === undefined
+          ? ''
+          : action.payload.product.values['Colour'],
+      )
       .eq('values[Size]', action.payload.size)
       .build();
     let stock = [];

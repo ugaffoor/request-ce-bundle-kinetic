@@ -77,10 +77,15 @@ export class NewPriceIncrease extends Component {
       emailTemplateID: undefined,
       showEmailDialog: false,
       excludeFamilyAccounts: false,
+      excludeNonBillingDependants: false,
+      excludedDependantMembers: [],
+      rbaFeeIncrease: false,
       excludeIncreasesFrom: '',
       excludedFromIncreaseMembers: [],
       excludeNewMembersFrom: '',
       excludedNewMembers: [],
+      excludedPaymentTypes: [],
+      excludedByPaymentTypeMembers: [],
       priceIncreaseTemplates: [],
       selectedExistingTemplateID: '',
       submitting: false,
@@ -92,6 +97,8 @@ export class NewPriceIncrease extends Component {
       this,
     );
     this.applyNewMemberExclusion = this.applyNewMemberExclusion.bind(this);
+    this.applyPaymentTypeExclusion = this.applyPaymentTypeExclusion.bind(this);
+    this.applyDependantExclusion = this.applyDependantExclusion.bind(this);
     this.createNewPriceIncrease = this.createNewPriceIncrease.bind(this);
   }
   fetchExcludedFromIncreases(dateStr) {
@@ -186,6 +193,27 @@ export class NewPriceIncrease extends Component {
       ],
     }));
   }
+  applyPaymentTypeExclusion(types) {
+    const memberIds = (this.props.allMembers || [])
+      .filter(
+        m =>
+          m.values['Billing User'] === 'YES' &&
+          types.includes(m.values['Billing Payment Type']),
+      )
+      .map(m => m.id);
+    this.setState(prev => ({
+      excludedPaymentTypes: types,
+      excludedByPaymentTypeMembers: memberIds,
+      excludedMembers: [
+        ...new Set([
+          ...prev.excludedMembers.filter(
+            id => !prev.excludedByPaymentTypeMembers.includes(id),
+          ),
+          ...memberIds,
+        ]),
+      ],
+    }));
+  }
   toggleFee(program, info) {
     const infoKey = info || '';
     this.setState(prev => {
@@ -234,6 +262,29 @@ export class NewPriceIncrease extends Component {
       matched.forEach(d => acc.push(d.id));
       return acc;
     }, []);
+  }
+  computeDependantIds() {
+    const allMembers = this.props.allMembers || [];
+    return allMembers
+      .filter(
+        m =>
+          m.values['Status'] === 'Active' &&
+          m.values['Billing Parent Member'] &&
+          m.values['Billing Parent Member'] !== m.id,
+      )
+      .map(m => m.id);
+  }
+  applyDependantExclusion(checked) {
+    const dependantIds = checked ? this.computeDependantIds() : [];
+    this.setState(prev => ({
+      excludeNonBillingDependants: checked,
+      excludedDependantMembers: dependantIds,
+      excludedMembers: checked
+        ? [...new Set([...prev.excludedMembers, ...dependantIds])]
+        : prev.excludedMembers.filter(
+            id => !prev.excludedDependantMembers.includes(id),
+          ),
+    }));
   }
   componentDidMount() {
     searchSubmissions({
@@ -315,6 +366,15 @@ export class NewPriceIncrease extends Component {
       ? this.state.scheduledDateTime
       : '';
     values['Excluded Members'] = this.state.excludedMembers;
+    values['RBA Increase'] = this.state.rbaFeeIncrease ? 'YES' : '';
+    values['Excluded Options'] = JSON.stringify({
+      excludeFamilyAccounts: this.state.excludeFamilyAccounts,
+      excludeNonBillingDependants: this.state.excludeNonBillingDependants,
+      rbaFeeIncrease: this.state.rbaFeeIncrease,
+      excludeIncreasesFrom: this.state.excludeIncreasesFrom,
+      excludeNewMembersFrom: this.state.excludeNewMembersFrom,
+      excludedPaymentTypes: this.state.excludedPaymentTypes,
+    });
     values['Billing Members'] = this.computeBillingMembers();
     values['Do Not Send Email'] = this.state.doNotSendEmail ? 'YES' : '';
     values['Email Template Name'] = this.state.doNotSendEmail
@@ -465,6 +525,52 @@ export class NewPriceIncrease extends Component {
               onChange={e => this.setState({ name: e.target.value })}
             />
           </div>
+          {getAttributeValue(this.props.space, 'Billing Company') ===
+            'PaySmart' && (
+            <div className="formField">
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 'normal',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={this.state.rbaFeeIncrease}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    this.setState({ rbaFeeIncrease: checked });
+                    if (checked && !this.state.excludeNonBillingDependants) {
+                      this.applyDependantExclusion(true);
+                    }
+                  }}
+                />
+                <I18n>Strict value Increase</I18n>
+                <span
+                  data-tip="This option should be used when you are adding a specific amount to the billing amount, such as to cover the current Admin Fees exactly. The additional value will be added despite any discounts applied. The increase will be reflected as a discount on the member"
+                  data-for="rba-fee-increase-tip"
+                  style={{
+                    cursor: 'help',
+                    color: '#888',
+                    marginLeft: '4px',
+                    fontSize: '14px',
+                  }}
+                >
+                  &#9432;
+                </span>
+                <ReactTooltip
+                  id="rba-fee-increase-tip"
+                  place="right"
+                  effect="solid"
+                  multiline={true}
+                  style={{ maxWidth: '320px' }}
+                />
+              </label>
+            </div>
+          )}
           <div className="formField">
             <label>
               <I18n>Increase Type</I18n>
@@ -594,6 +700,43 @@ export class NewPriceIncrease extends Component {
           )}
           <div className="formField">
             <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'normal',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={this.state.excludeNonBillingDependants}
+                onChange={e => this.applyDependantExclusion(e.target.checked)}
+              />
+              <I18n>Exclude Non Billing Dependants</I18n>
+              <span
+                data-tip="This checkbox will detect and exclude dependant members, that is, family dependant members within a billing account"
+                data-for="exclude-dependants-tip"
+                style={{
+                  cursor: 'help',
+                  color: '#888',
+                  marginLeft: '4px',
+                  fontSize: '14px',
+                }}
+              >
+                &#9432;
+              </span>
+              <ReactTooltip
+                id="exclude-dependants-tip"
+                place="right"
+                effect="solid"
+                multiline={true}
+                style={{ maxWidth: '300px' }}
+              />
+            </label>
+          </div>
+          <div className="formField">
+            <label
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <I18n>Exclude Increases From</I18n>
@@ -650,6 +793,60 @@ export class NewPriceIncrease extends Component {
               onChange={e => this.applyNewMemberExclusion(e.target.value)}
             />
           </div>
+          {(() => {
+            const allPaymentTypes = [
+              ...new Set(
+                (allMembers || [])
+                  .filter(
+                    m =>
+                      m.values['Status'] === 'Active' &&
+                      m.values['Billing User'] === 'YES' &&
+                      m.values['Billing Payment Type'] &&
+                      m.values['Billing Payment Type'] !== 'Cash',
+                  )
+                  .map(m => m.values['Billing Payment Type']),
+              ),
+            ].sort();
+            if (allPaymentTypes.length === 0) return null;
+            return (
+              <div className="formField">
+                <label>
+                  <I18n>Exclude Payment Type</I18n>
+                </label>
+                <div
+                  className="radioGroup"
+                  style={{ flexDirection: 'column', gap: '6px' }}
+                >
+                  {allPaymentTypes.map(pt => (
+                    <label
+                      key={pt}
+                      style={{
+                        fontWeight: 'normal',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={this.state.excludedPaymentTypes.includes(pt)}
+                        onChange={e => {
+                          const next = e.target.checked
+                            ? [...this.state.excludedPaymentTypes, pt]
+                            : this.state.excludedPaymentTypes.filter(
+                                t => t !== pt,
+                              );
+                          this.applyPaymentTypeExclusion(next);
+                        }}
+                      />
+                      {pt}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           <div className="formField">
             <label>
               <I18n>Membership Fees</I18n>{' '}
@@ -814,6 +1011,7 @@ export class NewPriceIncrease extends Component {
                         'Program',
                         'Info',
                         'Member Type',
+                        'Period',
                         'Cost',
                         'Excluded',
                       ],
@@ -859,6 +1057,9 @@ export class NewPriceIncrease extends Component {
                           ? fm.values['Date Joined'] || ''
                           : '';
                         const memberType = fm ? fm.values['Member Type'] : '';
+                        const period = fm
+                          ? fm.values['Billing Payment Period'] || ''
+                          : '';
                         const excluded = this.state.excludedMembers.includes(
                           d.id,
                         )
@@ -871,6 +1072,7 @@ export class NewPriceIncrease extends Component {
                           d.feeProgram || '',
                           d.program || '',
                           memberType,
+                          period,
                           d.cost || d.fee || '',
                           excluded,
                         ]);
@@ -940,9 +1142,13 @@ export class NewPriceIncrease extends Component {
                   <span className="memColFee">Program</span>
                   <span className="memColInfo">Info</span>
                   <span className="memColMemberType">Member Type</span>
+                  <span className="memColPeriod">Period</span>
                   <span className="memColPaymentMethod">Payment Method</span>
                   <span className="memColDateJoined">Date Joined</span>
-                  <span className="memColCost">Cost</span>
+                  <span className="memColCostAmt">Cost</span>
+                  <span className="memColDiscount">Discount</span>
+                  <span className="memColCost">Fee</span>
+                  <span className="memColIncrease">Increase</span>
                 </div>
                 {matchingMembers
                   .flatMap(({ member, matched }) =>
@@ -1069,6 +1275,11 @@ export class NewPriceIncrease extends Component {
                               ? detailMember.values['Member Type']
                               : ''}
                           </span>
+                          <span className="memColPeriod">
+                            {detailMember
+                              ? detailMember.values['Billing Payment Period']
+                              : ''}
+                          </span>
                           <span className="memColPaymentMethod">
                             {detailMember
                               ? detailMember.values['Billing Payment Type']
@@ -1082,9 +1293,60 @@ export class NewPriceIncrease extends Component {
                                 ).format('L') || ''
                               : ''}
                           </span>
+                          <span className="memColCostAmt">
+                            {this.currencySymbol}
+                            {d.cost || ''}
+                          </span>
+                          <span className="memColDiscount">
+                            {d.discount || ''}
+                          </span>
                           <span className="memColCost">
                             {this.currencySymbol}
-                            {d.cost || d.fee}
+                            {d.fee || ''}
+                          </span>
+                          <span className="memColIncrease">
+                            {!isExcluded &&
+                              (() => {
+                                if (this.state.rbaFeeIncrease) {
+                                  const cost = parseFloat(d.cost || 0);
+                                  const increaseAmt = parseFloat(
+                                    fixedAmount || 0,
+                                  );
+                                  const newTotal =
+                                    Math.round((cost + increaseAmt) * 100) /
+                                    100;
+                                  return increaseAmt > 0
+                                    ? `${this.currencySymbol}${newTotal.toFixed(
+                                        2,
+                                      )}`
+                                    : '';
+                                }
+                                const base = parseFloat(d.cost || 0);
+                                const rawIncrease =
+                                  increaseType === 'fixedAmount'
+                                    ? parseFloat(fixedAmount || 0)
+                                    : Math.round(
+                                        base *
+                                          (parseFloat(percentage || 0) / 100) *
+                                          100,
+                                      ) / 100;
+                                const preDiscount =
+                                  Math.round((base + rawIncrease) * 100) / 100;
+                                const discount = parseFloat(d.discount || 0);
+                                const newTotal =
+                                  discount > 0
+                                    ? Math.round(
+                                        preDiscount *
+                                          (1 - discount / 100) *
+                                          100,
+                                      ) / 100
+                                    : preDiscount;
+                                return rawIncrease > 0
+                                  ? `${this.currencySymbol}${newTotal.toFixed(
+                                      2,
+                                    )}`
+                                  : '';
+                              })()}
                           </span>
                         </div>
                       );
@@ -1227,6 +1489,20 @@ export class NewPriceIncrease extends Component {
               )}
             </div>
           )}
+          <div className="formField">
+            <div className="affectedCount">
+              <span className="affectedCountNumber">
+                {
+                  new Set(
+                    matchingMembers
+                      .flatMap(({ matched }) => matched.map(d => d.id))
+                      .filter(id => !this.state.excludedMembers.includes(id)),
+                  ).size
+                }
+              </span>
+              Members Affected by Price Increase
+            </div>
+          </div>
           {this.state.showSchedule && (
             <div className="formField">
               <label>
@@ -1321,11 +1597,22 @@ export class PriceIncreaseEdit extends Component {
       emailTemplateName: priceIncrease.values['Email Template Name'] || '',
       emailTemplateID: priceIncrease.values['Email Template ID'] || undefined,
       showEmailDialog: false,
-      excludeFamilyAccounts: false,
-      excludeIncreasesFrom: '',
+      ...(() => {
+        const opts = getJson(priceIncrease.values['Excluded Options']) || {};
+        return {
+          excludeFamilyAccounts: opts.excludeFamilyAccounts || false,
+          excludeNonBillingDependants:
+            opts.excludeNonBillingDependants || false,
+          rbaFeeIncrease: opts.rbaFeeIncrease || false,
+          excludeIncreasesFrom: opts.excludeIncreasesFrom || '',
+          excludeNewMembersFrom: opts.excludeNewMembersFrom || '',
+          excludedPaymentTypes: opts.excludedPaymentTypes || [],
+        };
+      })(),
       excludedFromIncreaseMembers: [],
-      excludeNewMembersFrom: '',
       excludedNewMembers: [],
+      excludedDependantMembers: [],
+      excludedByPaymentTypeMembers: [],
       emailTemplateContent: this.props.initialEmailTemplateContent || null,
       priceIncreaseTemplates: [],
       selectedExistingTemplateID: '',
@@ -1341,6 +1628,8 @@ export class PriceIncreaseEdit extends Component {
       this,
     );
     this.applyNewMemberExclusion = this.applyNewMemberExclusion.bind(this);
+    this.applyPaymentTypeExclusion = this.applyPaymentTypeExclusion.bind(this);
+    this.applyDependantExclusion = this.applyDependantExclusion.bind(this);
     this.saveChanges = this.saveChanges.bind(this);
   }
 
@@ -1435,6 +1724,50 @@ export class PriceIncreaseEdit extends Component {
           ...newMemberIds,
         ]),
       ],
+    }));
+  }
+  applyPaymentTypeExclusion(types) {
+    const memberIds = (this.props.allMembers || [])
+      .filter(
+        m =>
+          m.values['Billing User'] === 'YES' &&
+          types.includes(m.values['Billing Payment Type']),
+      )
+      .map(m => m.id);
+    this.setState(prev => ({
+      excludedPaymentTypes: types,
+      excludedByPaymentTypeMembers: memberIds,
+      excludedMembers: [
+        ...new Set([
+          ...prev.excludedMembers.filter(
+            id => !prev.excludedByPaymentTypeMembers.includes(id),
+          ),
+          ...memberIds,
+        ]),
+      ],
+    }));
+  }
+  computeDependantIds() {
+    const allMembers = this.props.allMembers || [];
+    return allMembers
+      .filter(
+        m =>
+          m.values['Status'] === 'Active' &&
+          m.values['Billing Parent Member'] &&
+          m.values['Billing Parent Member'] !== m.id,
+      )
+      .map(m => m.id);
+  }
+  applyDependantExclusion(checked) {
+    const dependantIds = checked ? this.computeDependantIds() : [];
+    this.setState(prev => ({
+      excludeNonBillingDependants: checked,
+      excludedDependantMembers: dependantIds,
+      excludedMembers: checked
+        ? [...new Set([...prev.excludedMembers, ...dependantIds])]
+        : prev.excludedMembers.filter(
+            id => !prev.excludedDependantMembers.includes(id),
+          ),
     }));
   }
 
@@ -1622,6 +1955,15 @@ export class PriceIncreaseEdit extends Component {
       ? this.state.scheduledDateTime
       : '';
     values['Excluded Members'] = this.state.excludedMembers;
+    values['RBA Increase'] = this.state.rbaFeeIncrease ? 'YES' : '';
+    values['Excluded Options'] = JSON.stringify({
+      excludeFamilyAccounts: this.state.excludeFamilyAccounts,
+      excludeNonBillingDependants: this.state.excludeNonBillingDependants,
+      rbaFeeIncrease: this.state.rbaFeeIncrease,
+      excludeIncreasesFrom: this.state.excludeIncreasesFrom,
+      excludeNewMembersFrom: this.state.excludeNewMembersFrom,
+      excludedPaymentTypes: this.state.excludedPaymentTypes,
+    });
     values['Billing Members'] = this.computeBillingMembers();
     values['Do Not Send Email'] = this.state.doNotSendEmail ? 'YES' : '';
     values['Email Template Name'] = this.state.doNotSendEmail
@@ -1690,6 +2032,18 @@ export class PriceIncreaseEdit extends Component {
               </label>
               <div className="displayValue">{priceIncrease.values['Name']}</div>
             </div>
+            {(() => {
+              const opts =
+                getJson(priceIncrease.values['Excluded Options']) || {};
+              return opts.rbaFeeIncrease ? (
+                <div className="formField">
+                  <label>
+                    <I18n>RBA Fee Increase</I18n>
+                  </label>
+                  <div className="displayValue">Yes</div>
+                </div>
+              ) : null;
+            })()}
             <div className="formField">
               <label>
                 <I18n>Increase Type</I18n>
@@ -1792,6 +2146,44 @@ export class PriceIncreaseEdit extends Component {
                   : ''}
               </div>
             </div>
+            {(() => {
+              const opts =
+                getJson(priceIncrease.values['Excluded Options']) || {};
+              const lines = [];
+              if (opts.rbaFeeIncrease) lines.push('RBA Fee Increase');
+              if (opts.excludeFamilyAccounts)
+                lines.push('Exclude Family Accounts');
+              if (opts.excludeNonBillingDependants)
+                lines.push('Exclude Non Billing Dependants');
+              if (opts.excludeIncreasesFrom)
+                lines.push(
+                  `Exclude Increases From: ${opts.excludeIncreasesFrom}`,
+                );
+              if (opts.excludeNewMembersFrom)
+                lines.push(
+                  `Exclude New Members From: ${opts.excludeNewMembersFrom}`,
+                );
+              if (
+                opts.excludedPaymentTypes &&
+                opts.excludedPaymentTypes.length > 0
+              )
+                lines.push(
+                  `Exclude Payment Types: ${opts.excludedPaymentTypes.join(
+                    ', ',
+                  )}`,
+                );
+              if (lines.length === 0) return null;
+              return (
+                <div className="formField">
+                  <label>
+                    <I18n>Excluded Options</I18n>
+                  </label>
+                  <div className="displayValue">
+                    {lines.map((l, i) => <div key={i}>{l}</div>)}
+                  </div>
+                </div>
+              );
+            })()}
             {storedExcluded.length > 0 && (
               <div className="formField">
                 <label>
@@ -1980,6 +2372,43 @@ export class PriceIncreaseEdit extends Component {
                       }
                     />
                   </div>
+                  {(() => {
+                    const nameLower = this.state.mpiFilterName
+                      .trim()
+                      .toLowerCase();
+                    const statusLower = this.state.mpiFilterStatus
+                      .trim()
+                      .toLowerCase();
+                    const isFiltered = nameLower || statusLower;
+                    if (!isFiltered) return null;
+                    const count = this.state.memberPriceIncreases.filter(s => {
+                      const m = membersById[s.values['Member GUID']];
+                      const memberName = m
+                        ? `${m.values['First Name']} ${m.values['Last Name']}`
+                        : s.values['Member GUID'] || '';
+                      if (
+                        nameLower &&
+                        !memberName.toLowerCase().includes(nameLower)
+                      )
+                        return false;
+                      if (
+                        statusLower &&
+                        !(s.values['Status'] || '')
+                          .toLowerCase()
+                          .includes(statusLower)
+                      )
+                        return false;
+                      return true;
+                    }).length;
+                    return (
+                      <div className="mpiFilterCount">
+                        {count} of {this.state.memberPriceIncreases.length}{' '}
+                        record{this.state.memberPriceIncreases.length !== 1
+                          ? 's'
+                          : ''}
+                      </div>
+                    );
+                  })()}
                   <table>
                     <thead>
                       <tr className="tableHeader">
@@ -2042,7 +2471,11 @@ export class PriceIncreaseEdit extends Component {
                             return (
                               <Fragment key={s.id}>
                                 <tr
-                                  className="mpiRow"
+                                  className={`mpiRow${
+                                    s.values['Status'] === 'Error'
+                                      ? ' mpiError'
+                                      : ''
+                                  }`}
                                   onClick={() =>
                                     this.setState({
                                       expandedMpiId: isExpanded ? null : s.id,
@@ -2234,6 +2667,52 @@ export class PriceIncreaseEdit extends Component {
               onChange={e => this.setState({ name: e.target.value })}
             />
           </div>
+          {getAttributeValue(this.props.space, 'Billing Company') ===
+            'PaySmart' && (
+            <div className="formField">
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontWeight: 'normal',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={this.state.rbaFeeIncrease}
+                  onChange={e => {
+                    const checked = e.target.checked;
+                    this.setState({ rbaFeeIncrease: checked });
+                    if (checked && !this.state.excludeNonBillingDependants) {
+                      this.applyDependantExclusion(true);
+                    }
+                  }}
+                />
+                <I18n>RBA Fee Increase</I18n>
+                <span
+                  data-tip="This option should be used when you are adding a specific amount to the billing amount. The additional value will be added despite any discounts applied. The increase will be reflected as a discount on the member"
+                  data-for="rba-fee-increase-tip"
+                  style={{
+                    cursor: 'help',
+                    color: '#888',
+                    marginLeft: '4px',
+                    fontSize: '14px',
+                  }}
+                >
+                  &#9432;
+                </span>
+                <ReactTooltip
+                  id="rba-fee-increase-tip"
+                  place="right"
+                  effect="solid"
+                  multiline={true}
+                  style={{ maxWidth: '320px' }}
+                />
+              </label>
+            </div>
+          )}
           <div className="formField">
             <label>
               <I18n>Increase Type</I18n>
@@ -2322,6 +2801,43 @@ export class PriceIncreaseEdit extends Component {
           )}
           <div className="formField">
             <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'normal',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={this.state.excludeNonBillingDependants}
+                onChange={e => this.applyDependantExclusion(e.target.checked)}
+              />
+              <I18n>Exclude Non Billing Dependants</I18n>
+              <span
+                data-tip="This checkbox will detect and exclude dependant members, that is, family dependant members within a billing account"
+                data-for="exclude-dependants-tip"
+                style={{
+                  cursor: 'help',
+                  color: '#888',
+                  marginLeft: '4px',
+                  fontSize: '14px',
+                }}
+              >
+                &#9432;
+              </span>
+              <ReactTooltip
+                id="exclude-dependants-tip"
+                place="right"
+                effect="solid"
+                multiline={true}
+                style={{ maxWidth: '300px' }}
+              />
+            </label>
+          </div>
+          <div className="formField">
+            <label
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               <I18n>Exclude Increases From</I18n>
@@ -2378,6 +2894,60 @@ export class PriceIncreaseEdit extends Component {
               onChange={e => this.applyNewMemberExclusion(e.target.value)}
             />
           </div>
+          {(() => {
+            const allPaymentTypes = [
+              ...new Set(
+                (allMembers || [])
+                  .filter(
+                    m =>
+                      m.values['Status'] === 'Active' &&
+                      m.values['Billing User'] === 'YES' &&
+                      m.values['Billing Payment Type'] &&
+                      m.values['Billing Payment Type'] !== 'Cash',
+                  )
+                  .map(m => m.values['Billing Payment Type']),
+              ),
+            ].sort();
+            if (allPaymentTypes.length === 0) return null;
+            return (
+              <div className="formField">
+                <label>
+                  <I18n>Exclude Payment Type</I18n>
+                </label>
+                <div
+                  className="radioGroup"
+                  style={{ flexDirection: 'column', gap: '6px' }}
+                >
+                  {allPaymentTypes.map(pt => (
+                    <label
+                      key={pt}
+                      style={{
+                        fontWeight: 'normal',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={this.state.excludedPaymentTypes.includes(pt)}
+                        onChange={e => {
+                          const next = e.target.checked
+                            ? [...this.state.excludedPaymentTypes, pt]
+                            : this.state.excludedPaymentTypes.filter(
+                                t => t !== pt,
+                              );
+                          this.applyPaymentTypeExclusion(next);
+                        }}
+                      />
+                      {pt}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
           {this.state.increaseType === 'fixedAmount' && (
             <div className="formField">
               <label>
@@ -2588,6 +3158,7 @@ export class PriceIncreaseEdit extends Component {
                         'Program',
                         'Info',
                         'Member Type',
+                        'Period',
                         'Cost',
                         'Excluded',
                       ],
@@ -2633,6 +3204,9 @@ export class PriceIncreaseEdit extends Component {
                           ? fm.values['Date Joined'] || ''
                           : '';
                         const memberType = fm ? fm.values['Member Type'] : '';
+                        const period = fm
+                          ? fm.values['Billing Payment Period'] || ''
+                          : '';
                         const excluded = this.state.excludedMembers.includes(
                           d.id,
                         )
@@ -2645,6 +3219,7 @@ export class PriceIncreaseEdit extends Component {
                           d.feeProgram || '',
                           d.program || '',
                           memberType,
+                          period,
                           d.cost || d.fee || '',
                           excluded,
                         ]);
@@ -2714,9 +3289,13 @@ export class PriceIncreaseEdit extends Component {
                   <span className="memColFee">Program</span>
                   <span className="memColInfo">Info</span>
                   <span className="memColMemberType">Member Type</span>
+                  <span className="memColPeriod">Period</span>
                   <span className="memColPaymentMethod">Payment Method</span>
                   <span className="memColDateJoined">Date Joined</span>
-                  <span className="memColCost">Cost</span>
+                  <span className="memColCostAmt">Cost</span>
+                  <span className="memColDiscount">Discount</span>
+                  <span className="memColCost">Fee</span>
+                  <span className="memColIncrease">Increase</span>
                 </div>
                 {matchingMembers
                   .flatMap(({ member, matched }) =>
@@ -2843,6 +3422,11 @@ export class PriceIncreaseEdit extends Component {
                               ? detailMember.values['Member Type']
                               : ''}
                           </span>
+                          <span className="memColPeriod">
+                            {detailMember
+                              ? detailMember.values['Billing Payment Period']
+                              : ''}
+                          </span>
                           <span className="memColPaymentMethod">
                             {detailMember
                               ? detailMember.values['Billing Payment Type']
@@ -2856,9 +3440,60 @@ export class PriceIncreaseEdit extends Component {
                                 ).format('L') || ''
                               : ''}
                           </span>
+                          <span className="memColCostAmt">
+                            {this.currencySymbol}
+                            {d.cost || ''}
+                          </span>
+                          <span className="memColDiscount">
+                            {d.discount || ''}
+                          </span>
                           <span className="memColCost">
                             {this.currencySymbol}
-                            {d.cost || d.fee}
+                            {d.fee || ''}
+                          </span>
+                          <span className="memColIncrease">
+                            {!isExcluded &&
+                              (() => {
+                                if (this.state.rbaFeeIncrease) {
+                                  const cost = parseFloat(d.cost || 0);
+                                  const increaseAmt = parseFloat(
+                                    fixedAmount || 0,
+                                  );
+                                  const newTotal =
+                                    Math.round((cost + increaseAmt) * 100) /
+                                    100;
+                                  return increaseAmt > 0
+                                    ? `${this.currencySymbol}${newTotal.toFixed(
+                                        2,
+                                      )}`
+                                    : '';
+                                }
+                                const base = parseFloat(d.cost || 0);
+                                const rawIncrease =
+                                  increaseType === 'fixedAmount'
+                                    ? parseFloat(fixedAmount || 0)
+                                    : Math.round(
+                                        base *
+                                          (parseFloat(percentage || 0) / 100) *
+                                          100,
+                                      ) / 100;
+                                const preDiscount =
+                                  Math.round((base + rawIncrease) * 100) / 100;
+                                const discount = parseFloat(d.discount || 0);
+                                const newTotal =
+                                  discount > 0
+                                    ? Math.round(
+                                        preDiscount *
+                                          (1 - discount / 100) *
+                                          100,
+                                      ) / 100
+                                    : preDiscount;
+                                return rawIncrease > 0
+                                  ? `${this.currencySymbol}${newTotal.toFixed(
+                                      2,
+                                    )}`
+                                  : '';
+                              })()}
                           </span>
                         </div>
                       );
@@ -3010,6 +3645,20 @@ export class PriceIncreaseEdit extends Component {
                 )}
             </div>
           )}
+          <div className="formField">
+            <div className="affectedCount">
+              <span className="affectedCountNumber">
+                {
+                  new Set(
+                    matchingMembers
+                      .flatMap(({ matched }) => matched.map(d => d.id))
+                      .filter(id => !this.state.excludedMembers.includes(id)),
+                  ).size
+                }
+              </span>
+              Members Affected by Price Increase
+            </div>
+          </div>
           {this.state.showSchedule && (
             <div className="formField">
               <label>

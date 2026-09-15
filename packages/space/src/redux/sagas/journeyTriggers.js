@@ -166,14 +166,49 @@ export function* fetchJourneyInfo() {
       }),
     });
 
-    var groupsSubmissions = groups.submissions;
-    var triggerSubmissions = triggers.submissions;
-
     if (groups.serverError) {
       yield put(errorActions.addError(groups.serverError));
     } else if (triggers.serverError) {
       yield put(errorActions.addError(triggers.serverError));
     } else {
+      var groupsSubmissions = groups.submissions;
+      let groupsPageToken = groups.nextPageToken;
+      while (groupsPageToken) {
+        const nextGroupsPage = yield call(searchSubmissions, {
+          get: true,
+          datastore: true,
+          form: 'trigger-groups',
+          search: new SubmissionSearch(true)
+            .include('details,values')
+            .limit(1000)
+            .pageToken(groupsPageToken)
+            .build(),
+        });
+        groupsSubmissions = groupsSubmissions.concat(
+          nextGroupsPage.submissions,
+        );
+        groupsPageToken = nextGroupsPage.nextPageToken;
+      }
+
+      var triggerSubmissions = triggers.submissions;
+      let triggersPageToken = triggers.nextPageToken;
+      while (triggersPageToken) {
+        const nextTriggersPage = yield call(searchSubmissions, {
+          get: true,
+          datastore: true,
+          form: 'journey-triggers',
+          search: new SubmissionSearch(true)
+            .include('details,values')
+            .limit(1000)
+            .pageToken(triggersPageToken)
+            .build(),
+        });
+        triggerSubmissions = triggerSubmissions.concat(
+          nextTriggersPage.submissions,
+        );
+        triggersPageToken = nextTriggersPage.nextPageToken;
+      }
+
       yield put(
         actions.setJourneyInfo({
           groups: groupsSubmissions,

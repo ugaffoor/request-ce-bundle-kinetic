@@ -1659,7 +1659,7 @@ class PayNow extends Component {
                       script={[
                         {
                           src:
-                            'https://libs.na.bambora.com/customcheckout/1/customcheckout.js',
+                            'https://libs.bam.shift4api.net/customcheckout/2/customcheckout.js ',
                         },
                       ]}
                       // Helmet doesn't support `onload` in script objects so we have to hack in our own
@@ -4105,35 +4105,35 @@ export class BillingInfo extends Component {
                           this.props.space,
                           'Billing Company',
                         ) === 'Stripe' ||
-                          (getAttributeValue(
+                          getAttributeValue(
                             this.props.space,
                             'Bambora Stripe Migration',
-                          ) === 'YES' &&
-                            (
-                              this.props.memberItem.values[
-                                'Billing Customer Id'
-                              ] || ''
-                            ).startsWith('cus_'))) && (
-                          <div>
-                            <NavLink
-                              to={`/categories/stripe-billing/stripe-change-payment-type?id=${
-                                this.props.memberItem.id
-                              }`}
-                              kappSlug={'services'}
-                              className={
-                                'nav-link icon-wrapper btn btn-primary'
-                              }
-                              activeClassName="active"
-                              style={{
-                                display: 'inline',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                              }}
-                            >
-                              Update Payment Details
-                            </NavLink>
-                          </div>
-                        )}
+                          ) === 'YES') &&
+                          (
+                            this.props.memberItem.values[
+                              'Billing Customer Id'
+                            ] || ''
+                          ).startsWith('cus_') && (
+                            <div>
+                              <NavLink
+                                to={`/categories/stripe-billing/stripe-change-payment-type?id=${
+                                  this.props.memberItem.id
+                                }`}
+                                kappSlug={'services'}
+                                className={
+                                  'nav-link icon-wrapper btn btn-primary'
+                                }
+                                activeClassName="active"
+                                style={{
+                                  display: 'inline',
+                                  paddingTop: '4px',
+                                  paddingBottom: '4px',
+                                }}
+                              >
+                                Update Payment Details
+                              </NavLink>
+                            </div>
+                          )}
                       </span>
                       <table
                         className={

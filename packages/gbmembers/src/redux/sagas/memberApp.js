@@ -328,15 +328,31 @@ export function* fetchMemberAppSettingsTask() {
   }
   var snippets = snippetsMap.toList();
 
-  const triggersSubs = yield all({
-    submissions: call(searchSubmissions, {
+  const firstTriggersPage = yield call(searchSubmissions, {
+    get: true,
+    datastore: true,
+    form: 'journey-triggers',
+    search: JOURNEY_TRIGGERS_SEARCH,
+  });
+  var triggers = firstTriggersPage.submissions;
+  let triggersPageToken = firstTriggersPage.nextPageToken;
+  while (triggersPageToken) {
+    const triggersNextSearch = new SubmissionSearch(true)
+      .eq('values[Status]', 'Active')
+      .index('values[Status]')
+      .include('details,values')
+      .limit(1000)
+      .pageToken(triggersPageToken)
+      .build();
+    const nextTriggersPage = yield call(searchSubmissions, {
       get: true,
       datastore: true,
       form: 'journey-triggers',
-      search: JOURNEY_TRIGGERS_SEARCH,
-    }),
-  });
-  var triggers = triggersSubs.submissions.submissions;
+      search: triggersNextSearch,
+    });
+    triggers = triggers.concat(nextTriggersPage.submissions);
+    triggersPageToken = nextTriggersPage.nextPageToken;
+  }
 
   var profileAttributes = [];
   profile.profileAttributes.forEach(

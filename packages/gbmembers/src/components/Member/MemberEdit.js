@@ -852,6 +852,29 @@ export const MemberEdit = ({
                     </span>
                     <span className="line">
                       <div>
+                        <label htmlFor="familyFeeDetails">
+                          Family Fee Details
+                        </label>
+                        <input
+                          type="text"
+                          name="familyFeeDetails"
+                          id="familyFeeDetails"
+                          size="90"
+                          defaultValue={memberItem.values['Family Fee Details']}
+                          onChange={e =>
+                            handleChange(
+                              memberItem,
+                              'Family Fee Details',
+                              e,
+                              setIsDirty,
+                              memberChanges,
+                            )
+                          }
+                        />
+                      </div>
+                    </span>
+                    <span className="line">
+                      <div>
                         <label htmlFor="resumeDate">Resume Date</label>
                         <input
                           type="text"

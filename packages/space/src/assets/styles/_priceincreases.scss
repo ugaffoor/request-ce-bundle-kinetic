@@ -219,13 +219,17 @@
       $mem-col-fee: 2fr;
       $mem-col-info: 2fr;
       $mem-col-member-type: 1fr;
+      $mem-col-period: 1fr;
       $mem-col-payment-method: 1fr;
+      $mem-col-cost-amt: 80px;
       $mem-col-cost: 80px;
+      $mem-col-discount: 80px;
+      $mem-col-increase: 80px;
 
       .matchingMembersHeader,
       .matchingMemberRow {
         display: grid;
-        grid-template-columns: $mem-col-exclude $mem-col-name $mem-col-fee $mem-col-info $mem-col-member-type $mem-col-payment-method $mem-col-date-joined $mem-col-cost;
+        grid-template-columns: $mem-col-exclude $mem-col-name $mem-col-fee $mem-col-info $mem-col-member-type $mem-col-period $mem-col-payment-method $mem-col-date-joined $mem-col-cost-amt $mem-col-discount $mem-col-cost $mem-col-increase;
         align-items: center;
         padding: 5px 8px;
         gap: 8px;
@@ -285,12 +289,54 @@
         text-align: right;
       }
 
+      .memColCostAmt {
+        text-align: right;
+        font-size: 0.85em;
+        color: #555;
+      }
+
+      .memColDiscount {
+        text-align: right;
+        font-size: 0.85em;
+        color: #555;
+      }
+
+      .memColIncrease {
+        text-align: right;
+        font-weight: 600;
+        color: #27ae60;
+      }
+
+      .matchingMembersTotalRow {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        border-top: 2px solid #dbd8d8;
+        background-color: #f0faf4;
+        font-weight: 600;
+        font-size: 0.9em;
+
+        .matchingMembersTotalValue {
+          color: #27ae60;
+          font-size: 1.1em;
+          min-width: 80px;
+          text-align: right;
+        }
+      }
+
       .memColInfo {
         font-size: 0.85em;
         color: #555;
       }
 
       .memColMemberType {
+        font-size: 0.85em;
+        color: #555;
+      }
+
+      .memColPeriod {
         font-size: 0.85em;
         color: #555;
       }
@@ -366,6 +412,31 @@
       }
     }
 
+    .affectedCount {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, #1a6faf, #2980b9);
+      color: #fff;
+      border-radius: 8px;
+      padding: 14px 20px;
+      font-size: 1em;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      box-shadow: 0 2px 8px rgba(41, 128, 185, 0.35);
+
+      .affectedCountNumber {
+        font-size: 2em;
+        font-weight: 700;
+        line-height: 1;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        padding: 4px 14px;
+        min-width: 48px;
+        text-align: center;
+      }
+    }
+
     .submitError {
       color: #c0392b;
       background-color: #fdecea;
@@ -413,6 +484,11 @@
   .memberPriceIncreasesTable {
     overflow-x: auto;
     margin-top: 8px;
+    .mpiFilterCount {
+      font-size: 0.85em;
+      color: #555;
+      margin-bottom: 6px;
+    }
     .mpiFilterBar {
       display: flex;
       gap: 10px;
@@ -445,6 +521,13 @@
         &:hover td {
           background-color: #eaf3fb;
         }
+      }
+      tr.mpiError td {
+        background-color: #fdecea !important;
+        color: #c0392b;
+      }
+      tr.mpiError:hover td {
+        background-color: #f9d0cd !important;
       }
       tr.mpiDetailRow td {
         background-color: #fafafa;

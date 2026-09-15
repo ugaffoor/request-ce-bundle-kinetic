@@ -204,6 +204,7 @@ export class MemberActivityReport extends Component {
       { title: 'Date Joined', field: 'dateJoined' },
       { title: 'Days Since Joined', field: 'daysSinceJoined' },
       { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
+      { title: 'Last Promotion Date', field: 'lastPromotionDate' },
       { title: 'Last Payment Date', field: 'lastPaymentDate' },
       { title: 'Cash Term Start Date', field: 'cashStartDate' },
       { title: 'Cash Term End Date', field: 'cashEndDate' },
@@ -362,6 +363,7 @@ export class MemberActivityReport extends Component {
       { label: 'Date Joined', value: 'dateJoined' },
       { label: 'Days Since Joined', value: 'daysSinceJoined' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
+      { label: 'Last Promotion Date', value: 'lastPromotionDate' },
       { label: 'Last Payment Date', value: 'lastPaymentDate' },
       { label: 'Cash Term Start Date', value: 'cashStartDate' },
       { label: 'Cash Term End Date', value: 'cashEndDate' },
@@ -453,6 +455,7 @@ export class MemberActivityReport extends Component {
           { label: 'SMS Sent', value: 'smsSent' },
           { label: 'SMS Received', value: 'smsReceived' },
           { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
+          { label: 'Last Promotion Date', value: 'lastPromotionDate' },
           { label: 'Date Joined', value: 'dateJoined' },
           { label: 'Days Since Joined', value: 'daysSinceJoined' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
@@ -741,6 +744,7 @@ export class MemberActivityReport extends Component {
         filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate' ||
+        filterColumn === 'lastPromotionDate' ||
         filterColumn === 'cashStartDate' ||
         filterColumn === 'cashEndDate' ||
         filterColumn === 'waiverCompleteDate'
@@ -768,6 +772,7 @@ export class MemberActivityReport extends Component {
         filterColumn === 'dateJoined' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate' ||
+        filterColumn === 'lastPromotionDate' ||
         filterColumn === 'cashStartDate' ||
         filterColumn === 'cashEndDate' ||
         filterColumn === 'waiverCompleteDate'
@@ -818,6 +823,7 @@ export class MemberActivityReport extends Component {
       filterColumn !== 'dateJoined' &&
       filterColumn !== 'lastPaymentDate' &&
       filterColumn !== 'lastAttendanceDate' &&
+      filterColumn !== 'lastPromotionDate' &&
       filterColumn !== 'cashStartDate' &&
       filterColumn !== 'cashEndDate' &&
       filterColumn !== 'waiverCompleteDate'
@@ -842,6 +848,7 @@ export class MemberActivityReport extends Component {
       filterColumn === 'dateJoined' ||
       filterColumn === 'lastPaymentDate' ||
       filterColumn === 'lastAttendanceDate' ||
+      filterColumn === 'lastPromotionDate' ||
       filterColumn === 'cashStartDate' ||
       filterColumn === 'cashEndDate' ||
       filterColumn === 'waiverCompleteDate'
@@ -1001,6 +1008,7 @@ export class MemberActivityReport extends Component {
       !event.target.value === 'dateJoined' &&
       !event.target.value === 'lastPaymentDate' &&
       !event.target.value === 'lastAttendanceDate' &&
+      !event.target.value === 'lastPromotionDate' &&
       !event.target.value === 'cashStartDate' &&
       !event.target.value === 'cashEndDate' &&
       !event.target.value === 'waiverCompleteDate'
@@ -1019,6 +1027,7 @@ export class MemberActivityReport extends Component {
       event.target.value === 'dateJoined' ||
       event.target.value === 'lastPaymentDate' ||
       event.target.value === 'lastAttendanceDate' ||
+      event.target.value === 'lastPromotionDate' ||
       event.target.value === 'cashStartDate' ||
       event.target.value === 'cashEndDate' ||
       event.target.value === 'waiverCompleteDate'
@@ -1361,6 +1370,10 @@ export class MemberActivityReport extends Component {
         lastAttendanceDate:
           member.values['Last Attendance Date'] !== undefined
             ? moment(member.values['Last Attendance Date']).format('L')
+            : '',
+        lastPromotionDate:
+          member.values['Last Promotion'] !== undefined
+            ? moment(member.values['Last Promotion']).format('L')
             : '',
         lastPaymentDate: this.getLastPaymentDate(member),
         cashStartDate:
@@ -2058,35 +2071,82 @@ export class MemberActivityReport extends Component {
                     onChange={e => this.onFilterFieldChange(e)}
                   >
                     <option />
-                    {this.state.filterColumns.map(column => (
-                      <option key={column.value} value={column.value}>
-                        {column.label}
+                    {this.state.filterColumns
+                      .filter(column =>
+                        this.state.columns.some(c => c.field === column.value),
+                      )
+                      .map(column => (
+                        <option key={column.value} value={column.value}>
+                          {column.label}
+                        </option>
+                      ))}
+                    {this.state.columns.some(
+                      c => c.field === 'createdDate',
+                    ) && (
+                      <option key="createdDate" value="createdDate">
+                        Created Date
                       </option>
-                    ))}
-                    <option key="createdDate" value="createdDate">
-                      Created Date
-                    </option>
-                    <option key="lastModifiedDate" value="lastModifiedDate">
-                      Last Modified Date
-                    </option>
-                    <option key="lastPaymentDate" value="lastPaymentDate">
-                      Last Payment Date
-                    </option>
-                    <option key="lastAttendanceDate" value="lastAttendanceDate">
-                      Last Attendance Date
-                    </option>
-                    <option key="cashStartDate" value="cashStartDate">
-                      Cash Term Start Date
-                    </option>
-                    <option key="cashEndDate" value="cashEndDate">
-                      Cash Term End Date
-                    </option>
-                    <option key="waiverCompleteDate" value="waiverCompleteDate">
-                      Waiver Complete Date
-                    </option>
-                    <option key="dateJoined" value="dateJoined">
-                      Date Joined
-                    </option>
+                    )}
+                    {this.state.columns.some(
+                      c => c.field === 'lastModifiedDate',
+                    ) && (
+                      <option key="lastModifiedDate" value="lastModifiedDate">
+                        Last Modified Date
+                      </option>
+                    )}
+                    {this.state.columns.some(
+                      c => c.field === 'lastPaymentDate',
+                    ) && (
+                      <option key="lastPaymentDate" value="lastPaymentDate">
+                        Last Payment Date
+                      </option>
+                    )}
+                    {this.state.columns.some(
+                      c => c.field === 'lastAttendanceDate',
+                    ) && (
+                      <option
+                        key="lastAttendanceDate"
+                        value="lastAttendanceDate"
+                      >
+                        Last Attendance Date
+                      </option>
+                    )}
+                    {this.state.columns.some(
+                      c => c.field === 'lastPromotionDate',
+                    ) && (
+                      <option key="lastPromotionDate" value="lastPromotionDate">
+                        Last Promotion Date
+                      </option>
+                    )}
+                    {this.state.columns.some(
+                      c => c.field === 'cashStartDate',
+                    ) && (
+                      <option key="cashStartDate" value="cashStartDate">
+                        Cash Term Start Date
+                      </option>
+                    )}
+                    {this.state.columns.some(
+                      c => c.field === 'cashEndDate',
+                    ) && (
+                      <option key="cashEndDate" value="cashEndDate">
+                        Cash Term End Date
+                      </option>
+                    )}
+                    {this.state.columns.some(
+                      c => c.field === 'waiverCompleteDate',
+                    ) && (
+                      <option
+                        key="waiverCompleteDate"
+                        value="waiverCompleteDate"
+                      >
+                        Waiver Complete Date
+                      </option>
+                    )}
+                    {this.state.columns.some(c => c.field === 'dateJoined') && (
+                      <option key="dateJoined" value="dateJoined">
+                        Date Joined
+                      </option>
+                    )}
                   </select>
                 </span>
                 <span id="filter-type-container">
@@ -2324,7 +2384,7 @@ export class MemberActivityReport extends Component {
           <div className="table-controls">
             <div style={{ margin: '10px' }}>
               <ReactTabulator
-                ref={ref => (this.filtersGridref = ref)}
+                onRef={ref => (this.filtersGridref = ref)}
                 columns={this.addedFiltersColumns}
                 data={this.state.filters}
                 options={{ width: '100%' }}
