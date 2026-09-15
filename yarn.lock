@@ -20828,15 +20828,10 @@ tableize-object@^0.1.0:
   dependencies:
     isobject "^2.0.0"
 
-tabulator-tables@5.6.1:
+tabulator-tables@5.6.1, tabulator-tables@^5.6.1:
   version "5.6.1"
   resolved "https://registry.npmjs.org/tabulator-tables/-/tabulator-tables-5.6.1.tgz"
   integrity sha512-DsmaZqEmlQS/NL5ZJbVtoaeYjJgofEFp+2er7+uwKerGwd/E2rZbeQgux4+Ab1dxNJcbptiX7oUiTwogOnUdgQ==
-
-tabulator-tables@^4.2.2:
-  version "4.9.3"
-  resolved "https://registry.npmjs.org/tabulator-tables/-/tabulator-tables-4.9.3.tgz"
-  integrity sha512-iwwQqAEGGxlgrBpcmJJvMJrfjGLcCXOB3AOb/DGkXqBy1YKoYA36hIl7qXGp6Jo8dSkzFAlDT6pKLZgyhs9OnQ==
 
 tailwindcss@^3.0.2:
   version "3.4.18"
