@@ -545,6 +545,20 @@
     color: $gray;
   }
 
+  .header .report-option {
+    margin: 0 0 0 12px;
+    font-size: 12px;
+    font-weight: normal;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+
+    input {
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+  }
+
   // A border so the panel reads as one thing, in the site's own light gray.
   .table-controls {
     border: 1px solid $lightgray;
@@ -655,6 +669,25 @@
 div.grid-cell-collapse:before {
    content: " ▼";
 }*/
+
+.report-activity-group {
+  .report-activity-section {
+    margin-bottom: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .report-activity-heading {
+    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $primary;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
 
 .report-sub-table {
   box-sizing: border-box;

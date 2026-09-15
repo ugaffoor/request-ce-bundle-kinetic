@@ -131,6 +131,18 @@ const ExpandCellButton = ({ cell, onSelect, label }) => {
   );
 };
 
+// One expander for a person's whole history. Opens notes, events and all
+// four message tables in a single panel beneath the row, instead of six
+// cells each needing its own click.
+const ExpandAllActivityButton = ({ cell }) => (
+  <button
+    className="grid-cell-expand show-sub-grid btn btn-xs"
+    onClick={() => compThis.handleAllActivityClick(compThis, cell)}
+  >
+    Show
+  </button>
+);
+
 export class MemberActivityReport extends Component {
   constructor(props) {
     super(props);
@@ -271,6 +283,17 @@ export class MemberActivityReport extends Component {
       { title: 'Payment Type', field: 'paymentType' },
       { title: 'Family Members', field: 'familyMembers' },
       { title: 'Fee Program', field: 'feeProgram' },
+      {
+        title: 'All Activity',
+        field: 'allActivity',
+        formatter: reactFormatter(<ExpandAllActivityButton />),
+        headerSort: false,
+        // Carries no data of its own, so it has no place in a CSV export.
+        download: false,
+        // Shown by the "Group activity" option in the header.
+        visible: false,
+        width: 90,
+      },
       {
         title: 'Notes',
         field: 'history',
@@ -664,6 +687,7 @@ export class MemberActivityReport extends Component {
 
     this.state = {
       columns: columns,
+      groupActivity: false,
       filterColumns: this.filterColumns,
       gridHeight: fitGridHeight(),
       showControls: false,
@@ -1707,6 +1731,157 @@ export class MemberActivityReport extends Component {
     }
   };
 
+  /**
+   * Shows or hides the "All Activity" column. Both the live table and the
+   * column definition are updated: the definition is what the table is
+   * rebuilt from whenever its data changes, so updating only the live table
+   * would lose the setting on the next rebuild.
+   */
+  toggleGroupActivity = () => {
+    const groupActivity = !this.state.groupActivity;
+    const grid =
+      this.memberActivityGridref && this.memberActivityGridref.current;
+    if (grid) {
+      if (groupActivity) {
+        grid.showColumn('allActivity');
+      } else {
+        grid.hideColumn('allActivity');
+      }
+    }
+    this.setState(state => ({
+      groupActivity,
+      columns: state.columns.map(
+        column =>
+          column.field === 'allActivity'
+            ? { ...column, visible: groupActivity }
+            : column,
+      ),
+    }));
+  };
+
+  /**
+   * Opens every activity type for one member in a single panel beneath the
+   * row -- notes, events, and the four message tables -- so a person's whole
+   * history is one click rather than six. Reuses the same fetches and column
+   * definitions as the individual expanders, and follows their rules: one
+   * panel per row, and opening this closes any of theirs.
+   */
+  handleAllActivityClick = (that, cell) => {
+    const cellElement = cell.getElement();
+    const row = cell.getRow();
+    const rowEl = row.getElement();
+    const button = $(cellElement).find('.grid-cell-expand');
+
+    if ($(rowEl).find('.report-activity-group').length > 0) {
+      $(rowEl)
+        .find('.report-activity-group')
+        .remove();
+      button
+        .removeClass('hide-sub-grid')
+        .addClass('show-sub-grid')
+        .text('Show');
+      $(cellElement).css('background-color', 'white');
+      return;
+    }
+
+    // Close whatever else is open on this row, resetting its button the same
+    // way the single-type handlers reset each other.
+    $(rowEl)
+      .find('.report-sub-table')
+      .remove();
+    row.getCells().forEach(other => {
+      const el = other.getElement();
+      $(el).css('background-color', 'white');
+      $(el)
+        .find('.hide-sub-grid')
+        .removeClass('hide-sub-grid')
+        .addClass('show-sub-grid')
+        .text('Show');
+      $(el)
+        .find('.rt-expander.opened')
+        .removeClass('opened')
+        .addClass('closed');
+    });
+
+    const memberId = row.getData()['id'];
+    const holder = document.createElement('div');
+    $(holder).addClass('report-sub-table report-activity-group');
+
+    // A titled section per activity type, returned as the element to render
+    // that type's table into.
+    const section = title => {
+      const wrap = document.createElement('div');
+      $(wrap).addClass('report-activity-section');
+      const heading = document.createElement('div');
+      $(heading)
+        .addClass('report-activity-heading')
+        .text(title);
+      const target = document.createElement('div');
+      wrap.appendChild(heading);
+      wrap.appendChild(target);
+      holder.appendChild(wrap);
+      return target;
+    };
+
+    const subTable = (columns, data) => (
+      <ReactTabulator
+        columns={columns}
+        data={data}
+        placeholder={no_data_placeholder}
+        options={{ height: data.length ? 30 + data.length * 50 : 80 }}
+      />
+    );
+
+    // Notes travel with the row -- nothing to fetch.
+    const history = getJson(row.getData()['history']);
+    ReactDOM.render(subTable(this.notesColumns, history), section('Notes'));
+
+    // Events.
+    const memberItem = this.props.members.find(m => m.id === memberId);
+    const eventsTarget = section('Events');
+    this.fetchDatastoreData(
+      memberId,
+      journey_events_url + '&q=values[Record ID]="' + memberId + '"',
+      memberItem,
+      this.props.triggers,
+    ).then(events => {
+      ReactDOM.render(
+        <MemberEvents events={events} memberItem={memberItem} />,
+        eventsTarget,
+      );
+    });
+
+    // The four message tables, fetched in parallel: the sections are laid out
+    // immediately so each fills in as its data arrives.
+    [
+      ['Emails Sent', 'Outbound', 'Email', this.emailsSentColumns],
+      ['Emails Received', 'Inbound', 'Email', this.emailsReceivedColumns],
+      ['SMS Sent', 'Outbound', 'SMS', this.smsSentColumns],
+      ['SMS Received', 'Inbound', 'SMS', this.smsReceivedColumns],
+    ].forEach(([title, direction, type, columns]) => {
+      const target = section(title);
+      const url =
+        member_activities_url +
+        '&q=values[Member ID]="' +
+        memberId +
+        '"+AND+values[Direction]="' +
+        direction +
+        '"+AND+values[Type]="' +
+        type +
+        '"';
+      this.fetchData(memberId, url).then(rows => {
+        ReactDOM.render(subTable(columns, rows), target);
+      });
+    });
+
+    rowEl.appendChild(holder);
+    button
+      .removeClass('show-sub-grid')
+      .addClass('hide-sub-grid')
+      .text('Hide');
+    $(cellElement).css('background-color', '#ced7e5');
+  };
+
   handleNotesCellClick = (that, cell) => {
     var field = cell.getColumn().getField();
 
@@ -2163,6 +2338,14 @@ export class MemberActivityReport extends Component {
               ? ` (${this.state.filters.length} active)`
               : ''}
           </button>
+          <label className="report-option">
+            <input
+              type="checkbox"
+              checked={this.state.groupActivity}
+              onChange={this.toggleGroupActivity}
+            />{' '}
+            Group activity
+          </label>
         </div>
         <div
           className="table-controls"
