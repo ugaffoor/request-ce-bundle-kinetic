@@ -499,19 +499,112 @@
 
 .reportContent {
   width: 100%;
+
+  // The bar was 10px, centred, and held only the title. It now carries the
+  // title on the left and the controls toggle on the right, both white on the
+  // site's dark gray so they hold up against it.
   .header {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
     background: $darkgray;
     color: white;
-    font-size: 10px;
+    font-size: 14px;
+
+    h6 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+    }
+
+    // Bootstrap's link-blue is unreadable on the dark bar, so the toggle is
+    // drawn as a quiet outlined control in the bar's own white.
+    .btn-link {
+      color: white;
+      font-size: 12px;
+      padding: 2px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      border-radius: 0.4rem;
+      text-decoration: none;
+
+      &:hover,
+      &:focus {
+        color: white;
+        background: rgba(255, 255, 255, 0.14);
+        text-decoration: none;
+        box-shadow: none;
+      }
+    }
   }
+
+  .record-count {
+    margin: 6px 10px 0 10px;
+    font-size: 12px;
+    color: $gray;
+  }
+
+  // A border so the panel reads as one thing, in the site's own light gray.
+  .table-controls {
+    border: 1px solid $lightgray;
+  }
+
   .tableData {
     height: 420px;
     margin: 10px;
     width: 99%;
+    // The native drag handle is small; a solid lower edge makes the
+    // resizable boundary visible so people find it.
+    border-bottom: 3px solid $lightgray;
     .filter-value {
       display: none;
       width: 134px;
+    }
+  }
+
+  // Wide grids are easier to read across with a firmer header row, gentle
+  // alternate-row tinting and a hover -- all from the site's existing blues
+  // and grays rather than anything new.
+  .tabulator {
+    border: 1px solid $lightgray;
+
+    .tabulator-header {
+      background: $lightestgray;
+      border-bottom: 2px solid $lightgray;
+
+      .tabulator-col {
+        background: $lightestgray;
+
+        .tabulator-col-title {
+          font-weight: 600;
+          color: $primary;
+        }
+
+        // The Name column's search box, styled like the report's other
+        // inputs rather than Tabulator's default.
+        .tabulator-header-filter input {
+          box-sizing: border-box;
+          width: 100%;
+          padding: 2px 5px;
+          border: 1px solid $darkgray;
+          background: #fafafa;
+          font-size: 12px;
+          outline: none;
+        }
+      }
+    }
+
+    .tabulator-row {
+      border-bottom: 1px solid $gray4;
+
+      &.tabulator-row-even {
+        background: $blue4;
+      }
+
+      &:hover {
+        background: $blue3;
+      }
     }
   }
 }

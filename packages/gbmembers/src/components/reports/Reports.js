@@ -46,7 +46,11 @@ import { CoreForm } from '@kineticdata/react';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import { getTimezone } from '../leads/LeadsUtils';
 
+const SET_SIDEBAR_OPEN = Utils.namespace('layout', 'SET_SIDEBAR_OPEN');
+const setSidebarOpen = open => ({ type: SET_SIDEBAR_OPEN, payload: open });
+
 const mapStateToProps = state => ({
+  sidebarOpen: state.app.layout.sidebarOpen,
   reports: state.member.reporting.activityReport,
   activityReportLoading: state.member.reporting.activityReportLoading,
   members: state.member.members.allMembers,
@@ -107,6 +111,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = {
+  setSidebarOpen,
   fetchReport: reportingActions.fetchActivityReport,
   setReport: reportingActions.setActivityReport,
   fetchServicesByDate: servicesActions.fetchServicesByDate,
@@ -171,6 +176,8 @@ export const ReportsView = ({
   setShowMostAttendance,
   showLeadActivityReport,
   setShowLeadActivityReport,
+  sidebarOpen,
+  setSidebarOpen,
   showPDDailyReport,
   setShowPDDailyReport,
   showGBOnlineReport,
@@ -274,11 +281,17 @@ export const ReportsView = ({
               type="button"
               className="btn btn-primary report-btn-default"
               disabled={!dummyFormLoaded}
-              onClick={e =>
-                setShowMemberActivityReport(
-                  showMemberActivityReport ? false : true,
-                )
-              }
+              onClick={e => {
+                const opening = !showMemberActivityReport;
+                setShowMemberActivityReport(opening);
+                // These are full-width, full-height grids, so opening one
+                // retracts the member sidebar to give it the room. Only when
+                // the sidebar is open, and never on close: a sidebar the user
+                // deliberately reopened is left alone.
+                if (opening && sidebarOpen) {
+                  setSidebarOpen(false);
+                }
+              }}
             >
               {showMemberActivityReport
                 ? 'Hide Member Activity Report'
@@ -556,9 +569,12 @@ export const ReportsView = ({
               className="btn btn-primary report-btn-default"
               disabled={!dummyFormLoaded}
               onClick={e => {
-                setShowLeadActivityReport(
-                  showLeadActivityReport ? false : true,
-                );
+                const opening = !showLeadActivityReport;
+                setShowLeadActivityReport(opening);
+                // Same reasoning as the member report above.
+                if (opening && sidebarOpen) {
+                  setSidebarOpen(false);
+                }
                 document.getElementById('leads-report').scrollIntoView();
               }}
             >

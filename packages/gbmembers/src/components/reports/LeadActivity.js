@@ -37,6 +37,19 @@ const journey_events_url =
   'app/api/v1/datastore/forms/journey-event/submissions?include=details,values&index=values[Record ID]&limit=1000';
 const no_data_placeholder = 'No records found';
 
+// Roughly what the page chrome above the grid occupies -- heading, the app
+// header and the report's own controls. Subtracted from the window so the
+// grid fills what is left instead of sitting in a fixed 450px box.
+const GRID_CHROME_ALLOWANCE = 300;
+const MIN_GRID_HEIGHT = 240;
+
+const fitGridHeight = () =>
+  Math.max(
+    MIN_GRID_HEIGHT,
+    (typeof window !== 'undefined' ? window.innerHeight : 800) -
+      GRID_CHROME_ALLOWANCE,
+  );
+
 const ExpandNotesCellButton = ({ cell, onSelect, label }) => {
   var notes = getJson(cell.getValue());
   try {
@@ -153,6 +166,13 @@ export class LeadsActivityReport extends Component {
         tooltip: true,
         bottomCalc: 'count',
         formatter: reactFormatter(<OpenLeadCellButton />),
+        // A search box under the heading. This is a HEADER filter, which
+        // Tabulator keeps separate from the programmatic setFilter/clearFilter
+        // calls the report's own filter panel makes -- so typing a name here
+        // stacks with those filters and survives them being changed, and
+        // nothing has to be rebuilt to apply it.
+        headerFilter: 'input',
+        headerFilterPlaceholder: 'Search name',
       },
       { title: 'Gender', field: 'gender' },
       { title: 'Status', field: 'status' },
@@ -377,6 +397,8 @@ export class LeadsActivityReport extends Component {
     this.state = {
       columns: columns,
       activityData: this.activityData,
+      gridHeight: fitGridHeight(),
+      showControls: false,
       filterColumns: this.columnsToHide,
       filters: [],
       selectedFilterValueOptions: [],
@@ -412,6 +434,68 @@ export class LeadsActivityReport extends Component {
       this.props.fetchLeads();
     }
   }
+
+  componentDidMount() {
+    window.addEventListener('resize', this.handleWindowResize);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleWindowResize);
+    if (this.gridResizeObserver) {
+      this.gridResizeObserver.disconnect();
+      this.gridResizeObserver = null;
+    }
+  }
+
+  handleWindowResize = () => {
+    // A height the user dragged to is theirs to keep -- resizing the window
+    // should not throw it away.
+    if (this.gridHeightIsManual) {
+      return;
+    }
+    this.setState({ gridHeight: fitGridHeight() });
+  };
+
+  /**
+   * Watches the resizable wrapper.
+   *
+   * Dragging the handle changes the wrapper, not the table inside it:
+   * Tabulator recalculates on WINDOW resize only, so without a redraw the
+   * extra space stays blank. Attached through the ref rather than on mount,
+   * so it survives the grid being conditionally rendered.
+   */
+  attachGridWrapper = element => {
+    if (this.gridResizeObserver) {
+      this.gridResizeObserver.disconnect();
+      this.gridResizeObserver = null;
+    }
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    this.gridResizeObserver = new ResizeObserver(entries => {
+      const observed = Math.round(entries[0].contentRect.height);
+      // A size we did not ask for means the drag handle was used.
+      if (Math.abs(observed - (this.state.gridHeight || 0)) > 2) {
+        this.gridHeightIsManual = true;
+      }
+      // rAF so a drag redraws once per frame rather than per pixel.
+      window.cancelAnimationFrame(this.gridRedrawFrame);
+      this.gridRedrawFrame = window.requestAnimationFrame(() => {
+        const grid =
+          this.leadsActivityGridref && this.leadsActivityGridref.current;
+        try {
+          if (grid && grid.redraw) {
+            grid.redraw(true);
+          }
+        } catch (e) {
+          // Redrawing a table that is being torn down is not worth throwing
+          // over -- the grid is going away regardless.
+        }
+      });
+    });
+    this.gridResizeObserver.observe(element);
+  };
 
   getTablePreferences = reportPreferences => {
     let obj = null;
@@ -1717,8 +1801,10 @@ export class LeadsActivityReport extends Component {
     this.setState({ deleteLeadsModal: show });
   }
   render() {
+    const recordCount = (this.state.activityData || []).length;
     const options = {
-      height: 450,
+      // Fills the resizable wrapper below rather than a fixed box.
+      height: '100%',
       pagination: 'local',
       paginationSize: 10,
       paginationSizeSelector: [10, 20, 50, 100, 1000, 10000],
@@ -1736,8 +1822,27 @@ export class LeadsActivityReport extends Component {
       <span className="reportContent">
         <div className="header">
           <h6>Leads Activity Report</h6>
+          <button
+            type="button"
+            className="btn btn-link"
+            aria-expanded={this.state.showControls}
+            onClick={() =>
+              this.setState(state => ({ showControls: !state.showControls }))
+            }
+          >
+            {this.state.showControls ? 'Hide' : 'Show'} filters &amp; columns
+            {this.state.filters.length > 0
+              ? ` (${this.state.filters.length} active)`
+              : ''}
+          </button>
         </div>
-        <div className="table-controls">
+        <div
+          className="table-controls"
+          // Hidden rather than unmounted: the panel holds filter, column and
+          // preference state, and tearing it down would reset all of it every
+          // time it was closed.
+          style={{ display: this.state.showControls ? undefined : 'none' }}
+        >
           <div className="col-md-12">
             <div className="row">
               <div className="col-md-12">
@@ -2008,10 +2113,24 @@ export class LeadsActivityReport extends Component {
             </div>
           </div>
         ) : null}
-        <div className="row tableData">
+        <p className="record-count">
+          {recordCount} {recordCount === 1 ? 'record' : 'records'}
+        </p>
+        <div
+          className="row tableData"
+          ref={this.attachGridWrapper}
+          style={{
+            height: this.state.gridHeight,
+            minHeight: MIN_GRID_HEIGHT,
+            // Native drag handle, bottom-right. No library needed.
+            resize: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
           <ReactTabulator
             key={this.state.columns.map(c => c.field).join(',')}
             columns={this.state.columns}
+            placeholder={no_data_placeholder}
             data={this.state.activityData}
             options={options}
             renderComplete={e => this.hideColumns()}
