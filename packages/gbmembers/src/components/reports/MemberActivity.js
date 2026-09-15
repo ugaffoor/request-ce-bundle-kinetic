@@ -1297,31 +1297,32 @@ export class MemberActivityReport extends Component {
     return '0';
   }
 
-  getFeeProgram(members, member) {
-    if (
-      member.values['Family Fee Details'] !== null &&
-      member.values['Family Fee Details'] !== undefined
-    ) {
-      let json = getJson(member.values['Family Fee Details']);
-      for (var i = 0; i < json.length; i++) {
-        if (json[i]['id'] === member.id) {
-          return json[i]['feeProgram'];
-        }
+  /**
+   * The fee program a member is on: from their own Family Fee Details, or
+   * failing that from their billing parent's.
+   *
+   * Takes the id map and parsed-details cache that getGridData builds once,
+   * rather than the raw member list. Done per member, a scan of that list and
+   * a fresh JSON parse of the parent's details made the whole report
+   * quadratic in the size of the school -- millions of comparisons for a
+   * roster of a couple of thousand.
+   */
+  getFeeProgram(member, membersById, feeDetailsFor) {
+    const own = feeDetailsFor(member);
+    for (let i = 0; i < own.length; i++) {
+      if (own[i]['id'] === member.id) {
+        return own[i]['feeProgram'];
       }
     }
 
-    if (
-      member.values['Billing Parent Member'] !== null &&
-      member.values['Billing Parent Member'] !== undefined
-    ) {
-      let parent = members.findIndex(mem => {
-        return mem.id === member.values['Billing Parent Member'];
-      });
-      if (parent !== -1) {
-        let json = getJson(members[parent].values['Family Fee Details']);
-        for (var i = 0; i < json.length; i++) {
-          if (json[i]['id'] === member.id) {
-            return json[i]['feeProgram'];
+    const parentId = member.values['Billing Parent Member'];
+    if (parentId !== null && parentId !== undefined) {
+      const parent = membersById.get(parentId);
+      if (parent) {
+        const theirs = feeDetailsFor(parent);
+        for (let i = 0; i < theirs.length; i++) {
+          if (theirs[i]['id'] === member.id) {
+            return theirs[i]['feeProgram'];
           }
         }
       }
@@ -1380,6 +1381,23 @@ export class MemberActivityReport extends Component {
       emailsReceived = 0,
       smsSent = 0,
       smsReceived = 0;
+
+    // Built once, used by every row below. Each row used to scan the whole
+    // list for its billing parent -- twice -- and re-parse that parent's fee
+    // JSON, so the cost grew with the square of the roster. A map and a
+    // parse cache make it a single pass.
+    const membersById = new Map(members.map(m => [m.id, m]));
+    const feeDetailsCache = new Map();
+    const feeDetailsFor = m => {
+      if (!feeDetailsCache.has(m.id)) {
+        feeDetailsCache.set(
+          m.id,
+          getJson(m.values['Family Fee Details']) || [],
+        );
+      }
+      return feeDetailsCache.get(m.id);
+    };
+
     members.forEach(member => {
       memberActivityData.push({
         id: member['id'],
@@ -1403,14 +1421,14 @@ export class MemberActivityReport extends Component {
         dob: moment(member.values['DOB']).format('L'),
         memberType: member.values['Member Type'],
         program: member.values['Ranking Program'],
-        feeProgram: this.getFeeProgram(members, member),
+        feeProgram: this.getFeeProgram(member, membersById, feeDetailsFor),
         belt: member.values['Ranking Belt'],
         beltSize: member.values['Belt Size'],
         parentOrGuardian: member.values['Parent or Guardian'],
         billingParent: (() => {
           const parentId = member.values['Billing Parent Member'];
           if (!parentId || parentId === member.id) return '';
-          const parent = members.find(m => m.id === parentId);
+          const parent = membersById.get(parentId);
           return parent
             ? (parent.values['Last Name'] || '') +
                 ' ' +
