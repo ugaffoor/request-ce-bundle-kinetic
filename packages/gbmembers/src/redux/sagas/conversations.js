@@ -316,7 +316,15 @@ function* deliverTo({
  * reject the write outright if participantIds is present, so all three have to
  * be exactly right.
  */
-function* deliverAnnouncement({ store, staffId, spaceSlug, domain, text }) {
+function* deliverAnnouncement({
+  store,
+  staffId,
+  spaceSlug,
+  domain,
+  text,
+  audienceMembers,
+  audienceStatus,
+}) {
   const id = announcementThreadId(spaceSlug, domain);
 
   yield call(
@@ -339,6 +347,17 @@ function* deliverAnnouncement({ store, staffId, spaceSlug, domain, text }) {
       [MESSAGE_FIELDS.body]: text,
       [MESSAGE_FIELDS.senderId]: staffId,
       [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+      // Same shape as sendAnnouncement() in the app, which is what the
+      // fan-out function reads. `audience` is the programs filter the app
+      // offers; the portal filters by member list instead, which arrives as
+      // an explicit list of member ids in `audienceMembers`. The function
+      // intersects that with the school's own members, so it can only ever
+      // narrow the delivery, never widen it. Empty audience + no
+      // audienceMembers means the whole school, as before.
+      audience: [],
+      ...(audienceMembers && audienceMembers.length ? { audienceMembers } : {}),
+      // Display only: what the sender chose, for the app to show.
+      ...(audienceStatus ? { audienceStatus } : {}),
     },
   );
 }
@@ -402,6 +421,10 @@ export function* sendMessage({ payload } = {}) {
     kind,
     domain,
     groupName,
+    // Announcements only: narrow delivery to these member ids (a member
+    // list resolved by the composer), and a label describing that choice.
+    audienceMembers,
+    audienceStatus,
     // Set when replying into a thread that is already open. Deriving an id
     // instead would be wrong: a member who has been broadcast to shares the
     // same deterministic 1:1 id, so a derived write can land in a broadcast
@@ -437,12 +460,27 @@ export function* sendMessage({ payload } = {}) {
 
   try {
     if (kind === SEND_KINDS.ANNOUNCEMENT) {
+      // Belt and braces with the composer's own check. An empty list is
+      // dropped from the message below, and the fan-out function treats a
+      // message with no audience as addressed to the whole school -- so an
+      // announcement meant for nobody must be stopped here, not narrowed.
+      if (Array.isArray(audienceMembers) && audienceMembers.length === 0) {
+        yield put(
+          actions.setSendError(
+            'announcement: no one is eligible to receive this -- nothing was sent.',
+          ),
+        );
+        return;
+      }
+
       yield call(deliverAnnouncement, {
         store,
         staffId,
         spaceSlug,
         domain,
         text,
+        audienceMembers,
+        audienceStatus,
       });
       yield put(actions.messageSent(Date.now()));
       return;

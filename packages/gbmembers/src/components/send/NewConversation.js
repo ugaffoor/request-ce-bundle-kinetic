@@ -72,6 +72,18 @@ const memberLabel = member => {
   return parts.length ? `${name} (${parts.join(', ')})` : name;
 };
 
+// One implicit list per membership status, offered in the list filter beside
+// the saved lists. Note the existing "Active Members" entry means anyone NOT
+// inactive (it predates this and the campaign pages share it), so the strict
+// per-status entries are labelled "Status: ..." to keep the two apart.
+const STATUS_LISTS = [
+  'Active',
+  'Pending Freeze',
+  'Pending Cancellation',
+  'Frozen',
+  'Inactive',
+];
+
 // How long a send confirmation stays on screen.
 const TOAST_MILLIS = 6000;
 
@@ -161,6 +173,13 @@ export class NewConversation extends Component {
           .filter(member => member.values['Status'] === 'Inactive')
           .map(member => member.id),
       },
+      ...STATUS_LISTS.map(status => ({
+        value: `__status_${status}__`,
+        label: `Status: ${status}`,
+        ids: allMembers
+          .filter(member => member.values['Status'] === status)
+          .map(member => member.id),
+      })),
     ];
 
     if (memberLists) {
@@ -297,24 +316,65 @@ export class NewConversation extends Component {
     return owner ? memberName(owner) : null;
   }
 
+  /**
+   * Who an announcement goes to, from the composer's own filters.
+   *
+   * Members picked explicitly win; otherwise the selected member list; with
+   * neither it is the whole school. Returned as the member ids the fan-out
+   * function expects, plus a label describing the choice for the app to show.
+   */
+  announcementAudience() {
+    const picked = this.state.memberOptions.map(option => option.value);
+    if (picked.length > 0) {
+      return {
+        memberIds: picked,
+        label: `${picked.length} selected ${
+          picked.length === 1 ? 'member' : 'members'
+        }`,
+      };
+    }
+
+    const list = this.state.listOption;
+    if (list && list.ids) {
+      return { memberIds: list.ids, label: list.label };
+    }
+
+    // Nothing chosen: the whole school, as the fan-out function defines it.
+    return { memberIds: null, label: null };
+  }
+
   handleSend = async () => {
     const senderId = this.senderId();
     if (!senderId) {
       return;
     }
 
-    // An announcement goes to the school's own thread, so it takes no
-    // recipients at all -- picking students for one would be misleading.
+    // An announcement goes to the school's own thread. Who actually receives
+    // a copy is decided by the fan-out function from the audience sent with
+    // the message: a member list, chosen members, or -- with neither -- the
+    // whole school.
     if (this.isAnnouncement()) {
-      // Confirmed because it reaches the whole school at once and there is no
-      // way to withdraw it from here. The audience is what is worth checking,
-      // so it leads.
+      const audience = this.announcementAudience();
+
+      // Confirmed because it reaches many people at once and there is no way
+      // to withdraw it from here. The audience is what is worth checking, so
+      // it leads.
       const confirmed = await confirm(
         <span>
           <span>
-            This will be posted to <strong>everyone</strong> at{' '}
-            {this.props.spaceSlug} &mdash; around {this.props.allMembers.length}{' '}
-            members. It cannot be edited or taken back.
+            This will be posted to{' '}
+            <strong>
+              {audience.memberIds
+                ? `${audience.memberIds.length} ${
+                    audience.memberIds.length === 1 ? 'member' : 'members'
+                  } (${audience.label})`
+                : 'everyone'}
+            </strong>{' '}
+            at {this.props.spaceSlug}
+            {audience.memberIds
+              ? ''
+              : ` -- around ${this.props.allMembers.length} members`}
+            . It cannot be edited or taken back.
           </span>
         </span>,
         'Post announcement',
@@ -330,6 +390,8 @@ export class NewConversation extends Component {
         spaceSlug: this.props.spaceSlug,
         domain: FRANCHISE_DOMAIN,
         text: this.state.message.trim(),
+        audienceMembers: audience.memberIds,
+        audienceStatus: audience.label,
       });
       return;
     }
@@ -412,12 +474,18 @@ export class NewConversation extends Component {
       return member ? memberName(member) : option.value;
     });
 
-    // An announcement with nobody picked goes to the school's own thread
-    // rather than to individuals.
-    if (this.isAnnouncement() && names.length < 1) {
+    // An announcement's audience is whatever the composer's filters resolved
+    // to -- a member list, chosen members, or the whole school -- so the
+    // toast reports the same thing the confirmation dialog did.
+    if (this.isAnnouncement()) {
+      const audience = this.announcementAudience();
       return {
         kind,
-        to: `everyone at ${this.props.spaceSlug || 'this school'}`,
+        to: audience.memberIds
+          ? `${audience.memberIds.length} ${
+              audience.memberIds.length === 1 ? 'member' : 'members'
+            } (${audience.label})`
+          : `everyone at ${this.props.spaceSlug || 'this school'}`,
       };
     }
 
@@ -527,8 +595,20 @@ export class NewConversation extends Component {
     }
 
     const studentOptions = this.getStudentOptions();
+    // An announcement whose filters leave nobody eligible must not be sent:
+    // an empty audience is dropped on the way to Firestore, and the fan-out
+    // function reads "no audience" as "the whole school" -- inactive members
+    // included. So "send to nobody" would quietly become "send to everyone".
+    const announcementAudienceEmpty =
+      this.isAnnouncement() &&
+      (() => {
+        const ids = this.announcementAudience().memberIds;
+        return ids !== null && ids.length === 0;
+      })();
+
     const canSend =
       (this.isAnnouncement() || this.state.memberOptions.length > 0) &&
+      !announcementAudienceEmpty &&
       // A group without a name shows as a blank row in everyone's list.
       (!this.isGroup() || this.state.groupName.trim() !== '') &&
       // Safeguarding: a Tiny Champion is contacted through whoever pays for
@@ -581,54 +661,62 @@ export class NewConversation extends Component {
                   </select>
                   {this.isAnnouncement() && (
                     <small className="text-muted">
-                      Goes to every member of {this.props.spaceSlug}, so there
-                      is no one to pick.
+                      Pick a member list (including a membership status) or
+                      specific members to limit who receives it. Leave both
+                      empty to post to every member of {this.props.spaceSlug}.
                     </small>
                   )}
                 </div>
-                {!this.isAnnouncement() && (
-                  <React.Fragment>
-                    <div className="form-group">
-                      <label htmlFor="conversation-list">
-                        Filter by list <small>(optional)</small>
-                      </label>
-                      <Select
-                        inputId="conversation-list"
-                        value={this.state.listOption}
-                        onChange={this.handleListChange}
-                        options={this.getListOptions()}
-                        placeholder="All members"
-                        isClearable={true}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label htmlFor="conversation-student">
-                        Students{' '}
-                        <small>
-                          ({this.state.memberOptions.length} selected of{' '}
-                          {studentOptions.length} available)
-                        </small>
-                      </label>
-                      <Select
-                        inputId="conversation-student"
-                        value={this.state.memberOptions}
-                        onChange={memberOptions =>
-                          this.setState({ memberOptions: memberOptions || [] })
-                        }
-                        options={studentOptions}
-                        placeholder="Search for students by name"
-                        isMulti={true}
-                        isClearable={true}
-                        closeMenuOnSelect={false}
-                        isOptionDisabled={option => option.isTiny}
-                        noOptionsMessage={() => 'No matching students'}
-                      />
-                      <small className="text-muted">
-                        Tiny Champions are listed but cannot be selected.
-                        Contact the person who pays for them instead.
+                <React.Fragment>
+                  <div className="form-group">
+                    <label htmlFor="conversation-list">
+                      Filter by list <small>(optional)</small>
+                    </label>
+                    <Select
+                      inputId="conversation-list"
+                      value={this.state.listOption}
+                      onChange={this.handleListChange}
+                      options={this.getListOptions()}
+                      placeholder="All members"
+                      isClearable={true}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="conversation-student">
+                      Students{' '}
+                      <small>
+                        ({this.state.memberOptions.length} selected of{' '}
+                        {studentOptions.length} available)
                       </small>
+                    </label>
+                    <Select
+                      inputId="conversation-student"
+                      value={this.state.memberOptions}
+                      onChange={memberOptions =>
+                        this.setState({ memberOptions: memberOptions || [] })
+                      }
+                      options={studentOptions}
+                      placeholder="Search for students by name"
+                      isMulti={true}
+                      isClearable={true}
+                      closeMenuOnSelect={false}
+                      isOptionDisabled={option => option.isTiny}
+                      noOptionsMessage={() => 'No matching students'}
+                    />
+                    <small className="text-muted">
+                      Tiny Champions are listed but cannot be selected. Contact
+                      the person who pays for them instead.
+                    </small>
+                  </div>
+                </React.Fragment>
+                {announcementAudienceEmpty && (
+                  <div className="alert alert-warning">
+                    <strong>No one to send this to.</strong>
+                    <div>
+                      The selected list has no members in it. Choose a different
+                      list or specific members.
                     </div>
-                  </React.Fragment>
+                  </div>
                 )}
                 {this.selectedTinyChampions().length > 0 && (
                   <div className="alert alert-danger">
