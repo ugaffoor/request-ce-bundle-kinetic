@@ -5568,6 +5568,8 @@ export const BillingContainer = compose(
             useSubAccount:
               member.values['useSubAccount'] === 'YES' ? true : false,
           });
+        } else {
+          this.props.setBillingInfo({});
         }
         if (
           member.values['Billing Setup Fee Id'] !== undefined &&
@@ -5637,15 +5639,24 @@ export const BillingContainer = compose(
             '/kapps/gbmembers/Member/' + this.props.match.params['id'],
           );
         } else {
-          this.props.fetchBillingInfo({
-            billingRef: member.values['Billing Customer Id'],
-            billingSystem: this.props.getUseBillingSystem(member),
-            history: this.props.history,
-            myThis: this,
-            setBillingInfo: this.props.setBillingInfo,
-            addNotification: this.props.addNotification,
-            setSystemError: this.props.setSystemError,
-          });
+          if (
+            member.values['Billing Customer Id'] !== undefined &&
+            member.values['Billing Customer Id'] !== null &&
+            member.values['Billing Customer Id'] !== '' &&
+            member.values['Billing Customer Id'] !== 'Deleted'
+          ) {
+            this.props.fetchBillingInfo({
+              billingRef: member.values['Billing Customer Id'],
+              billingSystem: this.props.getUseBillingSystem(member),
+              history: this.props.history,
+              myThis: this,
+              setBillingInfo: this.props.setBillingInfo,
+              addNotification: this.props.addNotification,
+              setSystemError: this.props.setSystemError,
+            });
+          } else {
+            this.props.setBillingInfo({});
+          }
           if (
             member.values['Billing Setup Fee Id'] !== undefined &&
             member.values['Billing Setup Fee Id'] !== null &&
