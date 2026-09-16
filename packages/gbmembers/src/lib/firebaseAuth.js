@@ -5,7 +5,35 @@ import {
   signOut,
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { getFirebaseApp, getConversationStore } from './firebase';
+import {
+  getFirebaseApp,
+  getConversationStore,
+  initialiseFirebase,
+} from './firebase';
+
+/**
+ * Redeems a freshly minted custom token straight away. Creates the Firebase
+ * app from the built-in config if nothing has yet -- at login the space has
+ * not loaded, and waiting for it is what used to force the token to be held.
+ * Returns whether the sign-in succeeded; the caller keeps the token if not.
+ */
+const signInImmediately = async token => {
+  try {
+    const app = initialiseFirebase();
+    if (!app) {
+      return false;
+    }
+    await signInWithCustomToken(getAuth(app), token);
+    return true;
+  } catch (e) {
+    console.warn(
+      '[firebase] immediate sign-in failed; will retry when a conversation ' +
+        'screen opens',
+      e,
+    );
+    return false;
+  }
+};
 
 /**
  * Bridges a GB Members (Kinetic) login into Firebase.
@@ -152,8 +180,18 @@ export const requestFirebaseToken = async ({ userName, password }) => {
     }
 
     lastTokenFailure = null;
-    pendingToken = token;
     rememberMintedFor(identityKey(spaceSlug, userName));
+
+    // Sign in NOW rather than holding the token for a conversations screen
+    // to spend later. Custom tokens expire after an hour, so a login followed
+    // by an hour of other work used to leave the first visit to Conversations
+    // failing with nothing to explain why. This is possible because the
+    // shared Firebase config is built into the portal -- the app no longer
+    // has to wait for the space to load before it can be created.
+    //
+    // If it fails the token is kept, so the lazy path in ensureFirebaseSignIn
+    // still gets its chance when a screen opens.
+    pendingToken = (await signInImmediately(token)) ? null : token;
     return memberGuid || null;
   } catch (e) {
     // fetch() rejects with a TypeError for anything that never reached the

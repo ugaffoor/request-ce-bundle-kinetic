@@ -5,48 +5,80 @@ import { getAttributeValue } from '../utils/utils';
 /**
  * Connects this portal to the shared Firebase project.
  *
- * The config is not hardcoded. It is read at runtime from the `Firebase
- * Config` space attribute, which holds the web config object from the
- * Firebase console as a JSON string. Every GB Members space carries the
- * same value, so one build serves every school and pointing at a
- * different project is an attribute edit rather than a redeploy.
+ * Every GB Members space talks to the same project, so the web config ships
+ * with the portal: conversations then work on any device, in any space, with
+ * no per-space setup. Relying on a space attribute instead meant every new
+ * space silently had no messaging until an admin remembered to set it -- and
+ * anyone whose space had not been set up saw "Firebase is not configured".
  *
- * Set the attribute to the object copied from:
- *   Firebase console -> Project settings -> Your apps -> Web
+ * A web config is not a secret. It is meant to live in client code; access
+ * is enforced by firestore.rules and the sign-in bridge (firebaseAuth.js),
+ * not by hiding these values.
  *
- *   {"apiKey":"...","authDomain":"...","projectId":"...",
- *    "storageBucket":"...","messagingSenderId":"...","appId":"..."}
+ * The `Firebase Config` space attribute remains as an OVERRIDE, for a space
+ * that needs to point at a different project. Set it to the object copied
+ * from Firebase console -> Project settings -> Your apps -> Web.
  */
 
 export const FIREBASE_CONFIG_ATTRIBUTE = 'Firebase Config';
 
-export const getFirebaseConfig = space => {
-  if (!space) {
-    return undefined;
-  }
+// The shared project's web config. Same values as the mobile app's
+// google-services.json / GoogleService-Info.plist, for the web app registered
+// in the same project.
+export const DEFAULT_FIREBASE_CONFIG = {
+  apiKey: 'AIzaSyD9_b0Eu2_MmOg8oNddcLufQOEItqVM4so',
+  authDomain: 'bjj-members-connect.firebaseapp.com',
+  projectId: 'bjj-members-connect',
+  storageBucket: 'bjj-members-connect.firebasestorage.app',
+  messagingSenderId: '50500665716',
+  appId: '1:50500665716:web:1eab912bebcb4913472c21',
+  measurementId: 'G-3P7VL88PPX',
+};
 
-  const raw =
-    getAttributeValue(space, FIREBASE_CONFIG_ATTRIBUTE) ||
-    // Development fallback so the connection can be exercised on localhost
-    // before the space attribute has been set. Production spaces must use
-    // the attribute -- this variable is not defined in a deployed build.
-    process.env.REACT_APP_FIREBASE_CONFIG;
-
-  if (!raw) {
-    return undefined;
-  }
-
+const parseConfig = (raw, source) => {
   try {
     return typeof raw === 'string' ? JSON.parse(raw) : raw;
   } catch (e) {
     console.error(
-      `[firebase] The '${FIREBASE_CONFIG_ATTRIBUTE}' space attribute is not ` +
-        'valid JSON. Copy the web config object from the Firebase console ' +
-        'exactly as it appears there.',
+      `[firebase] The ${source} is not valid JSON. Copy the web config ` +
+        'object from the Firebase console exactly as it appears there.',
       e,
     );
     return undefined;
   }
+};
+
+/**
+ * Resolution order: a space attribute override, then a development
+ * environment override, then the built-in shared config. A malformed
+ * override falls through to the next source rather than disabling
+ * messaging for the space.
+ */
+export const getFirebaseConfig = space => {
+  if (space) {
+    const fromSpace = getAttributeValue(space, FIREBASE_CONFIG_ATTRIBUTE);
+    if (fromSpace) {
+      const parsed = parseConfig(
+        fromSpace,
+        `'${FIREBASE_CONFIG_ATTRIBUTE}' space attribute`,
+      );
+      if (parsed) {
+        return parsed;
+      }
+    }
+  }
+
+  if (process.env.REACT_APP_FIREBASE_CONFIG) {
+    const parsed = parseConfig(
+      process.env.REACT_APP_FIREBASE_CONFIG,
+      'REACT_APP_FIREBASE_CONFIG environment variable',
+    );
+    if (parsed) {
+      return parsed;
+    }
+  }
+
+  return DEFAULT_FIREBASE_CONFIG;
 };
 
 /**
