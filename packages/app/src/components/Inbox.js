@@ -56,11 +56,13 @@ export const Inbox = ({
           {messages.map(message => (
             <li key={message.id} className="message-item unread">
               <h1>
-                <small className="source">{message.from}</small>
                 <I18n>{message.subject}</I18n>
               </h1>
               <div className="message-footer">
-                <span className="meta">{message.createdAt}</span>
+                <span className="meta">
+                  <span className="source">{message.from}</span>
+                  {message.createdAt}
+                </span>
                 <button
                   type="button"
                   className="link-action mark-read"

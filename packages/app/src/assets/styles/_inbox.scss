@@ -95,11 +95,13 @@
         font-weight: bold;
         line-height: 1.5;
         width: 100%;
-        .source {
-          color: $orange-kinops;
-          font-weight: bold;
-          margin-right: 0.25rem;
-        }
+      }
+      // Who it is from, sitting in the footer before the time now that the
+      // message text leads the entry.
+      .source {
+        color: $orange-kinops;
+        font-weight: bold;
+        margin-right: 0.5rem;
       }
       p {
         @include ms-respond(font-size, -1);

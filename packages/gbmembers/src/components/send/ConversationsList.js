@@ -72,17 +72,19 @@ export class ConversationsList extends Component {
         <tr key={group.participantId}>
           <td>
             <NavLink to={`/Conversations/${group.latest.id}`}>
-              {group.name}
+              {group.latest.lastMessage && group.latest.lastMessage.text
+                ? group.latest.lastMessage.text
+                : 'Open'}
             </NavLink>
+          </td>
+          <td>
+            {group.name}
             {group.isBroadcast && (
               <span className="badge badge-warning ml-2">Broadcast</span>
             )}
             {group.isAnnouncement && (
               <span className="badge badge-info ml-2">Announcement</span>
             )}
-          </td>
-          <td>
-            {group.latest.lastMessage ? group.latest.lastMessage.text : ''}
           </td>
           <td>{when(group.latest.updatedAt)}</td>
         </tr>
@@ -92,6 +94,9 @@ export class ConversationsList extends Component {
     return (
       <React.Fragment key={group.participantId}>
         <tr>
+          <td>
+            {group.latest.lastMessage ? group.latest.lastMessage.text : ''}
+          </td>
           <td>
             <button
               type="button"
@@ -114,9 +119,6 @@ export class ConversationsList extends Component {
               )}
             </button>
           </td>
-          <td>
-            {group.latest.lastMessage ? group.latest.lastMessage.text : ''}
-          </td>
           <td>{when(group.latest.updatedAt)}</td>
         </tr>
 
@@ -126,19 +128,19 @@ export class ConversationsList extends Component {
               <td style={{ paddingLeft: '2.5rem' }}>
                 <NavLink to={`/Conversations/${conversation.id}`}>
                   <small>
-                    {conversation.isBroadcast
-                      ? 'Open broadcast'
-                      : conversation.isAnnouncement
-                        ? 'Open announcement thread'
-                        : 'Open thread'}
+                    {conversation.lastMessage && conversation.lastMessage.text
+                      ? conversation.lastMessage.text
+                      : 'Open'}
                   </small>
                 </NavLink>
               </td>
               <td>
                 <small>
-                  {conversation.lastMessage
-                    ? conversation.lastMessage.text
-                    : ''}
+                  {conversation.isBroadcast
+                    ? 'Broadcast'
+                    : conversation.isAnnouncement
+                      ? 'Announcement thread'
+                      : 'Conversation'}
                 </small>
               </td>
               <td>
@@ -213,9 +215,9 @@ export class ConversationsList extends Component {
           <table className="table table-sm">
             <thead>
               <tr>
-                <th>With</th>
                 <th>Last message</th>
-                <th>When</th>
+                <th>Who&rsquo;s in it</th>
+                <th>Date and time</th>
               </tr>
             </thead>
             <tbody>{groups.map(group => this.renderGroup(group))}</tbody>

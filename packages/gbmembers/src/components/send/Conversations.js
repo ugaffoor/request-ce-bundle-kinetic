@@ -446,31 +446,35 @@ export class Conversations extends Component {
                 onClick={() => this.selectConversation(conversation)}
                 onKeyPress={() => this.selectConversation(conversation)}
               >
-                <div>
-                  <strong>
-                    {conversationTitle(conversation, membersById)}
-                  </strong>
-                  {conversation.isGroup && (
-                    <span className="badge badge-secondary ml-2">
-                      Group · {(conversation.participantIds || []).length}
-                    </span>
-                  )}
-                  {conversation.isBroadcast && (
-                    <span className="badge badge-warning ml-2">Broadcast</span>
-                  )}
-                  {conversation.isAnnouncement && (
-                    <span className="badge badge-info ml-2">Announcement</span>
-                  )}
-                </div>
                 {conversation.lastMessage && (
                   <div>
-                    <small>
-                      {senderLabel && <strong>{senderLabel}: </strong>}
-                      {conversation.lastMessage.text}
-                    </small>
+                    {senderLabel && <strong>{senderLabel}: </strong>}
+                    {conversation.lastMessage.text}
                   </div>
                 )}
-                <small>{when(conversation.updatedAt)}</small>
+                <div>
+                  <small>
+                    {conversationTitle(conversation, membersById)}
+                    {conversation.isGroup && (
+                      <span className="badge badge-secondary ml-2">
+                        Group · {(conversation.participantIds || []).length}
+                      </span>
+                    )}
+                    {conversation.isBroadcast && (
+                      <span className="badge badge-warning ml-2">
+                        Broadcast
+                      </span>
+                    )}
+                    {conversation.isAnnouncement && (
+                      <span className="badge badge-info ml-2">
+                        Announcement
+                      </span>
+                    )}
+                  </small>
+                </div>
+                <small className="text-muted">
+                  {when(conversation.updatedAt)}
+                </small>
               </li>
             );
           })}
@@ -757,10 +761,13 @@ export class Conversations extends Component {
         : 'You';
     return this.state.failed.map(failure => (
       <li key={failure.id} className="mb-3">
-        <div>
-          <strong>{senderName}</strong> <small>{when(failure.createdAt)}</small>
-        </div>
         <div className="text-muted">{failure.text}</div>
+        <div>
+          <small>
+            <strong>{senderName}</strong>{' '}
+            <span className="text-muted">{when(failure.createdAt)}</span>
+          </small>
+        </div>
         <small className="text-danger">Message failed to send</small>
       </li>
     ));
@@ -814,10 +821,23 @@ export class Conversations extends Component {
           {messages.toArray().map(message => (
             <li key={message.id} className="mb-3">
               <div>
-                <strong>
-                  {participantName(message.senderId, membersById)}
-                </strong>{' '}
-                <small>{when(message.createdAt)}</small>
+                {message.deleted ? (
+                  <em className="text-muted">
+                    {message.announcementRemoved
+                      ? ANNOUNCEMENT_REMOVED_TEXT
+                      : DELETED_MESSAGE_TEXT}
+                  </em>
+                ) : (
+                  message.text
+                )}
+              </div>
+              <div>
+                <small>
+                  <strong>
+                    {participantName(message.senderId, membersById)}
+                  </strong>{' '}
+                  <span className="text-muted">{when(message.createdAt)}</span>
+                </small>
                 {this.canRemove(selectedConversation, message) && (
                   <button
                     type="button"
@@ -831,17 +851,6 @@ export class Conversations extends Component {
                         : 'Delete for everyone'}
                     </small>
                   </button>
-                )}
-              </div>
-              <div>
-                {message.deleted ? (
-                  <em className="text-muted">
-                    {message.announcementRemoved
-                      ? ANNOUNCEMENT_REMOVED_TEXT
-                      : DELETED_MESSAGE_TEXT}
-                  </em>
-                ) : (
-                  message.text
                 )}
               </div>
             </li>

@@ -127,30 +127,6 @@ export class MemberConversation extends Component {
   getColumns() {
     return [
       {
-        Header: 'Direction',
-        width: 150,
-        className: 'direction',
-        Cell: row => (
-          <span>
-            {row.original.senderId === this.state.viewerId
-              ? 'Sent'
-              : 'Received'}
-          </span>
-        ),
-      },
-      {
-        Header: 'Date',
-        width: 200,
-        className: 'date',
-        Cell: row => (
-          <span>
-            {row.original.createdAt
-              ? moment(row.original.createdAt).format(email_sent_date_format)
-              : ''}
-          </span>
-        ),
-      },
-      {
         Header: 'Message',
         className: 'text',
         Cell: row => (
@@ -164,6 +140,33 @@ export class MemberConversation extends Component {
             ) : (
               row.original.text
             )}
+          </span>
+        ),
+      },
+      {
+        Header: 'From',
+        width: 200,
+        className: 'direction',
+        Cell: row => (
+          <span>
+            {row.original.senderId === this.state.viewerId
+              ? 'You'
+              : participantName(
+                  row.original.senderId,
+                  indexMembersById(this.props.allMembers),
+                )}
+          </span>
+        ),
+      },
+      {
+        Header: 'Date and time',
+        width: 200,
+        className: 'date',
+        Cell: row => (
+          <span>
+            {row.original.createdAt
+              ? moment(row.original.createdAt).format(email_sent_date_format)
+              : ''}
           </span>
         ),
       },
