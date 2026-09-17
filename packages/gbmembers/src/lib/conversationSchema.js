@@ -537,6 +537,26 @@ export const DELETED_MESSAGE_TEXT = 'This message was deleted';
  */
 export const ANNOUNCEMENT_REMOVED_TEXT = 'Announcement was removed';
 
+/**
+ * Who an announcement was addressed to, in words. Names when there are few
+ * enough to read; otherwise the list it was sent to and how many that was.
+ */
+export const describeAudience = (message, membersById) => {
+  const members = message.audienceMembers || [];
+  if (members.length > 0) {
+    if (members.length <= 3) {
+      return members.map(id => participantName(id, membersById)).join(', ');
+    }
+    const label = message.audienceStatus || 'Selected members';
+    return `${label} (${members.length})`;
+  }
+  const programs = message.audience || [];
+  if (programs.length > 0) {
+    return programs.join(', ');
+  }
+  return 'Whole school';
+};
+
 export const normaliseMessage = (id, data) => ({
   id,
   // Withdrawn for everyone by its sender. text is '' when set, so the UI
@@ -545,6 +565,15 @@ export const normaliseMessage = (id, data) => ({
   // Set alongside deleted when the tombstone came from a withdrawn
   // announcement rather than the sender deleting their own post.
   announcementRemoved: !!data.announcementRemoved,
+  // Announcements only: who it went to. `audience` is the programs filter
+  // the app offers; `audienceMembers` the explicit member ids the portal
+  // sends; `audienceStatus` the portal's label for that choice. All empty
+  // means the whole school.
+  audience: Array.isArray(data.audience) ? data.audience : [],
+  audienceMembers: Array.isArray(data.audienceMembers)
+    ? data.audienceMembers
+    : [],
+  audienceStatus: data.audienceStatus || null,
   text: data[MESSAGE_FIELDS.body],
   senderId: data[MESSAGE_FIELDS.senderId],
   createdAt: toDate(data[MESSAGE_FIELDS.createdAt]),

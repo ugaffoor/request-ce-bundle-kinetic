@@ -18,6 +18,7 @@ import {
 } from '../../lib/firebaseAuth';
 import {
   announcementThreadId,
+  describeAudience,
   indexMembersById,
   participantName,
 } from '../../lib/conversationSchema';
@@ -157,7 +158,7 @@ export class Announcements extends Component {
     this.props.deleteBroadcast({ conversationId: conversation.id });
   };
 
-  renderAnnouncements() {
+  renderAnnouncements(membersById) {
     if (this.props.messagesLoading) {
       return <ReactSpinner />;
     }
@@ -172,7 +173,8 @@ export class Announcements extends Component {
         <thead>
           <tr>
             <th>Announcement</th>
-            <th>Posted</th>
+            <th>Who&rsquo;s in it</th>
+            <th>Date and time</th>
             <th />
           </tr>
         </thead>
@@ -180,6 +182,7 @@ export class Announcements extends Component {
           {announcements.map(message => (
             <tr key={message.id}>
               <td>{message.text}</td>
+              <td>{describeAudience(message, membersById)}</td>
               <td>{when(message.createdAt)}</td>
               <td className="text-right">
                 <button
@@ -216,9 +219,9 @@ export class Announcements extends Component {
       <table className="table table-sm">
         <thead>
           <tr>
-            <th>To</th>
-            <th>Message</th>
-            <th>Sent</th>
+            <th>Broadcast</th>
+            <th>Who&rsquo;s in it</th>
+            <th>Date and time</th>
             <th />
           </tr>
         </thead>
@@ -228,15 +231,15 @@ export class Announcements extends Component {
             return (
               <tr key={conversation.id}>
                 <td>
+                  {conversation.lastMessage
+                    ? conversation.lastMessage.text
+                    : ''}
+                </td>
+                <td>
                   {participantName(
                     conversation.otherParticipantId,
                     membersById,
                   )}
-                </td>
-                <td>
-                  {conversation.lastMessage
-                    ? conversation.lastMessage.text
-                    : ''}
                 </td>
                 <td>{when(conversation.updatedAt)}</td>
                 <td className="text-right">
@@ -315,7 +318,7 @@ export class Announcements extends Component {
                 member who received it.
               </small>
             </p>
-            {this.renderAnnouncements()}
+            {this.renderAnnouncements(membersById)}
 
             <h5 className="mt-4">Broadcasts</h5>
             <p className="text-muted">
