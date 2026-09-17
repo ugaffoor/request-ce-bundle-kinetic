@@ -1499,7 +1499,7 @@ export const MemberView = ({
                   )}
                   {canUseConversations(profile) && (
                     <NavLink
-                      to={`/NewConversation/${memberItem.id}`}
+                      to={`/MemberConversation/${memberItem.id}`}
                       className="btn btn-primary"
                       style={{ marginLeft: '10px' }}
                     >

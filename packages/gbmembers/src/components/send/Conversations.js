@@ -25,6 +25,9 @@ import {
   ANNOUNCEMENT_REMOVED_TEXT,
   DELETED_MESSAGE_TEXT,
   matchesConversationKind,
+  conversationId,
+  isTinyChampion,
+  billingOwnerIdOf,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
 } from '../../lib/conversationSchema';
@@ -64,6 +67,11 @@ const routeConversationId = props =>
   (props.match && props.match.params && props.match.params.conversationId) ||
   null;
 
+// The Message button on a member's profile links here with the member rather
+// than a thread, because the thread may not exist yet.
+const routeMemberId = props =>
+  (props.match && props.match.params && props.match.params.memberId) || null;
+
 export class Conversations extends Component {
   constructor(props) {
     super(props);
@@ -78,16 +86,104 @@ export class Conversations extends Component {
       // reaches Firestore, so the snapshot listener will never return it --
       // without this the message would just vanish on failure.
       failed: [],
+      // A 1:1 opened from a member's profile before any message exists. The
+      // thread is created on the first send; until then there is nothing in
+      // Firestore to listen to, so the page renders the empty thread itself.
+      draftMemberId: null,
+      // Set when the profile was a Tiny Champion's and the billing owner was
+      // opened in their place, so the substitution is visible.
+      redirectedFrom: null,
+      // A Tiny Champion with no billing owner on record: nobody to redirect
+      // to, so explain rather than open anything.
+      blockedMember: null,
     };
+  }
+
+  /**
+   * Resolves the member named in the route to a thread, once the list has
+   * loaded and Firebase has signed in -- the thread id depends on the
+   * signed-in uid. Opens the existing thread if there is one, otherwise a
+   * draft that the first send will turn into a thread. Runs once.
+   */
+  openRoutedMember() {
+    const memberId = routeMemberId(this.props);
+    const viewerId = getSignedInUid();
+    if (
+      !memberId ||
+      this.routedMemberOpened ||
+      this.props.loading ||
+      !viewerId ||
+      this.props.allMembers.length === 0
+    ) {
+      return;
+    }
+    this.routedMemberOpened = true;
+
+    const member = this.props.allMembers.find(m => m.id === memberId);
+    if (!member) {
+      return;
+    }
+
+    // Same safeguard as the picker on New Conversation: a Tiny Champion is
+    // reached through whoever pays for them.
+    let target = member;
+    let redirectedFrom = null;
+    if (isTinyChampion(member)) {
+      const ownerId = billingOwnerIdOf(member);
+      const owner = ownerId
+        ? this.props.allMembers.find(m => m.id === ownerId)
+        : null;
+      if (!owner || isTinyChampion(owner)) {
+        this.setState({ blockedMember: member });
+        return;
+      }
+      target = owner;
+      redirectedFrom = member;
+    }
+
+    const id = conversationId(target.id, viewerId);
+    const existing = this.props.conversations
+      .toArray()
+      .find(conversation => conversation.id === id);
+
+    if (existing) {
+      this.openConversation(id);
+      this.setState({ redirectedFrom });
+    } else {
+      this.setState({
+        selectedId: id,
+        draftMemberId: target.id,
+        redirectedFrom,
+        reply: '',
+        failed: [],
+      });
+    }
   }
 
   componentDidMount() {
     if (this.state.selectedId) {
       this.props.subscribeMessages({ conversationId: this.state.selectedId });
     }
+    this.openRoutedMember();
   }
 
   componentDidUpdate(prevProps) {
+    // The list and the roster arrive on their own listeners, at different
+    // times; try again whenever either changes until the member is resolved.
+    if (
+      this.props.loading !== prevProps.loading ||
+      this.props.allMembers !== prevProps.allMembers
+    ) {
+      this.openRoutedMember();
+    }
+
+    // The first send into a draft created the thread: the list listener has
+    // now returned it, so switch to following it like any other.
+    if (this.state.draftMemberId && this.getSelectedConversation()) {
+      this.setState({ draftMemberId: null });
+      this.props.subscribeMessages({ conversationId: this.state.selectedId });
+    }
+
     // Following a second link while already on this page changes the route
     // param without remounting, so the thread has to be re-opened here.
     const id = routeConversationId(this.props);
@@ -125,7 +221,12 @@ export class Conversations extends Component {
     // Drop any half-typed reply when moving to a different thread, so it
     // cannot be sent to the wrong person. Failed sends are cleared too --
     // they belong to the thread that was open when they failed.
-    this.setState({ selectedId: conversationId, reply: '', failed: [] });
+    this.setState({
+      selectedId: conversationId,
+      draftMemberId: null,
+      reply: '',
+      failed: [],
+    });
     this.props.subscribeMessages({ conversationId });
   }
 
@@ -139,6 +240,22 @@ export class Conversations extends Component {
     const conversation = this.getSelectedConversation();
     const username = this.props.profile && this.props.profile.username;
     const text = this.state.reply.trim();
+
+    // A draft has no thread yet. Leaving conversationId out lets the saga
+    // derive the pair id and create the thread document on this first send.
+    if (!conversation && this.state.draftMemberId) {
+      if (!username || !this.props.spaceSlug || !text) {
+        return;
+      }
+      this.pendingText = text;
+      this.props.sendMessage({
+        memberId: this.state.draftMemberId,
+        staffId: getSignedInUid(),
+        spaceSlug: this.props.spaceSlug,
+        text,
+      });
+      return;
+    }
 
     // isBroadcast is also checked in renderComposer, which is what actually
     // hides the box. Repeated here so the send path is safe on its own
@@ -174,7 +291,7 @@ export class Conversations extends Component {
 
   renderComposer() {
     const conversation = this.getSelectedConversation();
-    if (!conversation) {
+    if (!conversation && !this.state.draftMemberId) {
       return null;
     }
 
@@ -189,7 +306,7 @@ export class Conversations extends Component {
     //
     // Announcements are the other feature and are NOT restricted here: a
     // student can reply to one and staff can answer back.
-    if (conversation.isBroadcast) {
+    if (conversation && conversation.isBroadcast) {
       return (
         <p className="text-muted mt-3">
           <small>
@@ -488,6 +605,7 @@ export class Conversations extends Component {
    * for groups -- a 1:1 chat needs removing just as much.
    */
   renderThreadActions() {
+    // A draft is not on anyone's list yet, so there is nothing to remove.
     if (!this.getSelectedConversation()) {
       return null;
     }
@@ -565,11 +683,97 @@ export class Conversations extends Component {
     });
   };
 
+  /**
+   * The empty thread for a member who has not been messaged yet. Nothing is
+   * in Firestore to listen to, so this stands in until the first send.
+   */
+  renderDraftThread(membersById) {
+    return (
+      <React.Fragment>
+        <h5 className="mb-3">
+          {participantName(this.state.draftMemberId, membersById)}
+        </h5>
+        <p className="text-muted">
+          No messages yet. Anything you send here starts a private conversation
+          with them.
+        </p>
+        <ul className="list-unstyled">{this.renderFailedSends(membersById)}</ul>
+      </React.Fragment>
+    );
+  }
+
+  /**
+   * Explains why the member from the route was not opened, or who was
+   * opened in their place.
+   */
+  renderRoutedMemberNotice(membersById) {
+    if (this.state.blockedMember) {
+      return (
+        <div className="alert alert-danger">
+          <strong>
+            {participantName(this.state.blockedMember.id, membersById)} is a
+            Tiny Champion.
+          </strong>
+          <div>
+            Tiny Champions cannot be messaged directly, and there is no billing
+            owner on their record to contact instead.
+          </div>
+        </div>
+      );
+    }
+    if (this.state.redirectedFrom) {
+      return (
+        <div className="alert alert-info">
+          <strong>
+            {participantName(this.state.redirectedFrom.id, membersById)} is a
+            Tiny Champion.
+          </strong>
+          <div>
+            Tiny Champions cannot be messaged directly, so this conversation is
+            with the person who pays for them.
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
+
+  /**
+   * Sends the server rejected, shown after the delivered messages so the
+   * attempt is visible rather than silently lost.
+   */
+  renderFailedSends(membersById) {
+    if (this.state.failed.length < 1) {
+      return null;
+    }
+    const username = this.props.profile && this.props.profile.username;
+    const senderName =
+      username && this.props.spaceSlug
+        ? participantName(
+            staffParticipantId(this.props.spaceSlug, username),
+            membersById,
+          )
+        : 'You';
+    return this.state.failed.map(failure => (
+      <li key={failure.id} className="mb-3">
+        <div>
+          <strong>{senderName}</strong> <small>{when(failure.createdAt)}</small>
+        </div>
+        <div className="text-muted">{failure.text}</div>
+        <small className="text-danger">Message failed to send</small>
+      </li>
+    ));
+  }
+
   renderThread(membersById) {
     const { messages, messagesLoading, messagesError } = this.props;
 
     if (!this.state.selectedId) {
       return <p>Select a conversation to read it.</p>;
+    }
+
+    if (this.state.draftMemberId && !this.getSelectedConversation()) {
+      return this.renderDraftThread(membersById);
     }
 
     if (messagesLoading) {
@@ -595,14 +799,6 @@ export class Conversations extends Component {
     }
 
     const selectedConversation = this.getSelectedConversation();
-    const username = this.props.profile && this.props.profile.username;
-    const senderName =
-      username && this.props.spaceSlug
-        ? participantName(
-            staffParticipantId(this.props.spaceSlug, username),
-            membersById,
-          )
-        : 'You';
 
     return (
       <React.Fragment>
@@ -650,20 +846,7 @@ export class Conversations extends Component {
             </li>
           ))}
 
-          {/*
-            Sends the server rejected, shown after the delivered messages so
-            the attempt is visible rather than silently lost.
-          */}
-          {this.state.failed.map(failure => (
-            <li key={failure.id} className="mb-3">
-              <div>
-                <strong>{senderName}</strong>{' '}
-                <small>{when(failure.createdAt)}</small>
-              </div>
-              <div className="text-muted">{failure.text}</div>
-              <small className="text-danger">Message failed to send</small>
-            </li>
-          ))}
+          {this.renderFailedSends(membersById)}
         </ul>
       </React.Fragment>
     );
@@ -703,6 +886,7 @@ export class Conversations extends Component {
             <div className="row">
               <div className="col-md-4">{this.renderList(membersById)}</div>
               <div className="col-md-8">
+                {this.renderRoutedMemberNotice(membersById)}
                 {this.state.selectedId && this.renderThreadActions()}
                 {this.renderThread(membersById)}
                 {this.state.selectedId && this.renderComposer()}
