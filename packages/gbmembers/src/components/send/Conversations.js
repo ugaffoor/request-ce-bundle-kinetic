@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { compose, lifecycle } from 'recompose';
 import moment from 'moment';
 import ReactSpinner from 'react16-spinjs';
+import { KappNavLink as NavLink } from 'common';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { confirm } from '../helpers/Confirmation';
 import { actions as conversationActions } from '../../redux/modules/conversations';
@@ -877,6 +878,10 @@ export class Conversations extends Component {
 
     const membersById = this.getMembersById();
 
+    if (routeMemberId(this.props)) {
+      return this.renderMemberThread(membersById);
+    }
+
     return (
       <div className="container-fluid leads">
         <StatusMessagesContainer />
@@ -886,12 +891,68 @@ export class Conversations extends Component {
             <div className="row">
               <div className="col-md-4">{this.renderList(membersById)}</div>
               <div className="col-md-8">
-                {this.renderRoutedMemberNotice(membersById)}
                 {this.state.selectedId && this.renderThreadActions()}
                 {this.renderThread(membersById)}
                 {this.state.selectedId && this.renderComposer()}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * The page as reached from a member's profile: just the thread with that
+   * one person, without the list of everyone else. The list normally shows
+   * load errors and the spinner, so those are rendered here instead.
+   */
+  renderMemberThread(membersById) {
+    const memberId = routeMemberId(this.props);
+    const { loading, error } = this.props;
+
+    // Who the thread is actually with: the routed member, or their billing
+    // owner when the member is a Tiny Champion.
+    const conversation = this.getSelectedConversation();
+    const withId =
+      this.state.draftMemberId ||
+      (conversation && conversation.otherParticipantId) ||
+      null;
+
+    return (
+      <div className="container-fluid leads">
+        <StatusMessagesContainer />
+        <div className="leadContents">
+          <div className="options">
+            <h4 className="title">
+              {withId ? participantName(withId, membersById) : 'Conversation'}
+              <span className="pull-right">
+                <NavLink to={`/Member/${memberId}`} className="btn btn-link">
+                  Back to profile
+                </NavLink>
+                <NavLink to="/Conversations" className="btn btn-link">
+                  All conversations
+                </NavLink>
+              </span>
+            </h4>
+            {error && (
+              <div className="alert alert-danger">
+                <strong>Could not load the conversation.</strong>
+                <div>{error}</div>
+              </div>
+            )}
+            {this.renderRoutedMemberNotice(membersById)}
+            {loading && !error ? (
+              <ReactSpinner />
+            ) : (
+              this.state.selectedId && (
+                <React.Fragment>
+                  {this.renderThreadActions()}
+                  {this.renderThread(membersById)}
+                  {this.renderComposer()}
+                </React.Fragment>
+              )
+            )}
           </div>
         </div>
       </div>
