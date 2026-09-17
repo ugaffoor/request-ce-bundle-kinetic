@@ -14,8 +14,6 @@ import {
 } from '../../lib/firebaseAuth';
 import {
   conversationId,
-  isTinyChampion,
-  billingOwnerIdOf,
   indexMembersById,
   participantName,
   DELETED_MESSAGE_TEXT,
@@ -42,9 +40,6 @@ const mapDispatchToProps = {
  * The 1:1 conversation with this member, on their profile beside the SMS
  * and email history -- read-only here, with a link through to the thread
  * for replying.
- *
- * Follows the same rule as everywhere else: a Tiny Champion is contacted
- * through their billing owner, so it is that person's thread that shows.
  */
 export class MemberConversation extends Component {
   constructor(props) {
@@ -98,27 +93,11 @@ export class MemberConversation extends Component {
     }
   }
 
-  /**
-   * Who the thread is with: the member, or their billing owner when the
-   * member is a Tiny Champion. Null when a Tiny Champion has no owner on
-   * record -- there is nobody to show a thread with.
-   */
-  getTarget() {
-    const { memberItem, allMembers } = this.props;
-    if (!isTinyChampion(memberItem)) {
-      return memberItem;
-    }
-    const ownerId = billingOwnerIdOf(memberItem);
-    const owner = ownerId ? allMembers.find(m => m.id === ownerId) : null;
-    return owner && !isTinyChampion(owner) ? owner : null;
-  }
-
   getConversation() {
-    const target = this.getTarget();
-    if (!target || !this.state.viewerId) {
+    if (!this.state.viewerId) {
       return null;
     }
-    const id = conversationId(target.id, this.state.viewerId);
+    const id = conversationId(this.props.memberItem.id, this.state.viewerId);
     return this.props.conversations
       .toArray()
       .find(conversation => conversation.id === id);
@@ -174,18 +153,6 @@ export class MemberConversation extends Component {
   }
 
   renderBody() {
-    const { memberItem, allMembers } = this.props;
-    const target = this.getTarget();
-
-    if (!target) {
-      return (
-        <p className="text-muted">
-          Tiny Champions cannot be messaged directly, and there is no billing
-          owner on this record to contact instead.
-        </p>
-      );
-    }
-
     if (this.props.error) {
       return (
         <div className="alert alert-danger">
@@ -228,24 +195,13 @@ export class MemberConversation extends Component {
     }
 
     return (
-      <React.Fragment>
-        {target.id !== memberItem.id && (
-          <p className="text-muted">
-            <small>
-              {participantName(memberItem.id, indexMembersById(allMembers))} is
-              a Tiny Champion, so this is the conversation with the person who
-              pays for them.
-            </small>
-          </p>
-        )}
-        <ReactTable
-          columns={this._columns}
-          data={data}
-          defaultPageSize={data.length}
-          pageSize={data.length}
-          showPagination={false}
-        />
-      </React.Fragment>
+      <ReactTable
+        columns={this._columns}
+        data={data}
+        defaultPageSize={data.length}
+        pageSize={data.length}
+        showPagination={false}
+      />
     );
   }
 

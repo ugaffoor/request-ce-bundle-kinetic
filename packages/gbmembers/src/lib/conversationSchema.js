@@ -273,6 +273,50 @@ export const billingOwnerIdOf = member => {
   return parent && parent !== member.id ? parent : null;
 };
 
+let billingOwnersCache = null;
+
+/**
+ * The members who pay: for themselves, and possibly for others. A billing
+ * owner is anyone with a billing account of their own, or anyone another
+ * member's bill is charged to. A dependent -- someone whose bill goes to a
+ * parent member -- is not one, even if they happen to have a customer id.
+ *
+ * Returned as a set of member ids, cached on the roster's identity the same
+ * way indexMembersById is, since every list filter runs it.
+ */
+export const billingOwnerIds = allMembers => {
+  const list = allMembers || [];
+
+  if (billingOwnersCache && billingOwnersCache.list === list) {
+    return billingOwnersCache.value;
+  }
+
+  const value = new Set();
+  list.forEach(member => {
+    const values = (member && member.values) || {};
+    const parent = values['Billing Parent Member'];
+    if (parent && parent !== member.id) {
+      // Someone else pays for this member -- so that someone is an owner.
+      value.add(parent);
+      return;
+    }
+    if (values['Billing User'] === 'YES' || values['Billing Customer Id']) {
+      value.add(member.id);
+    }
+  });
+
+  billingOwnersCache = { list, value };
+  return value;
+};
+
+/**
+ * Whether anyone in the thread, other than the viewer, is a billing owner.
+ */
+export const involvesBillingOwner = (conversation, owners, viewerId) =>
+  (conversation.participantIds || []).some(
+    pid => pid !== viewerId && owners.has(pid),
+  );
+
 export const indexMembersById = allMembers => {
   const list = allMembers || [];
 
@@ -538,23 +582,38 @@ export const DELETED_MESSAGE_TEXT = 'This message was deleted';
 export const ANNOUNCEMENT_REMOVED_TEXT = 'Announcement was removed';
 
 /**
- * Who an announcement was addressed to, in words. Names when there are few
- * enough to read; otherwise the list it was sent to and how many that was.
+ * Who an announcement was addressed to: the people by name when it went to
+ * specific members, otherwise the programs it was filtered to, otherwise
+ * the whole school.
  */
 export const describeAudience = (message, membersById) => {
   const members = message.audienceMembers || [];
   if (members.length > 0) {
-    if (members.length <= 3) {
-      return members.map(id => participantName(id, membersById)).join(', ');
-    }
-    const label = message.audienceStatus || 'Selected members';
-    return `${label} (${members.length})`;
+    return members.map(id => participantName(id, membersById)).join(', ');
   }
   const programs = message.audience || [];
   if (programs.length > 0) {
     return programs.join(', ');
   }
   return 'Whole school';
+};
+
+/**
+ * Everyone in a thread other than the viewer, by name. The school's
+ * announcement thread has no participants, so it reads as the whole school.
+ */
+export const conversationParticipants = (
+  conversation,
+  membersById,
+  viewerId,
+) => {
+  const others = (conversation.participantIds || []).filter(
+    pid => pid !== viewerId,
+  );
+  if (others.length < 1) {
+    return conversation.isAnnouncementThread ? 'Whole school' : '';
+  }
+  return others.map(pid => participantName(pid, membersById)).join(', ');
 };
 
 export const normaliseMessage = (id, data) => ({

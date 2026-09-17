@@ -27,8 +27,8 @@ import {
   DELETED_MESSAGE_TEXT,
   matchesConversationKind,
   conversationId,
-  isTinyChampion,
-  billingOwnerIdOf,
+  billingOwnerIds,
+  involvesBillingOwner,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
 } from '../../lib/conversationSchema';
@@ -83,6 +83,9 @@ export class Conversations extends Component {
       reply: '',
       kind: CONVERSATION_KINDS.ALL,
       search: '',
+      // Narrow the list to threads with someone who pays -- for themselves
+      // or for others.
+      billingOwnersOnly: false,
       // Sends the server rejected. Kept locally because a failed write never
       // reaches Firestore, so the snapshot listener will never return it --
       // without this the message would just vanish on failure.
@@ -91,12 +94,6 @@ export class Conversations extends Component {
       // thread is created on the first send; until then there is nothing in
       // Firestore to listen to, so the page renders the empty thread itself.
       draftMemberId: null,
-      // Set when the profile was a Tiny Champion's and the billing owner was
-      // opened in their place, so the substitution is visible.
-      redirectedFrom: null,
-      // A Tiny Champion with no billing owner on record: nobody to redirect
-      // to, so explain rather than open anything.
-      blockedMember: null,
     };
   }
 
@@ -125,36 +122,17 @@ export class Conversations extends Component {
       return;
     }
 
-    // Same safeguard as the picker on New Conversation: a Tiny Champion is
-    // reached through whoever pays for them.
-    let target = member;
-    let redirectedFrom = null;
-    if (isTinyChampion(member)) {
-      const ownerId = billingOwnerIdOf(member);
-      const owner = ownerId
-        ? this.props.allMembers.find(m => m.id === ownerId)
-        : null;
-      if (!owner || isTinyChampion(owner)) {
-        this.setState({ blockedMember: member });
-        return;
-      }
-      target = owner;
-      redirectedFrom = member;
-    }
-
-    const id = conversationId(target.id, viewerId);
+    const id = conversationId(member.id, viewerId);
     const existing = this.props.conversations
       .toArray()
       .find(conversation => conversation.id === id);
 
     if (existing) {
       this.openConversation(id);
-      this.setState({ redirectedFrom });
     } else {
       this.setState({
         selectedId: id,
-        draftMemberId: target.id,
-        redirectedFrom,
+        draftMemberId: member.id,
         reply: '',
         failed: [],
       });
@@ -398,6 +376,15 @@ export class Conversations extends Component {
         matchesConversationKind(conversation, this.state.kind),
       )
       .filter(conversation => this.matchesSearch(conversation, membersById))
+      .filter(
+        conversation =>
+          !this.state.billingOwnersOnly ||
+          involvesBillingOwner(
+            conversation,
+            billingOwnerIds(this.props.allMembers),
+            getSignedInUid(),
+          ),
+      )
       .sort(
         (a, b) =>
           (b.updatedAt ? b.updatedAt.getTime() : 0) -
@@ -412,7 +399,9 @@ export class Conversations extends Component {
           <p>
             {this.state.search.trim()
               ? `No conversations match "${this.state.search.trim()}".`
-              : 'Nothing matches this filter.'}
+              : this.state.billingOwnersOnly
+                ? 'No conversations with billing owners.'
+                : 'Nothing matches this filter.'}
           </p>
         </React.Fragment>
       );
@@ -526,6 +515,23 @@ export class Conversations extends Component {
           value={this.state.search}
           onChange={e => this.setState({ search: e.target.value })}
         />
+        <div className="form-check mt-2">
+          <input
+            id="conversation-billing-owners"
+            type="checkbox"
+            className="form-check-input"
+            checked={this.state.billingOwnersOnly}
+            onChange={e =>
+              this.setState({ billingOwnersOnly: e.target.checked })
+            }
+          />
+          <label
+            className="form-check-label"
+            htmlFor="conversation-billing-owners"
+          >
+            Billing owners only
+          </label>
+        </div>
       </div>
     );
   }
@@ -708,42 +714,6 @@ export class Conversations extends Component {
   }
 
   /**
-   * Explains why the member from the route was not opened, or who was
-   * opened in their place.
-   */
-  renderRoutedMemberNotice(membersById) {
-    if (this.state.blockedMember) {
-      return (
-        <div className="alert alert-danger">
-          <strong>
-            {participantName(this.state.blockedMember.id, membersById)} is a
-            Tiny Champion.
-          </strong>
-          <div>
-            Tiny Champions cannot be messaged directly, and there is no billing
-            owner on their record to contact instead.
-          </div>
-        </div>
-      );
-    }
-    if (this.state.redirectedFrom) {
-      return (
-        <div className="alert alert-info">
-          <strong>
-            {participantName(this.state.redirectedFrom.id, membersById)} is a
-            Tiny Champion.
-          </strong>
-          <div>
-            Tiny Champions cannot be messaged directly, so this conversation is
-            with the person who pays for them.
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
-
-  /**
    * Sends the server rejected, shown after the delivered messages so the
    * attempt is visible rather than silently lost.
    */
@@ -920,8 +890,6 @@ export class Conversations extends Component {
     const memberId = routeMemberId(this.props);
     const { loading, error } = this.props;
 
-    // Who the thread is actually with: the routed member, or their billing
-    // owner when the member is a Tiny Champion.
     const conversation = this.getSelectedConversation();
     const withId =
       this.state.draftMemberId ||
@@ -950,7 +918,6 @@ export class Conversations extends Component {
                 <div>{error}</div>
               </div>
             )}
-            {this.renderRoutedMemberNotice(membersById)}
             {loading && !error ? (
               <ReactSpinner />
             ) : (

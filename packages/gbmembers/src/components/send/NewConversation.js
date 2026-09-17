@@ -18,6 +18,7 @@ import {
   SEND_KINDS,
   isTinyChampion,
   billingOwnerIdOf,
+  billingOwnerIds,
 } from '../../lib/conversationSchema';
 import { removeExcludedMembers, matchesMemberFilter } from '../../utils/utils';
 import { canUseConversations } from '../../lib/conversationAccess';
@@ -25,6 +26,7 @@ import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
 
 const ACTIVE_MEMBERS = '__active_members__';
 const INACTIVE_MEMBERS = '__inactive_members__';
+const BILLING_OWNERS = '__billing_owners__';
 
 const mapStateToProps = state => ({
   allMembers: state.member.members.allMembers,
@@ -173,6 +175,14 @@ export class NewConversation extends Component {
           .filter(member => member.values['Status'] === 'Inactive')
           .map(member => member.id),
       },
+      {
+        value: BILLING_OWNERS,
+        label: 'Billing Owners',
+        // Everyone who pays -- for themselves, and possibly for others. The
+        // right audience for anything about money, and the way to reach a
+        // family through the person who holds the account.
+        ids: Array.from(billingOwnerIds(allMembers)),
+      },
       ...STATUS_LISTS.map(status => ({
         value: `__status_${status}__`,
         label: `Status: ${status}`,
@@ -292,9 +302,16 @@ export class NewConversation extends Component {
   }
 
   /**
-   * Selected Tiny Champions. A group is refused when this is non-empty: a
-   * group is irreversible once created -- every participant has already seen
-   * every other participant -- so this blocks rather than warns.
+   * Whether the current send kind refuses Tiny Champions. Only a 1:1
+   * conversation does: groups and broadcasts may include them.
+   */
+  tinyChampionsBlocked() {
+    return this.state.kind === SEND_KINDS.CONVERSATION;
+  }
+
+  /**
+   * Selected Tiny Champions. A 1:1 conversation is refused when this is
+   * non-empty; they are contacted through whoever pays for them.
    */
   selectedTinyChampions() {
     const byId = {};
@@ -611,11 +628,11 @@ export class NewConversation extends Component {
       !announcementAudienceEmpty &&
       // A group without a name shows as a blank row in everyone's list.
       (!this.isGroup() || this.state.groupName.trim() !== '') &&
-      // Safeguarding: a Tiny Champion is contacted through whoever pays for
-      // them, never directly -- for any kind of send, not just groups. The
-      // picker disables them, so this only catches a selection that survived
-      // a change of list filter or send kind.
-      this.selectedTinyChampions().length === 0 &&
+      // Safeguarding: a Tiny Champion is not put in a 1:1 conversation. The
+      // picker disables them for that kind, so this only catches a selection
+      // that survived a change of list filter or send kind.
+      (!this.tinyChampionsBlocked() ||
+        this.selectedTinyChampions().length === 0) &&
       this.state.message.trim() !== '' &&
       !this.props.sending &&
       !!this.senderId();
@@ -700,13 +717,18 @@ export class NewConversation extends Component {
                       isMulti={true}
                       isClearable={true}
                       closeMenuOnSelect={false}
-                      isOptionDisabled={option => option.isTiny}
+                      isOptionDisabled={option =>
+                        option.isTiny && this.tinyChampionsBlocked()
+                      }
                       noOptionsMessage={() => 'No matching students'}
                     />
-                    <small className="text-muted">
-                      Tiny Champions are listed but cannot be selected. Contact
-                      the person who pays for them instead.
-                    </small>
+                    {this.tinyChampionsBlocked() && (
+                      <small className="text-muted">
+                        Tiny Champions are listed but cannot be put in a
+                        conversation. Contact the person who pays for them
+                        instead, or use a group or broadcast.
+                      </small>
+                    )}
                   </div>
                 </React.Fragment>
                 {announcementAudienceEmpty && (
@@ -718,28 +740,31 @@ export class NewConversation extends Component {
                     </div>
                   </div>
                 )}
-                {this.selectedTinyChampions().length > 0 && (
-                  <div className="alert alert-danger">
-                    <strong>Tiny Champions cannot be messaged directly.</strong>
-                    <div>
-                      Remove them from the selection and contact the person who
-                      pays for them instead:
+                {this.tinyChampionsBlocked() &&
+                  this.selectedTinyChampions().length > 0 && (
+                    <div className="alert alert-danger">
+                      <strong>
+                        Tiny Champions cannot be messaged directly.
+                      </strong>
+                      <div>
+                        Remove them from the selection and contact the person
+                        who pays for them instead:
+                      </div>
+                      <ul className="mb-0">
+                        {this.selectedTinyChampions().map(member => {
+                          const owner = this.billingOwnerNameFor(member);
+                          return (
+                            <li key={member.id}>
+                              {memberName(member)} &mdash;{' '}
+                              {owner
+                                ? `contact ${owner}`
+                                : 'no billing owner on this record, check the member in GB Members'}
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
-                    <ul className="mb-0">
-                      {this.selectedTinyChampions().map(member => {
-                        const owner = this.billingOwnerNameFor(member);
-                        return (
-                          <li key={member.id}>
-                            {memberName(member)} &mdash;{' '}
-                            {owner
-                              ? `contact ${owner}`
-                              : 'no billing owner on this record, check the member in GB Members'}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                )}
+                  )}
                 {this.isGroup() && (
                   <div className="form-group">
                     <label htmlFor="conversation-group-name">Group name</label>

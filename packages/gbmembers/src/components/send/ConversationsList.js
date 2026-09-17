@@ -8,10 +8,12 @@ import { actions as conversationActions } from '../../redux/modules/conversation
 import { initialiseFirebase } from '../../lib/firebase';
 import {
   ensureFirebaseSignIn,
+  getSignedInUid,
   identityKey,
   FRANCHISE_DOMAIN,
 } from '../../lib/firebaseAuth';
 import {
+  conversationParticipants,
   indexMembersById,
   groupConversationsByParticipant,
   matchesConversationKind,
@@ -62,8 +64,9 @@ export class ConversationsList extends Component {
     }));
   };
 
-  renderGroup(group) {
+  renderGroup(group, membersById) {
     const isExpanded = !!this.state.expanded[group.participantId];
+    const viewerId = getSignedInUid();
     const threadCount = group.conversations.length;
 
     // One thread is the normal case -- no expander, just a link.
@@ -136,11 +139,17 @@ export class ConversationsList extends Component {
               </td>
               <td>
                 <small>
-                  {conversation.isBroadcast
-                    ? 'Broadcast'
-                    : conversation.isAnnouncement
-                      ? 'Announcement thread'
-                      : 'Conversation'}
+                  {conversationParticipants(
+                    conversation,
+                    membersById,
+                    viewerId,
+                  )}
+                  {conversation.isBroadcast && (
+                    <span className="badge badge-warning ml-2">Broadcast</span>
+                  )}
+                  {conversation.isAnnouncement && (
+                    <span className="badge badge-info ml-2">Announcement</span>
+                  )}
                 </small>
               </td>
               <td>
@@ -220,7 +229,9 @@ export class ConversationsList extends Component {
                 <th>Date and time</th>
               </tr>
             </thead>
-            <tbody>{groups.map(group => this.renderGroup(group))}</tbody>
+            <tbody>
+              {groups.map(group => this.renderGroup(group, membersById))}
+            </tbody>
           </table>
         )}
       </div>
