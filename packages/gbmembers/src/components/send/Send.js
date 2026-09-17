@@ -1556,16 +1556,6 @@ export class CreateCampaign extends Component {
                 SMS Send
               </NavLink>
             </div>
-            {canUseConversations(this.props.profile) && (
-              <React.Fragment>
-                <div className="col-md-1">OR</div>
-                <div className="col-md-2">
-                  <NavLink to={`/NewConversation`} className="btn btn-primary">
-                    Conversation Send
-                  </NavLink>
-                </div>
-              </React.Fragment>
-            )}
           </div>
         </div>
         <div className="leadOptions">
@@ -1639,11 +1629,7 @@ export const CampaignView = ({
             />
           </span>
           <div className="leadContents">
-            <CreateCampaign
-              allLeads={allLeads}
-              leadsLoading={leadsLoading}
-              profile={profile}
-            />
+            <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
           </div>
           {canUseConversations(profile) && (
             <div className="taskContents">
