@@ -80,6 +80,7 @@ import { ReactComponent as AttentionRequired } from '../../images/flag.svg';
 import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
+import { canUseConversations } from '../../lib/conversationAccess';
 import 'react-datetime/css/react-datetime.css';
 import ReactToPrint from 'react-to-print';
 import ReactTooltip from 'react-tooltip';
@@ -1495,6 +1496,15 @@ export const MemberView = ({
                       profile={profile}
                       setShowSMSModal={setShowSMSModal}
                     />
+                  )}
+                  {canUseConversations(profile) && (
+                    <NavLink
+                      to={`/NewConversation/${memberItem.id}`}
+                      className="btn btn-primary"
+                      style={{ marginLeft: '10px' }}
+                    >
+                      Message
+                    </NavLink>
                   )}
                   {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                     <div />

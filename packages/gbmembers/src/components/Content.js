@@ -184,7 +184,10 @@ export const Content = ({ isKiosk }) => (
         path="/NewSmsCampaign/:submissionType?/:submissionId?/:replyType?/:campaignId?"
         component={SmsCampaignContainer}
       />
-      <Route path="/NewConversation" component={NewConversationContainer} />
+      <Route
+        path="/NewConversation/:memberId?"
+        component={NewConversationContainer}
+      />
       <Route path="/Announcements" component={AnnouncementsContainer} />
       <Route
         path="/Conversations/:conversationId?"

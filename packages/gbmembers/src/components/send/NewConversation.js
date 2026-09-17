@@ -133,7 +133,65 @@ export class NewConversation extends Component {
       // shown as a confirmation without navigating away. Cleared when the next
       // message is typed.
       sent: null,
+      // A student who arrived via the Message button on their profile and
+      // turned out to be a Tiny Champion, so their billing owner was selected
+      // in their place. Shown once so the substitution is not silent.
+      redirectedFrom: null,
     };
+  }
+
+  /**
+   * The student named in the route, if any -- the Message button on a
+   * member's profile links here with their id so the picker is already
+   * filled in.
+   */
+  routedMemberId() {
+    const { match } = this.props;
+    return (match && match.params && match.params.memberId) || null;
+  }
+
+  /**
+   * Fills the picker from the route once the roster is available. Runs on
+   * mount when members are already loaded, otherwise from componentDidUpdate
+   * when they arrive; either way only once.
+   */
+  preselectRoutedMember() {
+    const memberId = this.routedMemberId();
+    if (!memberId || this.preselected || this.props.allMembers.length === 0) {
+      return;
+    }
+    this.preselected = true;
+
+    const member = this.props.allMembers.find(m => m.id === memberId);
+    if (!member) {
+      return;
+    }
+
+    // Same safeguard as the picker: a Tiny Champion is reached through
+    // whoever pays for them. Substitute the owner rather than land on a
+    // disabled selection that cannot be sent.
+    let target = member;
+    let redirectedFrom = null;
+    if (isTinyChampion(member)) {
+      const ownerId = billingOwnerIdOf(member);
+      const owner = ownerId
+        ? this.props.allMembers.find(m => m.id === ownerId)
+        : null;
+      if (!owner || isTinyChampion(owner)) {
+        return;
+      }
+      target = owner;
+      redirectedFrom = member;
+    }
+
+    const option = this.getStudentOptions().find(o => o.value === target.id);
+    if (option) {
+      this.setState({ memberOptions: [option], redirectedFrom });
+    }
+  }
+
+  componentDidMount() {
+    this.preselectRoutedMember();
   }
 
   /**
@@ -433,6 +491,10 @@ export class NewConversation extends Component {
   };
 
   componentDidUpdate(prevProps) {
+    if (this.props.allMembers !== prevProps.allMembers) {
+      this.preselectRoutedMember();
+    }
+
     // Only once a send has actually landed -- the text survives a failure so
     // it can be retried rather than being lost.
     if (
@@ -709,6 +771,18 @@ export class NewConversation extends Component {
                     </small>
                   </div>
                 </React.Fragment>
+                {this.state.redirectedFrom && (
+                  <div className="alert alert-info">
+                    <strong>
+                      {memberName(this.state.redirectedFrom)} is a Tiny
+                      Champion.
+                    </strong>
+                    <div>
+                      Tiny Champions cannot be messaged directly, so the person
+                      who pays for them has been selected instead.
+                    </div>
+                  </div>
+                )}
                 {announcementAudienceEmpty && (
                   <div className="alert alert-warning">
                     <strong>No one to send this to.</strong>
