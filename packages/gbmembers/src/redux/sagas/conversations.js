@@ -1,5 +1,12 @@
 import { eventChannel } from 'redux-saga';
-import { call, cancelled, put, take, takeEvery } from 'redux-saga/effects';
+import {
+  call,
+  cancelled,
+  put,
+  take,
+  takeEvery,
+  takeLatest,
+} from 'redux-saga/effects';
 import {
   addDoc,
   collection,
@@ -739,11 +746,14 @@ export function* deleteBroadcast({ payload } = {}) {
 }
 
 export function* watchConversations() {
-  yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchConversationSnapshots);
+  // takeLatest: a new subscription cancels the previous one, whose finally
+  // block closes its channel. Every page that shows conversations subscribes
+  // on mount, so takeEvery left a listener behind on each visit.
+  yield takeLatest(types.SUBSCRIBE_CONVERSATIONS, watchConversationSnapshots);
   // Same action, second listener: the announcement thread is fetched by id
   // because no participant query can reach it.
-  yield takeEvery(types.SUBSCRIBE_CONVERSATIONS, watchAnnouncementThread);
-  yield takeEvery(types.SUBSCRIBE_MESSAGES, watchMessageSnapshots);
+  yield takeLatest(types.SUBSCRIBE_CONVERSATIONS, watchAnnouncementThread);
+  yield takeLatest(types.SUBSCRIBE_MESSAGES, watchMessageSnapshots);
   yield takeEvery(types.SEND_MESSAGE, sendMessage);
   yield takeEvery(types.DELETE_MESSAGE, deleteMessage);
   yield takeEvery(types.CLEAR_CONVERSATION, clearConversation);

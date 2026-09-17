@@ -81,6 +81,7 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
 import { canUseConversations } from '../../lib/conversationAccess';
+import { MemberConversationContainer } from './MemberConversation';
 import 'react-datetime/css/react-datetime.css';
 import ReactToPrint from 'react-to-print';
 import ReactTooltip from 'react-tooltip';
@@ -2270,6 +2271,16 @@ export const MemberView = ({
                     profile={profile}
                   />
                 </div>
+                {canUseConversations(profile) && (
+                  <div>
+                    <MemberConversationContainer
+                      memberItem={memberItem}
+                      allMembers={allMembers}
+                      space={space}
+                      profile={profile}
+                    />
+                  </div>
+                )}
                 <div>
                   <MemberOrders
                     memberItem={memberItem}
