@@ -21,6 +21,7 @@ import {
   serverTimestamp,
   setDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 import { types, actions } from '../modules/conversations';
 import { getConversationStore } from '../../lib/firebase';
@@ -717,7 +718,19 @@ export function* clearConversation({ payload } = {}) {
  * The conversation document itself stays: no rule permits deleting one, and
  * an empty thread is harmless once its content is gone.
  */
-export function* deleteBroadcast({ payload } = {}) {
+// Firestore caps a batch at 500 writes.
+const DELETE_BATCH = 400;
+
+/**
+ * Removes a thread outright: every message, then the conversation document,
+ * so it vanishes from every participant's list in the app and the portal
+ * alike. A clean-up tool, not a tombstone -- nothing is left to say it was
+ * there. staffMayRemoveThread() in firestore.rules decides who may.
+ *
+ * Messages go first because their rule reads the parent document to decide;
+ * delete the parent first and every message delete would be refused.
+ */
+export function* deleteConversation({ payload } = {}) {
   const store = getConversationStore();
   const { conversationId: id } = payload || {};
 
@@ -734,9 +747,13 @@ export function* deleteBroadcast({ payload } = {}) {
       collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
     );
 
-    for (let i = 0; i < snap.docs.length; i++) {
-      yield call(deleteDoc, snap.docs[i].ref);
+    for (let i = 0; i < snap.docs.length; i += DELETE_BATCH) {
+      const batch = writeBatch(store);
+      snap.docs.slice(i, i + DELETE_BATCH).forEach(d => batch.delete(d.ref));
+      yield call([batch, batch.commit]);
     }
+
+    yield call(deleteDoc, doc(store, CONVERSATIONS_COLLECTION, id));
 
     yield put(actions.setDeleting(null));
   } catch (e) {
@@ -757,5 +774,5 @@ export function* watchConversations() {
   yield takeEvery(types.SEND_MESSAGE, sendMessage);
   yield takeEvery(types.DELETE_MESSAGE, deleteMessage);
   yield takeEvery(types.CLEAR_CONVERSATION, clearConversation);
-  yield takeEvery(types.DELETE_BROADCAST, deleteBroadcast);
+  yield takeEvery(types.DELETE_CONVERSATION, deleteConversation);
 }

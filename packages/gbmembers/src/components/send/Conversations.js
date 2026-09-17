@@ -59,6 +59,7 @@ const mapDispatchToProps = {
   sendMessage: conversationActions.sendMessage,
   deleteMessage: conversationActions.deleteMessage,
   clearConversation: conversationActions.clearConversation,
+  deleteConversation: conversationActions.deleteConversation,
   fetchMembers: memberActions.fetchMembers,
 };
 
@@ -617,9 +618,11 @@ export class Conversations extends Component {
    */
   renderThreadActions() {
     // A draft is not on anyone's list yet, so there is nothing to remove.
-    if (!this.getSelectedConversation()) {
+    const conversation = this.getSelectedConversation();
+    if (!conversation) {
       return null;
     }
+    const busy = this.props.deletingId === conversation.id;
     return (
       <div className="text-right mb-2">
         <button
@@ -629,9 +632,63 @@ export class Conversations extends Component {
         >
           <small>Remove from my list</small>
         </button>
+        {/*
+          The school's announcement thread is managed from the Announcements
+          page, where withdrawing a post also cleans up its deliveries.
+        */}
+        {!conversation.isAnnouncementThread && (
+          <button
+            type="button"
+            className="btn btn-link btn-sm p-0 ml-3 text-danger"
+            disabled={busy}
+            onClick={this.deleteConversationForEveryone}
+          >
+            <small>{busy ? 'Deleting...' : 'Delete for everyone'}</small>
+          </button>
+        )}
       </div>
     );
   }
+
+  /**
+   * Clean-up: the whole thread, messages and all, gone from every
+   * participant's list in both GB Members and the BJJ Members app. Unlike
+   * deleting a message this leaves no tombstone -- it is for removing
+   * threads that should not exist, not for editing history.
+   */
+  deleteConversationForEveryone = async () => {
+    const conversation = this.getSelectedConversation();
+    if (!conversation) {
+      return;
+    }
+
+    const confirmed = await confirm(
+      <span>
+        <span>
+          This deletes the <strong>entire conversation</strong> and every
+          message in it, for everyone in it &mdash; in GB Members and in the BJJ
+          Members app. Nothing is left behind, and it cannot be undone.
+        </span>
+      </span>,
+      'Delete for everyone',
+      'Cancel',
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.props.deleteConversation({ conversationId: conversation.id });
+
+    // On a member's profile thread, fall back to the empty draft so a new
+    // conversation can be started; on the full page, just deselect.
+    const memberId = routeMemberId(this.props);
+    this.setState({
+      selectedId: memberId ? conversation.id : null,
+      draftMemberId: memberId ? memberId : null,
+      reply: '',
+      failed: [],
+    });
+  };
 
   removeConversation = async () => {
     const conversation = this.getSelectedConversation();

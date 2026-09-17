@@ -43,7 +43,7 @@ const mapDispatchToProps = {
   subscribeMessages: conversationActions.subscribeMessages,
   setConversationsError: conversationActions.setConversationsError,
   deleteMessage: conversationActions.deleteMessage,
-  deleteBroadcast: conversationActions.deleteBroadcast,
+  deleteConversation: conversationActions.deleteConversation,
   fetchMembers: memberActions.fetchMembers,
 };
 
@@ -153,9 +153,9 @@ export class Announcements extends Component {
       return;
     }
 
-    // Every message in the thread goes: the cached lastMessage carries no id,
-    // and a broadcast is the thread rather than one post within it.
-    this.props.deleteBroadcast({ conversationId: conversation.id });
+    // The whole thread goes: the cached lastMessage carries no id, and a
+    // broadcast is the thread rather than one post within it.
+    this.props.deleteConversation({ conversationId: conversation.id });
   };
 
   renderAnnouncements(membersById) {
