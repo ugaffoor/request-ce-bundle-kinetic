@@ -173,7 +173,7 @@ export class Announcements extends Component {
         <thead>
           <tr>
             <th>Announcement</th>
-            <th>Who&rsquo;s in it</th>
+            <th>Participants</th>
             <th>Date and time</th>
             <th />
           </tr>
@@ -220,7 +220,7 @@ export class Announcements extends Component {
         <thead>
           <tr>
             <th>Broadcast</th>
-            <th>Who&rsquo;s in it</th>
+            <th>Participants</th>
             <th>Date and time</th>
             <th />
           </tr>

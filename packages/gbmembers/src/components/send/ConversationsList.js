@@ -216,7 +216,7 @@ export class ConversationsList extends Component {
             <thead>
               <tr>
                 <th>Last message</th>
-                <th>Who&rsquo;s in it</th>
+                <th>Participants</th>
                 <th>Date and time</th>
               </tr>
             </thead>
