@@ -19,8 +19,9 @@ import {
   isTinyChampion,
   billingOwnerIdOf,
   billingOwnerIds,
+  indexMembersById,
 } from '../../lib/conversationSchema';
-import { removeExcludedMembers, matchesMemberFilter } from '../../utils/utils';
+import { matchesMemberFilter } from '../../utils/utils';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
 
@@ -194,10 +195,17 @@ export class NewConversation extends Component {
 
     if (memberLists) {
       memberLists.forEach(list => {
-        const matched = removeExcludedMembers(
-          matchesMemberFilter(space, allMembers, list.filters),
-          list.excluded !== undefined ? list.excluded : [],
-        );
+        // The campaign pages also drop anyone marked Opt-Out here, via
+        // removeExcludedMembers. That flag is a marketing opt-out -- bulk
+        // email and SMS -- and a conversation is not marketing, so it is not
+        // applied: a member who meets the list's filters belongs in the list.
+        // Members the list explicitly excludes are still left out.
+        const excluded = list.excluded !== undefined ? list.excluded : [];
+        const matched = matchesMemberFilter(
+          space,
+          allMembers,
+          list.filters,
+        ).filter(member => !excluded.includes(member.id));
         options.push({
           value: list.name,
           label: list.name,
@@ -236,33 +244,18 @@ export class NewConversation extends Component {
       ? allMembers.filter(member => listOption.ids.includes(member.id))
       : allMembers;
 
-    const byId = {};
-    allMembers.forEach(member => {
-      byId[member.id] = member;
-    });
-
+    // The label only marks a Tiny Champion; it does not say who to contact
+    // instead, because for a group, broadcast or announcement they are a
+    // normal recipient. The 1:1 case, where they are refused, names the
+    // billing owner in its own alert below the picker.
     const value = pool
       .slice()
       .sort(byName)
-      .map(member => {
-        const tiny = isTinyChampion(member);
-        const ownerId = tiny ? billingOwnerIdOf(member) : null;
-        const owner = ownerId ? byId[ownerId] : null;
-        return {
-          value: member.id,
-          // A blocked option still says who to contact instead, so the rule
-          // is actionable at the point it stops someone rather than just
-          // refusing them.
-          label: tiny
-            ? `${memberLabel(member)}${
-                owner
-                  ? ` - contact ${memberName(owner)}`
-                  : ' - no billing owner on record'
-              }`
-            : memberLabel(member),
-          isTiny: tiny,
-        };
-      });
+      .map(member => ({
+        value: member.id,
+        label: memberLabel(member),
+        isTiny: isTinyChampion(member),
+      }));
     this.studentOptionsCache = { allMembers, listOption, value };
     return value;
   }
@@ -360,6 +353,40 @@ export class NewConversation extends Component {
     return { memberIds: null, label: null };
   }
 
+  /**
+   * Who a conversation, group or broadcast goes to: the students picked,
+   * or -- with none picked but a list chosen -- everyone in that list. The
+   * same rule announcements already follow. Neither chosen means nobody: a
+   * blank form must not quietly become a message to the whole school.
+   *
+   * When Tiny Champions are blocked for this kind, a list falls back
+   * without them; the picker would not have offered them either.
+   */
+  recipientIds() {
+    const picked = this.state.memberOptions.map(option => option.value);
+    if (picked.length > 0) {
+      return picked;
+    }
+    const list = this.state.listOption;
+    if (!list || !list.ids) {
+      return [];
+    }
+    if (!this.tinyChampionsBlocked()) {
+      return list.ids;
+    }
+    const byId = indexMembersById(this.props.allMembers);
+    return list.ids.filter(id => !isTinyChampion(byId[id]));
+  }
+
+  /** Whether the send would fall back to the list rather than a selection. */
+  sendingToList() {
+    return (
+      !this.isAnnouncement() &&
+      this.state.memberOptions.length < 1 &&
+      this.recipientIds().length > 0
+    );
+  }
+
   handleSend = async () => {
     const senderId = this.senderId();
     if (!senderId) {
@@ -413,14 +440,15 @@ export class NewConversation extends Component {
       return;
     }
 
-    if (this.state.memberOptions.length < 1) {
+    const recipients = this.recipientIds();
+    if (recipients.length < 1) {
       return;
     }
 
     // Broadcasts are confirmed too: the recipient cannot reply, so a mistake
     // leaves them with no way to say so.
     if (this.state.kind === SEND_KINDS.BROADCAST) {
-      const count = this.state.memberOptions.length;
+      const count = recipients.length;
       const confirmed = await confirm(
         <span>
           <span>
@@ -442,7 +470,7 @@ export class NewConversation extends Component {
       // was messaged. A broadcast additionally marks each thread one-way.
       kind: this.state.kind,
       groupName: this.state.groupName,
-      memberIds: this.state.memberOptions.map(option => option.value),
+      memberIds: recipients,
       staffId: senderId,
       spaceSlug: this.props.spaceSlug,
       text: this.state.message.trim(),
@@ -486,9 +514,10 @@ export class NewConversation extends Component {
   describeSend() {
     const kind = KIND_LABELS[this.state.kind] || 'Message';
 
-    const names = this.state.memberOptions.map(option => {
-      const member = this.props.allMembers.find(m => m.id === option.value);
-      return member ? memberName(member) : option.value;
+    const byId = indexMembersById(this.props.allMembers);
+    const names = this.recipientIds().map(id => {
+      const member = byId[id];
+      return member ? memberName(member) : id;
     });
 
     // An announcement's audience is whatever the composer's filters resolved
@@ -512,6 +541,16 @@ export class NewConversation extends Component {
         kind,
         to: `${groupName} (${names.length} ${
           names.length === 1 ? 'member' : 'members'
+        })`,
+      };
+    }
+
+    // Sent to a whole list: name the list rather than reel off its members.
+    if (this.sendingToList()) {
+      return {
+        kind,
+        to: `${names.length} ${names.length === 1 ? 'member' : 'members'} (${
+          this.state.listOption.label
         })`,
       };
     }
@@ -624,7 +663,7 @@ export class NewConversation extends Component {
       })();
 
     const canSend =
-      (this.isAnnouncement() || this.state.memberOptions.length > 0) &&
+      (this.isAnnouncement() || this.recipientIds().length > 0) &&
       !announcementAudienceEmpty &&
       // A group without a name shows as a blank row in everyone's list.
       (!this.isGroup() || this.state.groupName.trim() !== '') &&
@@ -706,6 +745,18 @@ export class NewConversation extends Component {
                         {studentOptions.length} available)
                       </small>
                     </label>
+                    {this.sendingToList() && (
+                      <div className="alert alert-info py-1 px-2 mb-2">
+                        <small>
+                          No students selected &mdash; this will go to{' '}
+                          <strong>
+                            all {this.recipientIds().length} members in{' '}
+                            {this.state.listOption.label}
+                          </strong>
+                          . Pick students to narrow it down.
+                        </small>
+                      </div>
+                    )}
                     <Select
                       inputId="conversation-student"
                       value={this.state.memberOptions}

@@ -49,6 +49,41 @@ const mapDispatchToProps = {
 
 const when = date => (date ? moment(date).format('D MMM YYYY, h:mm a') : '');
 
+// Threads created by one Send land a few seconds apart, one per recipient.
+// Anything with the same text inside this window is treated as the same
+// broadcast. Generous enough for a slow send to a big list; short enough
+// that resending the same notice next week shows as a separate broadcast.
+const SAME_BROADCAST_WINDOW_MS = 10 * 60 * 1000;
+
+/**
+ * Collapses one-thread-per-recipient broadcasts back into the sends that
+ * created them: same text, sent within the window of each other. Input is
+ * newest first; output is too, each entry carrying every thread it covers.
+ */
+const groupBroadcasts = conversations => {
+  const groups = [];
+  conversations.forEach(conversation => {
+    const text = conversation.lastMessage ? conversation.lastMessage.text : '';
+    const time = conversation.updatedAt ? conversation.updatedAt.getTime() : 0;
+    const group = groups.find(
+      g => g.text === text && g.earliest - time <= SAME_BROADCAST_WINDOW_MS,
+    );
+    if (group) {
+      group.conversations.push(conversation);
+      group.earliest = Math.min(group.earliest, time);
+    } else {
+      groups.push({
+        id: conversation.id,
+        text,
+        latest: conversation.updatedAt,
+        earliest: time,
+        conversations: [conversation],
+      });
+    }
+  });
+  return groups;
+};
+
 /**
  * Everything this school has broadcast outward, in one place, so a program
  * manager can review what went out and withdraw any of it.
@@ -137,8 +172,15 @@ export class Announcements extends Component {
     });
   };
 
-  removeBroadcast = async (conversation, membersById) => {
-    const to = participantName(conversation.otherParticipantId, membersById);
+  removeBroadcast = async (group, membersById) => {
+    const count = group.conversations.length;
+    const to =
+      count === 1
+        ? participantName(
+            group.conversations[0].otherParticipantId,
+            membersById,
+          )
+        : `${count} members`;
     const confirmed = await confirm(
       <span>
         <span>
@@ -153,9 +195,12 @@ export class Announcements extends Component {
       return;
     }
 
-    // The whole thread goes: the cached lastMessage carries no id, and a
-    // broadcast is the thread rather than one post within it.
-    this.props.deleteConversation({ conversationId: conversation.id });
+    // One thread per recipient, so the whole send is every thread in the
+    // group. The cached lastMessage carries no id, and a broadcast is the
+    // thread rather than one post within it.
+    group.conversations.forEach(conversation =>
+      this.props.deleteConversation({ conversationId: conversation.id }),
+    );
   };
 
   renderAnnouncements(membersById) {
@@ -210,7 +255,7 @@ export class Announcements extends Component {
       return <ReactSpinner />;
     }
 
-    const broadcasts = this.getBroadcasts();
+    const broadcasts = groupBroadcasts(this.getBroadcasts());
     if (broadcasts.length < 1) {
       return <p>You have not sent any broadcasts.</p>;
     }
@@ -226,30 +271,31 @@ export class Announcements extends Component {
           </tr>
         </thead>
         <tbody>
-          {broadcasts.map(conversation => {
-            const busy = this.props.deletingId === conversation.id;
+          {broadcasts.map(group => {
+            const busy = group.conversations.some(
+              conversation => this.props.deletingId === conversation.id,
+            );
+            const names = group.conversations.map(conversation =>
+              participantName(conversation.otherParticipantId, membersById),
+            );
             return (
-              <tr key={conversation.id}>
+              <tr key={group.id}>
+                <td>{group.text}</td>
                 <td>
-                  {conversation.lastMessage
-                    ? conversation.lastMessage.text
-                    : ''}
-                </td>
-                <td>
-                  {participantName(
-                    conversation.otherParticipantId,
-                    membersById,
+                  {names.length > 1 && (
+                    <span className="badge badge-secondary mr-2">
+                      {names.length}
+                    </span>
                   )}
+                  {names.join(', ')}
                 </td>
-                <td>{when(conversation.updatedAt)}</td>
+                <td>{when(group.latest)}</td>
                 <td className="text-right">
                   <button
                     type="button"
                     className="btn btn-link btn-sm p-0"
                     disabled={busy}
-                    onClick={() =>
-                      this.removeBroadcast(conversation, membersById)
-                    }
+                    onClick={() => this.removeBroadcast(group, membersById)}
                   >
                     <small>{busy ? 'Deleting...' : 'Delete'}</small>
                   </button>
