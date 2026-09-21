@@ -456,6 +456,11 @@ export const lastMessageSenderLabel = (conversation, membersById, viewerId) => {
  * id. Showing them as separate rows makes it look like someone messaged
  * several times when they have one ongoing conversation.
  *
+ * Only ordinary 1:1 conversations collapse this way. A group, a broadcast
+ * and an announcement thread each stand on their own row: they are different
+ * things from a chat with that person, and folding a broadcast under the
+ * member's conversation made it look like part of the chat.
+ *
  * Each group carries its threads newest first, with `latest` as the one whose
  * message should represent the group. Groups themselves are ordered by that
  * same recency, so the most active person is at the top.
@@ -468,19 +473,27 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
 
   const groups = new Map();
   (conversations || []).forEach(conversation => {
-    const key = conversation.otherParticipantId || '';
+    // A 1:1 chat is keyed on the person; anything else on its own id so it
+    // never merges with the person's chat or with each other.
+    const plainChat =
+      conversationKind(conversation) === CONVERSATION_KINDS.CONVERSATION;
+    const key = plainChat
+      ? conversation.otherParticipantId || ''
+      : conversation.id;
     if (!groups.has(key)) {
-      groups.set(key, []);
+      groups.set(key, { participantId: key, plainChat, list: [] });
     }
-    groups.get(key).push(conversation);
+    groups.get(key).list.push(conversation);
   });
 
-  return Array.from(groups.entries())
-    .map(([participantId, list]) => {
+  return Array.from(groups.values())
+    .map(({ participantId, plainChat, list }) => {
       const ordered = list.slice().sort((a, b) => time(b) - time(a));
       return {
         participantId,
-        name: participantName(participantId || null, membersById),
+        name: plainChat
+          ? participantName(participantId || null, membersById)
+          : conversationTitle(ordered[0], membersById),
         conversations: ordered,
         latest: ordered[0],
         isAnnouncement: ordered.some(c => c.isAnnouncement),

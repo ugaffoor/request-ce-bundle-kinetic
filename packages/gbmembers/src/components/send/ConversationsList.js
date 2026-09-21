@@ -46,6 +46,10 @@ const mapDispatchToProps = {
   setConversationsError: conversationActions.setConversationsError,
 };
 
+// The Send tab is a launch pad, not the place to read everything: it shows
+// the most recent few and hands off to the Conversations page for the rest.
+const PREVIEW_ROWS = 5;
+
 const when = date => (date ? moment(date).format('D MMM YYYY, h:mm a') : '');
 
 export class ConversationsList extends Component {
@@ -199,6 +203,16 @@ export class ConversationsList extends Component {
       membersById,
     );
 
+    // Anything waiting on a reply floats to the top, newest first within
+    // each half. With only a few rows shown here, the ones that need doing
+    // must not be pushed out of view by a chat that merely happened later.
+    const viewerId = getSignedInUid();
+    const waiting = group =>
+      group.conversations.some(conversation =>
+        needsReply(conversation, viewerId),
+      );
+    groups.sort((a, b) => Number(waiting(b)) - Number(waiting(a)));
+
     return (
       <div className="options">
         <h4 className="title">
@@ -255,9 +269,18 @@ export class ConversationsList extends Component {
               </tr>
             </thead>
             <tbody>
-              {groups.map(group => this.renderGroup(group, membersById))}
+              {groups
+                .slice(0, PREVIEW_ROWS)
+                .map(group => this.renderGroup(group, membersById))}
             </tbody>
           </table>
+        )}
+        {groups.length > PREVIEW_ROWS && (
+          <p className="mb-0">
+            <NavLink to="/Conversations">
+              View all {groups.length} conversations
+            </NavLink>
+          </p>
         )}
       </div>
     );
