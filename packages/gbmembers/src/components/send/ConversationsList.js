@@ -18,6 +18,7 @@ import {
   groupConversationsByParticipant,
   matchesConversationKind,
   needsReply,
+  previewSenderLabel,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
 } from '../../lib/conversationSchema';
@@ -69,6 +70,28 @@ export class ConversationsList extends Component {
     }));
   };
 
+  /**
+   * The last message with its sender in front: "You: see you Saturday" or
+   * "Alex: can I move to 6pm?". Falls back to "Open" for a thread that has
+   * no cached preview yet.
+   */
+  renderPreview(conversation, membersById, viewerId) {
+    const text =
+      conversation.lastMessage && conversation.lastMessage.text
+        ? conversation.lastMessage.text
+        : null;
+    if (!text) {
+      return 'Open';
+    }
+    const sender = previewSenderLabel(conversation, membersById, viewerId);
+    return (
+      <React.Fragment>
+        {sender && <strong>{sender}: </strong>}
+        {text}
+      </React.Fragment>
+    );
+  }
+
   renderGroup(group, membersById) {
     const isExpanded = !!this.state.expanded[group.participantId];
     const viewerId = getSignedInUid();
@@ -89,9 +112,7 @@ export class ConversationsList extends Component {
         <tr key={group.participantId} className={rowClass}>
           <td>
             <NavLink to={`/Conversations/${group.latest.id}`}>
-              {group.latest.lastMessage && group.latest.lastMessage.text
-                ? group.latest.lastMessage.text
-                : 'Open'}
+              {this.renderPreview(group.latest, membersById, viewerId)}
             </NavLink>
             {waiting && needsReplyBadge}
           </td>
@@ -113,7 +134,9 @@ export class ConversationsList extends Component {
       <React.Fragment key={group.participantId}>
         <tr className={rowClass}>
           <td>
-            {group.latest.lastMessage ? group.latest.lastMessage.text : ''}
+            {group.latest.lastMessage
+              ? this.renderPreview(group.latest, membersById, viewerId)
+              : ''}
             {waiting && needsReplyBadge}
           </td>
           <td>
@@ -153,9 +176,7 @@ export class ConversationsList extends Component {
               <td style={{ paddingLeft: '2.5rem' }}>
                 <NavLink to={`/Conversations/${conversation.id}`}>
                   <small>
-                    {conversation.lastMessage && conversation.lastMessage.text
-                      ? conversation.lastMessage.text
-                      : 'Open'}
+                    {this.renderPreview(conversation, membersById, viewerId)}
                   </small>
                 </NavLink>
                 {needsReply(conversation, viewerId) && needsReplyBadge}

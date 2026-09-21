@@ -448,6 +448,26 @@ export const lastMessageSenderLabel = (conversation, membersById, viewerId) => {
 };
 
 /**
+ * Who sent the last message, for any kind of thread: "You", or the sender
+ * by name. Unlike lastMessageSenderLabel this is not limited to groups --
+ * in a list that shows only the preview, "Sounds good" says nothing about
+ * whether you are waiting on them or they on you.
+ */
+export const previewSenderLabel = (conversation, membersById, viewerId) => {
+  if (!conversation || !conversation.lastMessage) {
+    return null;
+  }
+  const senderId = conversation.lastMessage.senderId;
+  if (!senderId) {
+    return null;
+  }
+  if (viewerId && senderId === viewerId) {
+    return 'You';
+  }
+  return participantName(senderId, membersById);
+};
+
+/**
  * Collapses a conversation list into one entry per person.
  *
  * A single member normally has one thread per staff member, since the id is
