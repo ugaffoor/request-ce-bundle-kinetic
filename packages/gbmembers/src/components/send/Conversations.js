@@ -26,6 +26,7 @@ import {
   ANNOUNCEMENT_REMOVED_TEXT,
   DELETED_MESSAGE_TEXT,
   matchesConversationKind,
+  needsReply,
   conversationId,
   billingOwnerIds,
   involvesBillingOwner,
@@ -374,7 +375,11 @@ export class Conversations extends Component {
       // arrives, matching how the app treats them.
       .filter(conversation => !isConversationCleared(conversation))
       .filter(conversation =>
-        matchesConversationKind(conversation, this.state.kind),
+        matchesConversationKind(
+          conversation,
+          this.state.kind,
+          getSignedInUid(),
+        ),
       )
       .filter(conversation => this.matchesSearch(conversation, membersById))
       .filter(
@@ -429,7 +434,10 @@ export class Conversations extends Component {
                 key={conversation.id}
                 className={
                   'list-group-item' +
-                  (conversation.id === this.state.selectedId ? ' active' : '')
+                  (conversation.id === this.state.selectedId ? ' active' : '') +
+                  (needsReply(conversation, getSignedInUid())
+                    ? ' font-weight-bold'
+                    : '')
                 }
                 role="button"
                 tabIndex="0"
@@ -440,6 +448,11 @@ export class Conversations extends Component {
                   <div>
                     {senderLabel && <strong>{senderLabel}: </strong>}
                     {conversation.lastMessage.text}
+                    {needsReply(conversation, getSignedInUid()) && (
+                      <span className="badge badge-danger ml-2">
+                        Needs reply
+                      </span>
+                    )}
                   </div>
                 )}
                 <div>

@@ -17,6 +17,7 @@ import {
   indexMembersById,
   groupConversationsByParticipant,
   matchesConversationKind,
+  needsReply,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
 } from '../../lib/conversationSchema';
@@ -69,16 +70,26 @@ export class ConversationsList extends Component {
     const viewerId = getSignedInUid();
     const threadCount = group.conversations.length;
 
+    // Bold, like an unread mail row, wherever someone is waiting on you.
+    const waiting = group.conversations.some(conversation =>
+      needsReply(conversation, viewerId),
+    );
+    const rowClass = waiting ? 'font-weight-bold' : '';
+    const needsReplyBadge = (
+      <span className="badge badge-danger ml-2">Needs reply</span>
+    );
+
     // One thread is the normal case -- no expander, just a link.
     if (threadCount < 2) {
       return (
-        <tr key={group.participantId}>
+        <tr key={group.participantId} className={rowClass}>
           <td>
             <NavLink to={`/Conversations/${group.latest.id}`}>
               {group.latest.lastMessage && group.latest.lastMessage.text
                 ? group.latest.lastMessage.text
                 : 'Open'}
             </NavLink>
+            {waiting && needsReplyBadge}
           </td>
           <td>
             {group.name}
@@ -96,9 +107,10 @@ export class ConversationsList extends Component {
 
     return (
       <React.Fragment key={group.participantId}>
-        <tr>
+        <tr className={rowClass}>
           <td>
             {group.latest.lastMessage ? group.latest.lastMessage.text : ''}
+            {waiting && needsReplyBadge}
           </td>
           <td>
             <button
@@ -127,7 +139,13 @@ export class ConversationsList extends Component {
 
         {isExpanded &&
           group.conversations.map(conversation => (
-            <tr key={conversation.id} className="conversation-thread">
+            <tr
+              key={conversation.id}
+              className={
+                'conversation-thread' +
+                (needsReply(conversation, viewerId) ? ' font-weight-bold' : '')
+              }
+            >
               <td style={{ paddingLeft: '2.5rem' }}>
                 <NavLink to={`/Conversations/${conversation.id}`}>
                   <small>
@@ -136,6 +154,7 @@ export class ConversationsList extends Component {
                       : 'Open'}
                   </small>
                 </NavLink>
+                {needsReply(conversation, viewerId) && needsReplyBadge}
               </td>
               <td>
                 <small>
@@ -171,7 +190,11 @@ export class ConversationsList extends Component {
       conversations
         .toArray()
         .filter(conversation =>
-          matchesConversationKind(conversation, this.state.kind),
+          matchesConversationKind(
+            conversation,
+            this.state.kind,
+            getSignedInUid(),
+          ),
         ),
       membersById,
     );
@@ -218,7 +241,9 @@ export class ConversationsList extends Component {
           <p>
             {this.state.kind === CONVERSATION_KINDS.ALL
               ? 'No conversations yet.'
-              : 'Nothing matches this filter.'}
+              : this.state.kind === CONVERSATION_KINDS.NEEDS_REPLY
+                ? 'Nothing is waiting on a reply.'
+                : 'Nothing matches this filter.'}
           </p>
         ) : (
           <table className="table table-sm">

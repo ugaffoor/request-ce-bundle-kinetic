@@ -193,6 +193,9 @@ export const broadcastSenderOf = data => (data && data.broadcastSender) || null;
  */
 export const CONVERSATION_KINDS = {
   ALL: 'all',
+  // Not a kind of thread but a state: the other side spoke last. Offered
+  // in the same filter because that is where someone looks for it.
+  NEEDS_REPLY: 'needs_reply',
   CONVERSATION: 'conversation',
   GROUP: 'group',
   ANNOUNCEMENT: 'announcement',
@@ -201,6 +204,7 @@ export const CONVERSATION_KINDS = {
 
 export const CONVERSATION_KIND_LABELS = {
   [CONVERSATION_KINDS.ALL]: 'All',
+  [CONVERSATION_KINDS.NEEDS_REPLY]: 'Needs reply',
   [CONVERSATION_KINDS.CONVERSATION]: 'Conversations',
   [CONVERSATION_KINDS.GROUP]: 'Groups',
   [CONVERSATION_KINDS.ANNOUNCEMENT]: 'Announcements',
@@ -225,10 +229,28 @@ export const conversationKind = conversation => {
   return CONVERSATION_KINDS.CONVERSATION;
 };
 
-export const matchesConversationKind = (conversation, kind) =>
+/**
+ * Whether the ball is in the viewer's court: someone else sent the last
+ * message. The same test the header inbox uses. A broadcast never needs a
+ * reply -- nobody can send one -- and an announcement is a notice, not a
+ * conversation, so it is not flagged either. With no viewer known nothing
+ * is flagged, since a wrong badge is worse than none.
+ */
+export const needsReply = (conversation, viewerId) =>
+  !!viewerId &&
+  !!conversation &&
+  !conversation.isBroadcast &&
+  !conversation.isAnnouncement &&
+  !!conversation.lastMessage &&
+  !!conversation.lastMessage.senderId &&
+  conversation.lastMessage.senderId !== viewerId;
+
+export const matchesConversationKind = (conversation, kind, viewerId) =>
   !kind ||
   kind === CONVERSATION_KINDS.ALL ||
-  conversationKind(conversation) === kind;
+  (kind === CONVERSATION_KINDS.NEEDS_REPLY
+    ? needsReply(conversation, viewerId)
+    : conversationKind(conversation) === kind);
 
 // -- participant names --------------------------------------------------
 
