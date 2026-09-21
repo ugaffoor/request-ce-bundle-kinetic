@@ -63,6 +63,7 @@
     "country-state-city": "^3.2.1",
     "downloadjs": "^1.4.7",
     "emotion": "^11.0.0",
+    "firebase": "^12.19.0",
     "html-webpack-plugin": "^4.5.2",
     "html2canvas": "^1.0.0-rc.5",
     "inline-style-prefixer": "4.0.2",
