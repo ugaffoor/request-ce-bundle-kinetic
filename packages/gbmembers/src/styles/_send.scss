@@ -163,3 +163,55 @@
     }
   }
 }
+
+// ── Conversation thread ────────────────────────────────────
+// Messages read as a conversation rather than a list: the viewer's own on the
+// right in the site's blue, the other person's on the left in plain grey. The
+// side and the colour say who is speaking before a name is read, which is why
+// a message of your own does not repeat your name.
+.conversation-thread {
+  .message {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 12px;
+    // A bubble that stops well short of the far edge, so the ragged side is
+    // visible and the alignment actually reads.
+    max-width: 78%;
+
+    &--theirs {
+      align-items: flex-start;
+      margin-right: auto;
+    }
+
+    &--mine {
+      align-items: flex-end;
+      margin-left: auto;
+    }
+  }
+
+  .message__bubble {
+    padding: 8px 12px;
+    border-radius: 12px;
+    // Long words and pasted links must not push the bubble past its bounds.
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+  }
+
+  .message--theirs .message__bubble {
+    background: $lightestgray;
+    border: 1px solid $lightgray;
+    // Squared off on the side it points from, so the bubble has a direction.
+    border-bottom-left-radius: 3px;
+  }
+
+  .message--mine .message__bubble {
+    background: $blue4;
+    border: 1px solid $blue2;
+    border-bottom-right-radius: 3px;
+  }
+
+  .message__meta {
+    margin-top: 2px;
+    padding: 0 4px;
+  }
+}

@@ -17,7 +17,6 @@ import {
   FRANCHISE_DOMAIN,
 } from '../../lib/firebaseAuth';
 import {
-  staffParticipantId,
   indexMembersById,
   participantName,
   conversationTitle,
@@ -340,13 +339,15 @@ export class Conversations extends Component {
 
   /**
    * This staff member's own participant id, for telling their own messages
-   * apart from a student's. Null until the profile and space have loaded.
+   * apart from a student's.
+   *
+   * The uid Firebase signed us in as -- the same value the send path writes
+   * as senderId, so the two are comparable by construction. Deriving it from
+   * space + username instead only matched staff with no member record of
+   * their own; for everyone else nothing was ever recognised as theirs.
    */
   viewerParticipantId() {
-    const username = this.props.profile && this.props.profile.username;
-    return username && this.props.spaceSlug
-      ? staffParticipantId(this.props.spaceSlug, username)
-      : null;
+    return getSignedInUid();
   }
 
   renderList(membersById) {
@@ -778,7 +779,7 @@ export class Conversations extends Component {
           No messages yet. Anything you send here starts a private conversation
           with them.
         </p>
-        <ul className="list-unstyled">{this.renderFailedSends(membersById)}</ul>
+        <ul className="list-unstyled">{this.renderFailedSends()}</ul>
       </React.Fragment>
     );
   }
@@ -787,28 +788,25 @@ export class Conversations extends Component {
    * Sends the server rejected, shown after the delivered messages so the
    * attempt is visible rather than silently lost.
    */
-  renderFailedSends(membersById) {
+  renderFailedSends() {
     if (this.state.failed.length < 1) {
       return null;
     }
-    const username = this.props.profile && this.props.profile.username;
-    const senderName =
-      username && this.props.spaceSlug
-        ? participantName(
-            staffParticipantId(this.props.spaceSlug, username),
-            membersById,
-          )
-        : 'You';
+    // A failed send is always the viewer's own, so it belongs on their side
+    // of the thread -- rendered on the left it would read as a message from
+    // the other person that happened to fail.
     return this.state.failed.map(failure => (
-      <li key={failure.id} className="mb-3">
-        <div className="text-muted">{failure.text}</div>
-        <div>
+      <li key={failure.id} className="message message--mine">
+        <div className="message__bubble text-muted">{failure.text}</div>
+        <div className="message__meta">
           <small>
-            <strong>{senderName}</strong>{' '}
+            <strong>You</strong>{' '}
             <span className="text-muted">{when(failure.createdAt)}</span>
           </small>
+          <div>
+            <small className="text-danger">Message failed to send</small>
+          </div>
         </div>
-        <small className="text-danger">Message failed to send</small>
       </li>
     ));
   }
@@ -847,6 +845,7 @@ export class Conversations extends Component {
     }
 
     const selectedConversation = this.getSelectedConversation();
+    const viewerId = this.viewerParticipantId();
 
     return (
       <React.Fragment>
@@ -857,46 +856,64 @@ export class Conversations extends Component {
             <div>{this.props.deleteError}</div>
           </div>
         )}
-        <ul className="list-unstyled">
-          {messages.toArray().map(message => (
-            <li key={message.id} className="mb-3">
-              <div>
-                {message.deleted ? (
-                  <em className="text-muted">
-                    {message.announcementRemoved
-                      ? ANNOUNCEMENT_REMOVED_TEXT
-                      : DELETED_MESSAGE_TEXT}
-                  </em>
-                ) : (
-                  message.text
-                )}
-              </div>
-              <div>
-                <small>
-                  <strong>
-                    {participantName(message.senderId, membersById)}
-                  </strong>{' '}
-                  <span className="text-muted">{when(message.createdAt)}</span>
-                </small>
-                {this.canRemove(selectedConversation, message) && (
-                  <button
-                    type="button"
-                    className="btn btn-link btn-sm p-0 ml-2"
-                    disabled={this.props.deletingId === message.id}
-                    onClick={() => this.removeMessage(message)}
-                  >
-                    <small>
-                      {this.props.deletingId === message.id
-                        ? 'Deleting...'
-                        : 'Delete for everyone'}
-                    </small>
-                  </button>
-                )}
-              </div>
-            </li>
-          ))}
+        <ul className="list-unstyled conversation-thread">
+          {messages.toArray().map(message => {
+            // Whose message this is. Everything below keys off it: which side
+            // the bubble sits on, its colour, and whether the name is worth
+            // showing at all.
+            const mine = !!viewerId && message.senderId === viewerId;
 
-          {this.renderFailedSends(membersById)}
+            return (
+              <li
+                key={message.id}
+                className={`message ${
+                  mine ? 'message--mine' : 'message--theirs'
+                }`}
+              >
+                <div className="message__bubble">
+                  {message.deleted ? (
+                    <em className="text-muted">
+                      {message.announcementRemoved
+                        ? ANNOUNCEMENT_REMOVED_TEXT
+                        : DELETED_MESSAGE_TEXT}
+                    </em>
+                  ) : (
+                    message.text
+                  )}
+                </div>
+                <div className="message__meta">
+                  <small>
+                    <strong>
+                      {/* Naming yourself on your own messages is noise -- the
+                        side and colour already say it. */}
+                      {mine
+                        ? 'You'
+                        : participantName(message.senderId, membersById)}
+                    </strong>{' '}
+                    <span className="text-muted">
+                      {when(message.createdAt)}
+                    </span>
+                  </small>
+                  {this.canRemove(selectedConversation, message) && (
+                    <button
+                      type="button"
+                      className="btn btn-link btn-sm p-0 ml-2"
+                      disabled={this.props.deletingId === message.id}
+                      onClick={() => this.removeMessage(message)}
+                    >
+                      <small>
+                        {this.props.deletingId === message.id
+                          ? 'Deleting...'
+                          : 'Delete for everyone'}
+                      </small>
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+
+          {this.renderFailedSends()}
         </ul>
       </React.Fragment>
     );
