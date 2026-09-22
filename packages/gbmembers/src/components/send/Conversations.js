@@ -27,6 +27,8 @@ import {
   matchesConversationKind,
   needsReply,
   isUnread,
+  isTinyChampion,
+  billingOwnerIdOf,
   conversationId,
   billingOwnerIds,
   involvesBillingOwner,
@@ -204,6 +206,14 @@ export class Conversations extends Component {
       this.openConversation(id);
     }
 
+    // The same for a member link -- the "Message <parent>" way out of a Tiny
+    // Champion's thread lands on this page again with a different member.
+    // The once-only latch is reset so the new member is resolved afresh.
+    if (routeMemberId(this.props) !== routeMemberId(prevProps)) {
+      this.routedMemberOpened = false;
+      this.openRoutedMember();
+    }
+
     // Only once a send has actually landed.
     if (
       this.props.lastSentAt &&
@@ -298,10 +308,42 @@ export class Conversations extends Component {
       .find(conversation => conversation.id === this.state.selectedId);
   }
 
+  /**
+   * The Tiny Champion this thread would message directly, or null.
+   *
+   * Safeguarding: a Tiny Champion is not put in a private conversation with
+   * staff; they are contacted through whoever pays for them. The composer
+   * refuses to start one, but a thread can still be reached here -- opened
+   * from the child's profile as a draft, or an existing 1:1 from before the
+   * rule -- and firestore.rules lets staff through, so this is the only
+   * check on the reply path. Only a 1:1 is refused: groups, broadcasts and
+   * announcements may include them, the same policy as the composer.
+   */
+  blockedTinyChampion() {
+    const conversation = this.getSelectedConversation();
+    const otherId = conversation
+      ? !conversation.isGroup &&
+        !conversation.isBroadcast &&
+        !conversation.isAnnouncement &&
+        conversation.otherParticipantId
+      : this.state.draftMemberId;
+    if (!otherId) {
+      return null;
+    }
+    const member = this.getMembersById()[otherId];
+    return isTinyChampion(member) ? member : null;
+  }
+
   sendReply = () => {
     const conversation = this.getSelectedConversation();
     const username = this.props.profile && this.props.profile.username;
     const text = this.state.reply.trim();
+
+    // Repeated from renderComposer, which is what hides the box, so the send
+    // path is safe on its own rather than relying on the UI never offering it.
+    if (this.blockedTinyChampion()) {
+      return;
+    }
 
     // A draft has no thread yet. Leaving conversationId out lets the saga
     // derive the pair id and create the thread document on this first send.
@@ -380,6 +422,11 @@ export class Conversations extends Component {
       );
     }
 
+    const tiny = this.blockedTinyChampion();
+    if (tiny) {
+      return this.renderTinyChampionNotice(tiny);
+    }
+
     const canSend = !this.props.sending && this.state.reply.trim() !== '';
 
     return (
@@ -407,6 +454,41 @@ export class Conversations extends Component {
         >
           {this.props.sending ? 'Sending...' : 'Send'}
         </button>
+      </div>
+    );
+  }
+
+  /**
+   * What stands in for the reply box on a Tiny Champion's thread: why it is
+   * closed and who to contact instead, with a way there. The same wording
+   * as the composer's refusal, so the rule reads the same wherever it is
+   * met.
+   */
+  renderTinyChampionNotice(member) {
+    const membersById = this.getMembersById();
+    const ownerId = billingOwnerIdOf(member);
+    const owner = ownerId ? membersById[ownerId] : null;
+
+    return (
+      <div className="alert alert-danger mt-3">
+        <strong>Tiny Champions cannot be messaged directly.</strong>
+        <div>
+          {owner ? (
+            <React.Fragment>
+              Contact {participantName(ownerId, membersById)}, who pays for
+              them, instead.{' '}
+              <NavLink
+                to={`/MemberConversation/${ownerId}`}
+                className="alert-link"
+              >
+                Message {participantName(ownerId, membersById)}
+              </NavLink>
+            </React.Fragment>
+          ) : (
+            // Nothing to link to: the profile has no billing parent recorded.
+            'Contact the person who pays for them instead. No billing parent is recorded on their profile.'
+          )}
+        </div>
       </div>
     );
   }
@@ -867,8 +949,10 @@ export class Conversations extends Component {
           {participantName(this.state.draftMemberId, membersById)}
         </h5>
         <p className="text-muted">
-          No messages yet. Anything you send here starts a private conversation
-          with them.
+          No messages yet.
+          {/* Not promised when the box below is closed to them. */}
+          {!this.blockedTinyChampion() &&
+            ' Anything you send here starts a private conversation with them.'}
         </p>
         <ul className="list-unstyled conversation-thread">
           {this.renderFailedSends(null)}
