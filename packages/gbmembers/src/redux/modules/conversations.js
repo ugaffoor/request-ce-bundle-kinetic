@@ -36,6 +36,8 @@ export const types = {
   DELETE_MESSAGE: namespace('conversations', 'DELETE_MESSAGE'),
   SET_DELETING: namespace('conversations', 'SET_DELETING'),
   SET_DELETE_ERROR: namespace('conversations', 'SET_DELETE_ERROR'),
+  // The viewer has opened a thread: reset their unread count on it.
+  MARK_CONVERSATION_READ: namespace('conversations', 'MARK_CONVERSATION_READ'),
   // Removing a whole thread from this viewer's list.
   CLEAR_CONVERSATION: namespace('conversations', 'CLEAR_CONVERSATION'),
   // Removing a whole thread outright -- messages and all, for everyone.
@@ -63,6 +65,8 @@ export const actions = {
   deleteMessage: withPayload(types.DELETE_MESSAGE),
   setDeleting: withPayload(types.SET_DELETING),
   setDeleteError: withPayload(types.SET_DELETE_ERROR),
+  // Pass { conversationId, viewerId }.
+  markConversationRead: withPayload(types.MARK_CONVERSATION_READ),
   // Pass { conversationId, viewerId }.
   clearConversation: withPayload(types.CLEAR_CONVERSATION),
   // Pass { conversationId }.

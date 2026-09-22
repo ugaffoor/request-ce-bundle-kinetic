@@ -215,3 +215,41 @@
     padding: 0 4px;
   }
 }
+
+// A day separator inside a thread: a quiet centred label on a hairline, so
+// the date is read once per day rather than on every message.
+.conversation-thread .message-day {
+  display: flex;
+  align-items: center;
+  margin: 16px 0 10px;
+  color: $gray;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid $lightgray;
+  }
+
+  span {
+    padding: 0 10px;
+    white-space: nowrap;
+  }
+}
+
+// A message continuing a run from the same sender sits close under the one
+// before it, so the run reads as one turn rather than separate entries.
+.conversation-thread .message--continued {
+  margin-top: -8px;
+}
+
+// The sender's name, above the bubble. Inherits the message's alignment, so
+// it sits on the same side as the bubble it introduces.
+.conversation-thread .message__sender {
+  margin-bottom: 2px;
+  padding: 0 4px;
+  color: $darkgray;
+}

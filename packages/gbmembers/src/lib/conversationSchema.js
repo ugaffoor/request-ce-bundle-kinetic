@@ -236,6 +236,15 @@ export const conversationKind = conversation => {
  * conversation, so it is not flagged either. With no viewer known nothing
  * is flagged, since a wrong badge is worse than none.
  */
+/**
+ * Whether the viewer has messages here they have not opened. Unlike
+ * needsReply this is a fact rather than a guess: the server counts them and
+ * only a read clears it, so a thread the viewer has looked at but not
+ * answered is not flagged.
+ */
+export const isUnread = conversation =>
+  !!conversation && conversation.unreadCount > 0;
+
 export const needsReply = (conversation, viewerId) =>
   !!viewerId &&
   !!conversation &&
@@ -580,6 +589,11 @@ export const normaliseConversation = (id, data, viewerId) => {
     // other participant sees no change. Matches clearConversationForMe() in
     // the app, which writes the same field.
     clearedAt: toDate(mine.clearedAt),
+    // Messages this viewer has not opened. Kept by the Cloud Function -- one
+    // increment per message, to every recipient -- and reset to zero by
+    // whichever client shows the thread (see markConversationRead). Per
+    // viewer, like clearedAt: the other side has its own count.
+    unreadCount: Number(mine.unreadCount) || 0,
     participantIds,
     otherParticipantId: participantIds.find(pid => pid !== viewerId),
     isGroup: !!data[CONVERSATION_FIELDS.isGroup],

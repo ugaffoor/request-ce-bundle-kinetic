@@ -680,6 +680,41 @@ export function* deleteMessage({ payload } = {}) {
  * Deliberately not a delete: the conversation belongs to both sides, and one
  * person tidying their own list should not destroy the other's history.
  */
+/**
+ * Resets the viewer's unread count on a thread they have opened, and stamps
+ * when. The count is kept by the Cloud Function (one increment per message,
+ * to every recipient) and reset by whichever client shows the thread -- the
+ * app's markConversationRead writes exactly this, so the two stay in step.
+ * Written under the viewer's own key with merge: nothing here touches the
+ * other side's count or anything else on the document.
+ *
+ * A failure is logged, not shown. A receipt that did not land is not worth a
+ * banner, and the next open tries again.
+ */
+export function* markConversationRead({ payload } = {}) {
+  const store = getConversationStore();
+  const { conversationId: id, viewerId } = payload || {};
+
+  if (!store || !id || !viewerId) {
+    return;
+  }
+
+  try {
+    yield call(
+      setDoc,
+      doc(store, CONVERSATIONS_COLLECTION, id),
+      {
+        [CONVERSATION_FIELDS.participantsMeta]: {
+          [viewerId]: { unreadCount: 0, lastReadAt: serverTimestamp() },
+        },
+      },
+      { merge: true },
+    );
+  } catch (e) {
+    console.warn('[conversations] could not mark thread read', id, e);
+  }
+}
+
 export function* clearConversation({ payload } = {}) {
   const store = getConversationStore();
   const { conversationId: id, viewerId } = payload || {};
@@ -773,6 +808,7 @@ export function* watchConversations() {
   yield takeLatest(types.SUBSCRIBE_MESSAGES, watchMessageSnapshots);
   yield takeEvery(types.SEND_MESSAGE, sendMessage);
   yield takeEvery(types.DELETE_MESSAGE, deleteMessage);
+  yield takeEvery(types.MARK_CONVERSATION_READ, markConversationRead);
   yield takeEvery(types.CLEAR_CONVERSATION, clearConversation);
   yield takeEvery(types.DELETE_CONVERSATION, deleteConversation);
 }

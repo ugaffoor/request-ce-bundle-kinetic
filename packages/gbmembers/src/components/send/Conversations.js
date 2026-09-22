@@ -26,6 +26,7 @@ import {
   DELETED_MESSAGE_TEXT,
   matchesConversationKind,
   needsReply,
+  isUnread,
   conversationId,
   billingOwnerIds,
   involvesBillingOwner,
@@ -58,12 +59,32 @@ const mapDispatchToProps = {
   setConversationsError: conversationActions.setConversationsError,
   sendMessage: conversationActions.sendMessage,
   deleteMessage: conversationActions.deleteMessage,
+  markConversationRead: conversationActions.markConversationRead,
   clearConversation: conversationActions.clearConversation,
   deleteConversation: conversationActions.deleteConversation,
   fetchMembers: memberActions.fetchMembers,
 };
 
 const when = date => (date ? moment(date).format('D MMM YYYY, h:mm a') : '');
+
+// Inside a thread the day is shown once, as a separator, so each message
+// carries only its time.
+const timeOf = date => (date ? moment(date).format('h:mm a') : '');
+
+// The calendar day a message belongs to, for deciding where separators go.
+const dayKey = date => (date ? moment(date).format('YYYY-MM-DD') : '');
+
+// What a separator says. Recent days by name, older ones by date; the year
+// only once it is not this year, since it is noise otherwise.
+const dayLabel = date =>
+  moment(date).calendar(null, {
+    sameDay: '[Today]',
+    lastDay: '[Yesterday]',
+    lastWeek: 'dddd',
+    sameElse: moment(date).isSame(moment(), 'year')
+      ? 'dddd, D MMMM'
+      : 'D MMMM YYYY',
+  });
 
 const routeConversationId = props =>
   (props.match && props.match.params && props.match.params.conversationId) ||
@@ -147,7 +168,19 @@ export class Conversations extends Component {
     this.openRoutedMember();
   }
 
-  componentDidUpdate(prevProps) {
+  /**
+   * Brings the end of the thread into view. After paint, because the message
+   * that triggered this has only just been added to the DOM.
+   */
+  scrollToNewest() {
+    window.requestAnimationFrame(() => {
+      if (this.threadEnd) {
+        this.threadEnd.scrollIntoView({ block: 'end' });
+      }
+    });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
     // The list and the roster arrive on their own listeners, at different
     // times; try again whenever either changes until the member is resolved.
     if (
@@ -179,6 +212,39 @@ export class Conversations extends Component {
       this.setState({ reply: '' });
     }
 
+    // Keep the newest message in view. Triggered by the thread changing or a
+    // message being added -- keyed on the last message's id rather than the
+    // array, so a delete or an edit part-way up does not yank the view to
+    // the bottom while someone is reading.
+    const last = this.props.messages.last();
+    const prevLast = prevProps.messages.last();
+    if (
+      this.state.selectedId !== prevState.selectedId ||
+      (last && (!prevLast || last.id !== prevLast.id))
+    ) {
+      this.scrollToNewest();
+    }
+
+    // Showing a thread reads it. Reset the viewer's unread count once the
+    // open thread carries one -- on opening, and again whenever a message
+    // lands while it is open, since the function bumps the count regardless
+    // of who is looking. Keyed on the count changing rather than merely being
+    // set, so the reset is written once per arrival and not on every render
+    // while it is in flight.
+    const selected = this.getSelectedConversation();
+    if (selected && isUnread(selected)) {
+      const before = prevProps.conversations
+        .toArray()
+        .find(conversation => conversation.id === selected.id);
+      if (
+        prevState.selectedId !== selected.id ||
+        !before ||
+        before.unreadCount !== selected.unreadCount
+      ) {
+        this.markRead(selected);
+      }
+    }
+
     // A send that finished with an error: show the attempt in the thread
     // marked as failed, rather than leaving no trace that it was tried.
     if (prevProps.sending && !this.props.sending && this.props.sendError) {
@@ -195,6 +261,22 @@ export class Conversations extends Component {
         }));
       }
     }
+  }
+
+  /**
+   * Tells the server this viewer has seen the thread. Under the viewer's own
+   * uid -- the same key the count was incremented under -- so the write
+   * lands where the badge reads from.
+   */
+  markRead(conversation) {
+    const viewerId = this.viewerParticipantId();
+    if (!viewerId) {
+      return;
+    }
+    this.props.markConversationRead({
+      conversationId: conversation.id,
+      viewerId,
+    });
   }
 
   openConversation(conversationId) {
@@ -433,18 +515,27 @@ export class Conversations extends Component {
             return (
               <li
                 key={conversation.id}
+                // Bold is the unread mark, as in a mail list: it lifts once
+                // the thread is opened. "Needs reply" stays on until the
+                // viewer answers, so the two say different things.
                 className={
                   'list-group-item' +
                   (conversation.id === this.state.selectedId ? ' active' : '') +
-                  (needsReply(conversation, getSignedInUid())
-                    ? ' font-weight-bold'
-                    : '')
+                  (isUnread(conversation) ? ' font-weight-bold' : '')
                 }
                 role="button"
                 tabIndex="0"
                 onClick={() => this.selectConversation(conversation)}
                 onKeyPress={() => this.selectConversation(conversation)}
               >
+                {isUnread(conversation) && (
+                  <span
+                    className="badge badge-primary badge-pill float-right"
+                    title={`${conversation.unreadCount} unread`}
+                  >
+                    {conversation.unreadCount}
+                  </span>
+                )}
                 {conversation.lastMessage && (
                   <div>
                     {senderLabel && <strong>{senderLabel}: </strong>}
@@ -779,7 +870,9 @@ export class Conversations extends Component {
           No messages yet. Anything you send here starts a private conversation
           with them.
         </p>
-        <ul className="list-unstyled">{this.renderFailedSends()}</ul>
+        <ul className="list-unstyled conversation-thread">
+          {this.renderFailedSends(null)}
+        </ul>
       </React.Fragment>
     );
   }
@@ -788,27 +881,44 @@ export class Conversations extends Component {
    * Sends the server rejected, shown after the delivered messages so the
    * attempt is visible rather than silently lost.
    */
-  renderFailedSends() {
+  renderFailedSends(lastDeliveredDay) {
     if (this.state.failed.length < 1) {
       return null;
     }
+    // Failures are always from now, so they sit under Today. The separator
+    // is only needed when the last delivered message was on an earlier day.
+    const today = dayKey(new Date());
+    const needsSeparator =
+      lastDeliveredDay !== undefined && lastDeliveredDay !== today;
+
     // A failed send is always the viewer's own, so it belongs on their side
     // of the thread -- rendered on the left it would read as a message from
     // the other person that happened to fail.
-    return this.state.failed.map(failure => (
-      <li key={failure.id} className="message message--mine">
-        <div className="message__bubble text-muted">{failure.text}</div>
-        <div className="message__meta">
-          <small>
-            <strong>You</strong>{' '}
-            <span className="text-muted">{when(failure.createdAt)}</span>
-          </small>
-          <div>
-            <small className="text-danger">Message failed to send</small>
+    return [
+      needsSeparator && (
+        <li key="failed-day" className="message-day" aria-hidden="true">
+          <span>{dayLabel(new Date())}</span>
+        </li>
+      ),
+      ...this.state.failed.map(failure => (
+        <li key={failure.id} className="message message--mine">
+          <div className="message__sender">
+            <small>
+              <strong>You</strong>
+            </small>
           </div>
-        </div>
-      </li>
-    ));
+          <div className="message__bubble text-muted">{failure.text}</div>
+          <div className="message__meta">
+            <small>
+              <span className="text-muted">{timeOf(failure.createdAt)}</span>
+            </small>
+            <div>
+              <small className="text-danger">Message failed to send</small>
+            </div>
+          </div>
+        </li>
+      )),
+    ];
   }
 
   renderThread(membersById) {
@@ -846,6 +956,10 @@ export class Conversations extends Component {
 
     const selectedConversation = this.getSelectedConversation();
     const viewerId = this.viewerParticipantId();
+    // The most recent day with a separator above it, threaded through the map.
+    let lastDay = '';
+    // Who sent the previous message, so a run from one person is named once.
+    let lastSender = null;
 
     return (
       <React.Fragment>
@@ -863,57 +977,92 @@ export class Conversations extends Component {
             // showing at all.
             const mine = !!viewerId && message.senderId === viewerId;
 
+            // A separator wherever the calendar day changes, so the date is
+            // read once per day rather than on every message. Compared with
+            // the last DATED message, not simply the previous one: a message
+            // just sent has no timestamp until the server stamps it, and
+            // treating that gap as a day change put a second "Today" under
+            // every fresh send.
+            const day = dayKey(message.createdAt);
+            const newDay = !!day && day !== lastDay;
+            if (day) {
+              lastDay = day;
+            }
+
+            // Several messages in a row from the same person read as one
+            // turn: the name goes on the first and the rest tuck up under it.
+            // A new day always restarts the run, since the separator between
+            // them has already broken the visual link.
+            const continued = !newDay && message.senderId === lastSender;
+            lastSender = message.senderId;
+
             return (
-              <li
-                key={message.id}
-                className={`message ${
-                  mine ? 'message--mine' : 'message--theirs'
-                }`}
-              >
-                <div className="message__bubble">
-                  {message.deleted ? (
-                    <em className="text-muted">
-                      {message.announcementRemoved
-                        ? ANNOUNCEMENT_REMOVED_TEXT
-                        : DELETED_MESSAGE_TEXT}
-                    </em>
-                  ) : (
-                    message.text
+              <React.Fragment key={message.id}>
+                {newDay &&
+                  message.createdAt && (
+                    <li className="message-day" aria-hidden="true">
+                      <span>{dayLabel(message.createdAt)}</span>
+                    </li>
                   )}
-                </div>
-                <div className="message__meta">
-                  <small>
-                    <strong>
-                      {/* Naming yourself on your own messages is noise -- the
-                        side and colour already say it. */}
-                      {mine
-                        ? 'You'
-                        : participantName(message.senderId, membersById)}
-                    </strong>{' '}
-                    <span className="text-muted">
-                      {when(message.createdAt)}
-                    </span>
-                  </small>
-                  {this.canRemove(selectedConversation, message) && (
-                    <button
-                      type="button"
-                      className="btn btn-link btn-sm p-0 ml-2"
-                      disabled={this.props.deletingId === message.id}
-                      onClick={() => this.removeMessage(message)}
-                    >
+                <li
+                  className={`message ${
+                    mine ? 'message--mine' : 'message--theirs'
+                  }${continued ? ' message--continued' : ''}`}
+                >
+                  {/* Who is speaking, read before what they said. Once per
+                      run: the messages beneath are the same person's. */}
+                  {!continued && (
+                    <div className="message__sender">
                       <small>
-                        {this.props.deletingId === message.id
-                          ? 'Deleting...'
-                          : 'Delete for everyone'}
+                        <strong>
+                          {mine
+                            ? 'You'
+                            : participantName(message.senderId, membersById)}
+                        </strong>
                       </small>
-                    </button>
+                    </div>
                   )}
-                </div>
-              </li>
+                  <div className="message__bubble">
+                    {message.deleted ? (
+                      <em className="text-muted">
+                        {message.announcementRemoved
+                          ? ANNOUNCEMENT_REMOVED_TEXT
+                          : DELETED_MESSAGE_TEXT}
+                      </em>
+                    ) : (
+                      message.text
+                    )}
+                  </div>
+                  <div className="message__meta">
+                    <small>
+                      <span className="text-muted">
+                        {timeOf(message.createdAt)}
+                      </span>
+                    </small>
+                    {this.canRemove(selectedConversation, message) && (
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 ml-2"
+                        disabled={this.props.deletingId === message.id}
+                        onClick={() => this.removeMessage(message)}
+                      >
+                        <small>
+                          {this.props.deletingId === message.id
+                            ? 'Deleting...'
+                            : 'Delete for everyone'}
+                        </small>
+                      </button>
+                    )}
+                  </div>
+                </li>
+              </React.Fragment>
             );
           })}
 
-          {this.renderFailedSends()}
+          {this.renderFailedSends(
+            messages.size > 0 ? dayKey(messages.last().createdAt) : null,
+          )}
+          <li ref={element => (this.threadEnd = element)} aria-hidden="true" />
         </ul>
       </React.Fragment>
     );

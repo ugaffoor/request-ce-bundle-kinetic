@@ -18,6 +18,7 @@ import {
   groupConversationsByParticipant,
   matchesConversationKind,
   needsReply,
+  isUnread,
   previewSenderLabel,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
@@ -97,14 +98,31 @@ export class ConversationsList extends Component {
     const viewerId = getSignedInUid();
     const threadCount = group.conversations.length;
 
-    // Bold, like an unread mail row, wherever someone is waiting on you.
+    // Someone is waiting on you: the badge says so until you answer.
     const waiting = group.conversations.some(conversation =>
       needsReply(conversation, viewerId),
     );
-    const rowClass = waiting ? 'font-weight-bold' : '';
     const needsReplyBadge = (
       <span className="badge badge-danger ml-2">Needs reply</span>
     );
+
+    // Bold is the unread mark, as in a mail list, and lifts once the thread
+    // is opened. A group's row carries the sum over its threads, so a person
+    // with two threads reads "3" rather than a 2 and a 1 hidden inside.
+    const unread = group.conversations.reduce(
+      (sum, conversation) => sum + (conversation.unreadCount || 0),
+      0,
+    );
+    const rowClass = unread > 0 ? 'font-weight-bold' : '';
+    const unreadBadge = count =>
+      count > 0 && (
+        <span
+          className="badge badge-primary badge-pill ml-2"
+          title={`${count} unread`}
+        >
+          {count}
+        </span>
+      );
 
     // One thread is the normal case -- no expander, just a link.
     if (threadCount < 2) {
@@ -114,6 +132,7 @@ export class ConversationsList extends Component {
             <NavLink to={`/Conversations/${group.latest.id}`}>
               {this.renderPreview(group.latest, membersById, viewerId)}
             </NavLink>
+            {unreadBadge(unread)}
             {waiting && needsReplyBadge}
           </td>
           <td>
@@ -137,6 +156,7 @@ export class ConversationsList extends Component {
             {group.latest.lastMessage
               ? this.renderPreview(group.latest, membersById, viewerId)
               : ''}
+            {unreadBadge(unread)}
             {waiting && needsReplyBadge}
           </td>
           <td>
@@ -170,7 +190,7 @@ export class ConversationsList extends Component {
               key={conversation.id}
               className={
                 'conversation-thread' +
-                (needsReply(conversation, viewerId) ? ' font-weight-bold' : '')
+                (isUnread(conversation) ? ' font-weight-bold' : '')
               }
             >
               <td style={{ paddingLeft: '2.5rem' }}>
@@ -179,6 +199,7 @@ export class ConversationsList extends Component {
                     {this.renderPreview(conversation, membersById, viewerId)}
                   </small>
                 </NavLink>
+                {unreadBadge(conversation.unreadCount)}
                 {needsReply(conversation, viewerId) && needsReplyBadge}
               </td>
               <td>
