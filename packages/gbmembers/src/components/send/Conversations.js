@@ -27,6 +27,9 @@ import {
   matchesConversationKind,
   needsReply,
   isUnread,
+  participantPhoto,
+  participantInitials,
+  quotedMediaLabel,
   isTinyChampion,
   billingOwnerIdOf,
   conversationId,
@@ -69,6 +72,20 @@ const mapDispatchToProps = {
 };
 
 const when = date => (date ? moment(date).format('D MMM YYYY, h:mm a') : '');
+
+// A stable colour per person, so someone keeps the same tone from one visit
+// to the next rather than changing whenever the list is reordered. Six is
+// enough variety for a list to be scannable without two rows colliding often.
+const AVATAR_TONES = 6;
+
+const toneOf = seed => {
+  const text = String(seed || '');
+  let sum = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    sum += text.charCodeAt(index);
+  }
+  return sum % AVATAR_TONES;
+};
 
 // Inside a thread the day is shown once, as a separator, so each message
 // carries only its time.
@@ -645,7 +662,7 @@ export class Conversations extends Component {
                 // the thread is opened. "Needs reply" stays on until the
                 // viewer answers, so the two say different things.
                 className={
-                  'list-group-item' +
+                  'list-group-item conversation-item' +
                   (conversation.id === this.state.selectedId ? ' active' : '') +
                   (isUnread(conversation) ? ' font-weight-bold' : '')
                 }
@@ -654,53 +671,157 @@ export class Conversations extends Component {
                 onClick={() => this.selectConversation(conversation)}
                 onKeyPress={() => this.selectConversation(conversation)}
               >
+                {this.renderAvatar(conversation, membersById)}
+                <div className="conversation-item__body">
+                  {conversation.lastMessage && (
+                    <div>
+                      {senderLabel && <strong>{senderLabel}: </strong>}
+                      {conversation.lastMessage.text}
+                      {needsReply(conversation, getSignedInUid()) && (
+                        <span className="badge badge-danger ml-2">
+                          Needs reply
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div>
+                    <small>
+                      {conversationTitle(conversation, membersById)}
+                      {conversation.isGroup && (
+                        <span className="badge badge-secondary ml-2">
+                          Group · {(conversation.participantIds || []).length}
+                        </span>
+                      )}
+                      {conversation.isBroadcast && (
+                        <span className="badge badge-warning ml-2">
+                          Broadcast
+                        </span>
+                      )}
+                      {conversation.isAnnouncement && (
+                        <span className="badge badge-info ml-2">
+                          Announcement
+                        </span>
+                      )}
+                    </small>
+                  </div>
+                  <small className="text-muted">
+                    {when(conversation.updatedAt)}
+                  </small>
+                </div>
+                {/* Last in the row rather than floated, so it keeps its place
+                    beside the text however long the text runs. */}
                 {isUnread(conversation) && (
                   <span
-                    className="badge badge-primary badge-pill float-right"
+                    className="badge badge-primary badge-pill conversation-item__unread"
                     title={`${conversation.unreadCount} unread`}
                   >
                     {conversation.unreadCount}
                   </span>
                 )}
-                {conversation.lastMessage && (
-                  <div>
-                    {senderLabel && <strong>{senderLabel}: </strong>}
-                    {conversation.lastMessage.text}
-                    {needsReply(conversation, getSignedInUid()) && (
-                      <span className="badge badge-danger ml-2">
-                        Needs reply
-                      </span>
-                    )}
-                  </div>
-                )}
-                <div>
-                  <small>
-                    {conversationTitle(conversation, membersById)}
-                    {conversation.isGroup && (
-                      <span className="badge badge-secondary ml-2">
-                        Group · {(conversation.participantIds || []).length}
-                      </span>
-                    )}
-                    {conversation.isBroadcast && (
-                      <span className="badge badge-warning ml-2">
-                        Broadcast
-                      </span>
-                    )}
-                    {conversation.isAnnouncement && (
-                      <span className="badge badge-info ml-2">
-                        Announcement
-                      </span>
-                    )}
-                  </small>
-                </div>
-                <small className="text-muted">
-                  {when(conversation.updatedAt)}
-                </small>
               </li>
             );
           })}
         </ul>
       </React.Fragment>
+    );
+  }
+
+  /**
+   * What a message is answering, above what it says.
+   *
+   * Drawn from the snapshot stored on the reply rather than looked up, so it
+   * still reads correctly once the original has been withdrawn. A left rule
+   * rather than a filled box, matching the app, so a run of replies does not
+   * turn the thread into nested blocks.
+   */
+  renderQuote(replyTo, membersById, viewerId) {
+    if (!replyTo) {
+      return null;
+    }
+
+    const mine = !!viewerId && replyTo.senderId === viewerId;
+
+    return (
+      <div className="message__quote">
+        <div className="message__quote-author">
+          {mine ? 'You' : participantName(replyTo.senderId, membersById)}
+        </div>
+        {/* An attachment quoted by name: the portal cannot show the photo
+            itself, and an empty line would read as a quote of nothing. */}
+        <div className="message__quote-text">
+          {replyTo.text || quotedMediaLabel(replyTo.mediaKind)}
+        </div>
+      </div>
+    );
+  }
+
+  /**
+   * The face of a row: a member's photograph, their initials, or an icon for
+   * the kinds of thread that are not one person. It is read before the name,
+   * so a familiar thread can be found by its shape rather than by reading
+   * every line.
+   *
+   * Decorative throughout -- whatever it stands for is written beside it, so
+   * a screen reader is better off skipping it.
+   */
+  renderAvatar(conversation, membersById) {
+    // The three kinds that are not a person get an icon and the colour their
+    // badge already uses, so the row and its label agree.
+    if (conversation.isAnnouncement) {
+      return (
+        <span
+          className="conversation-avatar conversation-avatar--announcement"
+          aria-hidden="true"
+        >
+          <i className="fa fa-bullhorn" />
+        </span>
+      );
+    }
+
+    if (conversation.isBroadcast) {
+      return (
+        <span
+          className="conversation-avatar conversation-avatar--broadcast"
+          aria-hidden="true"
+        >
+          <i className="fa fa-bullhorn" />
+        </span>
+      );
+    }
+
+    if (conversation.isGroup) {
+      return (
+        <span
+          className="conversation-avatar conversation-avatar--group"
+          aria-hidden="true"
+        >
+          <i className="fa fa-users" />
+        </span>
+      );
+    }
+
+    const otherId = conversation.otherParticipantId;
+    const photo = participantPhoto(otherId, membersById);
+    if (photo) {
+      return (
+        <img
+          className="conversation-avatar conversation-avatar--photo"
+          src={photo}
+          alt=""
+          aria-hidden="true"
+        />
+      );
+    }
+
+    return (
+      <span
+        className={`conversation-avatar conversation-avatar--tone${toneOf(
+          otherId,
+        )}`}
+        aria-hidden="true"
+      >
+        {participantInitials(otherId, membersById)}
+      </span>
     );
   }
 
@@ -1169,6 +1290,10 @@ export class Conversations extends Component {
                     </div>
                   )}
                   <div className="message__bubble">
+                    {/* Withdrawn messages show nothing but their tombstone --
+                        the quote is part of what was taken back. */}
+                    {!message.deleted &&
+                      this.renderQuote(message.replyTo, membersById, viewerId)}
                     {message.deleted ? (
                       <em className="text-muted">
                         {message.announcementRemoved

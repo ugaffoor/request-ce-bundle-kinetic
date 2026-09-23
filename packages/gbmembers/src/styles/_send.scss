@@ -275,3 +275,112 @@ tr.conversation-row {
     background: $lightestgray;
   }
 }
+
+// A face for each row in the conversation list: a photograph where the
+// member has one, their initials where they do not, and an icon for the
+// threads that are not a single person. Read before the name, so a familiar
+// thread is found by its shape rather than by reading every line.
+.conversation-item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.conversation-item__body {
+  // min-width lets a long message wrap inside the row rather than pushing
+  // the unread count off the end of it.
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-item__unread {
+  flex: 0 0 auto;
+  margin-left: 8px;
+}
+
+.conversation-avatar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: 10px;
+  border-radius: 50%;
+  overflow: hidden;
+  color: $white;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  background: $secondary;
+}
+
+.conversation-avatar--photo {
+  // An <img>, so it is sized and cropped rather than laid out as a box.
+  display: block;
+  object-fit: cover;
+}
+
+// The kinds that are not a person take the colour of the badge that names
+// them further along the row, so the two agree at a glance.
+.conversation-avatar--announcement {
+  background: $tertiary;
+}
+
+.conversation-avatar--broadcast {
+  background: $orange1;
+}
+
+.conversation-avatar--group {
+  background: $gray3;
+}
+
+// One tone per person, picked from their id so it does not change between
+// visits. Dark enough throughout for the initials to stay legible.
+.conversation-avatar--tone0 {
+  background: $primary;
+}
+
+.conversation-avatar--tone1 {
+  background: $tertiary;
+}
+
+.conversation-avatar--tone2 {
+  background: $blue0;
+}
+
+.conversation-avatar--tone3 {
+  background: $secondary;
+}
+
+.conversation-avatar--tone4 {
+  background: $blue1;
+}
+
+.conversation-avatar--tone5 {
+  background: $darkgray;
+}
+
+// What a message is answering, above what it says. A left rule rather than a
+// filled box, so a run of replies does not turn the thread into nested
+// blocks. Clamped to two lines: enough to recognise the message, never
+// enough to bury the reply underneath it.
+.conversation-thread .message__quote {
+  margin-bottom: 4px;
+  padding-left: 8px;
+  border-left: 2px solid $blue2;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.conversation-thread .message__quote-author {
+  font-weight: 600;
+  color: $darkgray;
+}
+
+.conversation-thread .message__quote-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: $gray;
+}

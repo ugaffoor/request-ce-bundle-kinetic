@@ -402,6 +402,45 @@ export const participantName = (participantId, membersById) => {
 };
 
 /**
+ * A member's photograph, or null. The same value a profile shows, so a face
+ * seen there is the face seen here.
+ */
+export const participantPhoto = (participantId, membersById) => {
+  const member = participantId ? membersById[participantId] : null;
+  return (member && member.values && member.values['Photo']) || null;
+};
+
+/**
+ * One or two letters standing in for someone who has no photograph -- the
+ * same fallback a profile makes do with.
+ *
+ * Taken from the member record where there is one, because participantName
+ * puts the surname first for sorting: initials read from it would turn Alex
+ * Silva into "SA". Falls back to the first letters of whatever name is
+ * available, which is all a staff participant or an unresolved id has.
+ */
+export const participantInitials = (participantId, membersById) => {
+  const member = participantId ? membersById[participantId] : null;
+  if (member && member.values) {
+    const first = (member.values['First Name'] || '').trim();
+    const last = (member.values['Last Name'] || '').trim();
+    const initials = (first.charAt(0) + last.charAt(0)).toUpperCase();
+    if (initials) {
+      return initials;
+    }
+  }
+
+  return (
+    participantName(participantId, membersById)
+      .split(/[\s_-]+/)
+      .filter(part => /[a-z0-9]/i.test(part))
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('') || '?'
+  );
+};
+
+/**
  * What to call a thread in a list.
  *
  * A group carries its own name -- createGroupConversation() in the app writes
@@ -685,6 +724,24 @@ export const conversationParticipants = (
   return others.map(pid => participantName(pid, membersById)).join(', ');
 };
 
+/**
+ * What a quoted attachment is called, when the message being answered was a
+ * photo or a voice note rather than words. Matches mediaLabel() in the app's
+ * ConversationScreen, so the same quote reads the same in both places.
+ */
+export const quotedMediaLabel = kind => {
+  switch (kind) {
+    case 'audio':
+      return 'Voice message';
+    case 'gif':
+      return 'GIF';
+    case 'image':
+      return 'Photo';
+    default:
+      return 'Message';
+  }
+};
+
 export const normaliseMessage = (id, data) => ({
   id,
   // Withdrawn for everyone by its sender. text is '' when set, so the UI
@@ -702,6 +759,19 @@ export const normaliseMessage = (id, data) => ({
     ? data.audienceMembers
     : [],
   audienceStatus: data.audienceStatus || null,
+  // What this message answers, when the sender picked something to reply to.
+  // A snapshot taken when the reply was written, not a live lookup: it still
+  // reads correctly after the original is withdrawn, which is the point of
+  // storing it rather than the id alone. Written by the app (ChatReplyRef);
+  // the portal has no reply-to picker yet, so it only ever reads these.
+  replyTo: data.replyTo
+    ? {
+        id: data.replyTo.id || null,
+        senderId: data.replyTo.senderId || null,
+        text: data.replyTo.text || '',
+        mediaKind: data.replyTo.mediaKind || null,
+      }
+    : null,
   text: data[MESSAGE_FIELDS.body],
   senderId: data[MESSAGE_FIELDS.senderId],
   createdAt: toDate(data[MESSAGE_FIELDS.createdAt]),

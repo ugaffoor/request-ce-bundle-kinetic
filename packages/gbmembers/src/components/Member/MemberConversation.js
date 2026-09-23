@@ -91,6 +91,29 @@ export class MemberConversation extends Component {
       });
   }
 
+  /**
+   * Opens the full thread. Every row here leads to the same place -- this
+   * panel is a read-only preview of one conversation, so a click anywhere
+   * in it means "take me to it".
+   *
+   * The heading's own Open link is what navigates: KappNavLink builds the
+   * URL with the kapp it belongs to, and activating that link keeps the
+   * routing in one place rather than assembling a path here.
+   */
+  openThread = () => {
+    const link = this.panel && this.panel.querySelector('.conversation-open');
+    if (link) {
+      link.click();
+    }
+  };
+
+  /**
+   * Makes each message row a target for that click. Header rows come
+   * through with no rowInfo and are left alone.
+   */
+  messageRowProps = (state, rowInfo) =>
+    rowInfo ? { onClick: this.openThread, style: { cursor: 'pointer' } } : {};
+
   componentWillUnmount() {
     // Both listeners were started here, so both end here -- a profile is
     // opened and left far more often than the conversations page is.
@@ -217,20 +240,21 @@ export class MemberConversation extends Component {
         defaultPageSize={data.length}
         pageSize={data.length}
         showPagination={false}
+        getTrProps={this.messageRowProps}
       />
     );
   }
 
   render() {
     return (
-      <div className="row smsTable">
+      <div className="row smsTable" ref={element => (this.panel = element)}>
         <div className="col-sm-10">
           <span style={{ width: '100%' }}>
             <h3>
               Conversation
               <NavLink
                 to={`/MemberConversation/${this.props.memberItem.id}`}
-                className="btn btn-link btn-sm"
+                className="btn btn-link btn-sm conversation-open"
               >
                 Open
               </NavLink>
