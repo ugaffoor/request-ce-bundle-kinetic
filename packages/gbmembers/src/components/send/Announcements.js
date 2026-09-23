@@ -41,6 +41,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   subscribeConversations: conversationActions.subscribeConversations,
   subscribeMessages: conversationActions.subscribeMessages,
+  unsubscribeConversations: conversationActions.unsubscribeConversations,
+  unsubscribeMessages: conversationActions.unsubscribeMessages,
   setConversationsError: conversationActions.setConversationsError,
   deleteMessage: conversationActions.deleteMessage,
   deleteConversation: conversationActions.deleteConversation,
@@ -111,6 +113,12 @@ export class Announcements extends Component {
         ),
       });
     }
+  }
+
+  componentWillUnmount() {
+    // The posts listener this page started. The conversations listener is
+    // started by the container below, which stops it there.
+    this.props.unsubscribeMessages();
   }
 
   getBroadcasts() {
@@ -416,6 +424,12 @@ export const AnnouncementsContainer = compose(
             );
             return;
           }
+          if (this.unmounted) {
+            // Signing in is asynchronous: by the time it finishes the page
+            // may already be gone, and a listener started now would have
+            // nobody to stop it.
+            return;
+          }
           this.props.subscribeConversations({ participantId: uid });
         })
         .catch(e => {
@@ -423,6 +437,11 @@ export const AnnouncementsContainer = compose(
             `Firebase sign-in failed: ${e && e.message ? e.message : e}`,
           );
         });
+    },
+
+    componentWillUnmount() {
+      this.unmounted = true;
+      this.props.unsubscribeConversations();
     },
   }),
 )(Announcements);

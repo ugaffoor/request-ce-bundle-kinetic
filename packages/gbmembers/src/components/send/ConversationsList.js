@@ -45,6 +45,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   subscribeConversations: conversationActions.subscribeConversations,
+  unsubscribeConversations: conversationActions.unsubscribeConversations,
   setConversationsError: conversationActions.setConversationsError,
 };
 
@@ -69,6 +70,39 @@ export class ConversationsList extends Component {
         [participantId]: !state.expanded[participantId],
       },
     }));
+  };
+
+  /**
+   * Opens the thread from a click anywhere on its row, not just on the text.
+   * A row is one thread, so the whole line should be the target -- the link
+   * alone leaves most of the row dead to the pointer.
+   *
+   * The row's own link is what navigates. Activating it rather than pushing
+   * a route keeps ctrl-click, middle-click and the browser's own link
+   * handling working, and leaves building the URL to the one component that
+   * knows how.
+   */
+  openRow = event => {
+    // A control inside the row speaks for itself: the link already goes
+    // there, and the expander means something else entirely.
+    if (event.target.closest('a, button')) {
+      return;
+    }
+    const link = event.currentTarget.querySelector('a');
+    if (link) {
+      link.click();
+    }
+  };
+
+  /**
+   * A grouped row holds several threads rather than one, so clicking it
+   * opens the group -- the same thing its caret does.
+   */
+  toggleRow = (participantId, event) => {
+    if (event.target.closest('a, button')) {
+      return;
+    }
+    this.toggle(participantId);
   };
 
   /**
@@ -127,7 +161,11 @@ export class ConversationsList extends Component {
     // One thread is the normal case -- no expander, just a link.
     if (threadCount < 2) {
       return (
-        <tr key={group.participantId} className={rowClass}>
+        <tr
+          key={group.participantId}
+          className={`conversation-row ${rowClass}`}
+          onClick={this.openRow}
+        >
           <td>
             <NavLink to={`/Conversations/${group.latest.id}`}>
               {this.renderPreview(group.latest, membersById, viewerId)}
@@ -151,7 +189,10 @@ export class ConversationsList extends Component {
 
     return (
       <React.Fragment key={group.participantId}>
-        <tr className={rowClass}>
+        <tr
+          className={`conversation-row ${rowClass}`}
+          onClick={event => this.toggleRow(group.participantId, event)}
+        >
           <td>
             {group.latest.lastMessage
               ? this.renderPreview(group.latest, membersById, viewerId)
@@ -189,9 +230,10 @@ export class ConversationsList extends Component {
             <tr
               key={conversation.id}
               className={
-                'conversation-thread' +
+                'conversation-thread conversation-row' +
                 (isUnread(conversation) ? ' font-weight-bold' : '')
               }
+              onClick={this.openRow}
             >
               <td style={{ paddingLeft: '2.5rem' }}>
                 <NavLink to={`/Conversations/${conversation.id}`}>
@@ -366,6 +408,13 @@ export const ConversationsListContainer = compose(
             return;
           }
 
+          if (this.unmounted) {
+            // Signing in is asynchronous: by the time it finishes the page
+            // may already be gone, and a listener started now would have
+            // nobody to stop it.
+            return;
+          }
+
           // Query on the uid Firebase actually signed us in as, NOT a
           // derived staff_{space}_{user} string. mintFirebaseToken keys staff
           // WITH a member record to their member GUID, and only staff without
@@ -386,6 +435,13 @@ export const ConversationsListContainer = compose(
             `Firebase sign-in failed: ${e && e.message ? e.message : e}`,
           );
         });
+    },
+
+    // This list only ever followed the conversations; the thread listener
+    // belongs to whichever page opened one.
+    componentWillUnmount() {
+      this.unmounted = true;
+      this.props.unsubscribeConversations();
     },
   }),
 )(ConversationsList);

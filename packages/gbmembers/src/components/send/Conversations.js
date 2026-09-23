@@ -50,7 +50,6 @@ const mapStateToProps = state => ({
   space: state.member.app.space,
   sending: state.member.conversations.sending,
   sendError: state.member.conversations.sendError,
-  lastSentAt: state.member.conversations.lastSentAt,
   deletingId: state.member.conversations.deletingId,
   deleteError: state.member.conversations.deleteError,
 });
@@ -58,6 +57,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = {
   subscribeConversations: conversationActions.subscribeConversations,
   subscribeMessages: conversationActions.subscribeMessages,
+  unsubscribeConversations: conversationActions.unsubscribeConversations,
+  unsubscribeMessages: conversationActions.unsubscribeMessages,
   setConversationsError: conversationActions.setConversationsError,
   sendMessage: conversationActions.sendMessage,
   deleteMessage: conversationActions.deleteMessage,
@@ -114,6 +115,11 @@ export class Conversations extends Component {
       // reaches Firestore, so the snapshot listener will never return it --
       // without this the message would just vanish on failure.
       failed: [],
+      // The send in flight. Held here rather than in an instance field so it
+      // can be shown in the thread while it travels: the text leaves the box
+      // the moment Send is pressed, and a bubble marked "Sending" stands in
+      // until the listener returns the real message.
+      pending: null,
       // A 1:1 opened from a member's profile before any message exists. The
       // thread is created on the first send; until then there is nothing in
       // Firestore to listen to, so the page renders the empty thread itself.
@@ -214,14 +220,6 @@ export class Conversations extends Component {
       this.openRoutedMember();
     }
 
-    // Only once a send has actually landed.
-    if (
-      this.props.lastSentAt &&
-      this.props.lastSentAt !== prevProps.lastSentAt
-    ) {
-      this.setState({ reply: '' });
-    }
-
     // Keep the newest message in view. Triggered by the thread changing or a
     // message being added -- keyed on the last message's id rather than the
     // array, so a delete or an edit part-way up does not yank the view to
@@ -230,7 +228,10 @@ export class Conversations extends Component {
     const prevLast = prevProps.messages.last();
     if (
       this.state.selectedId !== prevState.selectedId ||
-      (last && (!prevLast || last.id !== prevLast.id))
+      (last && (!prevLast || last.id !== prevLast.id)) ||
+      // The pending bubble is new content at the end of the thread, so it is
+      // brought into view like any arriving message.
+      (this.state.pending && !prevState.pending)
     ) {
       this.scrollToNewest();
     }
@@ -255,20 +256,24 @@ export class Conversations extends Component {
       }
     }
 
-    // A send that finished with an error: show the attempt in the thread
-    // marked as failed, rather than leaving no trace that it was tried.
-    if (prevProps.sending && !this.props.sending && this.props.sendError) {
-      const text = this.pendingText;
-      this.pendingText = null;
-      if (text) {
+    // The send has resolved, one way or the other: the pending bubble has
+    // done its job and goes, either becoming a failure or giving way to the
+    // real message the listener is about to return.
+    if (prevProps.sending && !this.props.sending) {
+      const pending = this.state.pending;
+      if (this.props.sendError && pending) {
+        // Show the attempt in the thread marked as failed, rather than
+        // leaving no trace that it was tried.
         this.setState(state => ({
-          reply: '',
+          pending: null,
           failed: state.failed.concat({
             id: `failed-${Date.now()}`,
-            text,
-            createdAt: new Date(),
+            text: pending.text,
+            createdAt: pending.createdAt,
           }),
         }));
+      } else if (pending) {
+        this.setState({ pending: null });
       }
     }
   }
@@ -298,6 +303,7 @@ export class Conversations extends Component {
       draftMemberId: null,
       reply: '',
       failed: [],
+      pending: null,
     });
     this.props.subscribeMessages({ conversationId });
   }
@@ -334,6 +340,19 @@ export class Conversations extends Component {
     return isTinyChampion(member) ? member : null;
   }
 
+  /**
+   * Moves the typed text out of the box and into the thread as a message
+   * being sent. Held in state so the failure handler can show what was
+   * attempted, and so the thread can show it travelling rather than the
+   * text sitting in a greyed-out box with only the button saying anything.
+   */
+  beginPending(text) {
+    this.setState({
+      reply: '',
+      pending: { id: `pending-${Date.now()}`, text, createdAt: new Date() },
+    });
+  }
+
   sendReply = () => {
     const conversation = this.getSelectedConversation();
     const username = this.props.profile && this.props.profile.username;
@@ -351,7 +370,7 @@ export class Conversations extends Component {
       if (!username || !this.props.spaceSlug || !text) {
         return;
       }
-      this.pendingText = text;
+      this.beginPending(text);
       this.props.sendMessage({
         memberId: this.state.draftMemberId,
         staffId: getSignedInUid(),
@@ -374,8 +393,7 @@ export class Conversations extends Component {
       return;
     }
 
-    // Held so the failure handler can show what was attempted.
-    this.pendingText = text;
+    this.beginPending(text);
 
     this.props.sendMessage({
       // Send into the thread that is actually open. Without this the saga
@@ -392,6 +410,29 @@ export class Conversations extends Component {
       text,
     });
   };
+
+  /**
+   * Enter sends; Shift+Enter starts a new line. The default would insert a
+   * line break, so Enter is stopped before it reaches the box -- including
+   * when there is nothing to send, since a stray blank line is not what the
+   * key was pressed for.
+   *
+   * Left alone while an input method is composing (Japanese, Chinese and the
+   * like), where Enter commits the candidate rather than finishing the
+   * message.
+   */
+  handleReplyKeyDown(event, canSend) {
+    if (event.key !== 'Enter' || event.shiftKey) {
+      return;
+    }
+    if (event.nativeEvent && event.nativeEvent.isComposing) {
+      return;
+    }
+    event.preventDefault();
+    if (canSend) {
+      this.sendReply();
+    }
+  }
 
   renderComposer() {
     const conversation = this.getSelectedConversation();
@@ -437,9 +478,12 @@ export class Conversations extends Component {
           className="form-control"
           rows="3"
           value={this.state.reply}
-          disabled={this.props.sending}
           onChange={e => this.setState({ reply: e.target.value })}
+          onKeyDown={e => this.handleReplyKeyDown(e, canSend)}
         />
+        <small className="form-text text-muted">
+          Enter to send &middot; Shift+Enter for a new line
+        </small>
         {this.props.sendError && (
           <div className="alert alert-danger mt-2">
             <strong>Message not sent.</strong>
@@ -955,29 +999,31 @@ export class Conversations extends Component {
             ' Anything you send here starts a private conversation with them.'}
         </p>
         <ul className="list-unstyled conversation-thread">
-          {this.renderFailedSends(null)}
+          {this.renderLocalSends(null)}
         </ul>
       </React.Fragment>
     );
   }
 
   /**
-   * Sends the server rejected, shown after the delivered messages so the
-   * attempt is visible rather than silently lost.
+   * The part of the thread that is not in Firestore: what failed, and what
+   * is on its way. Both are the viewer's own and both belong at the end, so
+   * they share the day separator rather than each deciding on one.
    */
-  renderFailedSends(lastDeliveredDay) {
-    if (this.state.failed.length < 1) {
+  renderLocalSends(lastDeliveredDay) {
+    const pending = this.state.pending;
+    if (this.state.failed.length < 1 && !pending) {
       return null;
     }
-    // Failures are always from now, so they sit under Today. The separator
-    // is only needed when the last delivered message was on an earlier day.
+    // These are always from now, so they sit under Today. The separator is
+    // only needed when the last delivered message was on an earlier day.
     const today = dayKey(new Date());
     const needsSeparator =
       lastDeliveredDay !== undefined && lastDeliveredDay !== today;
 
-    // A failed send is always the viewer's own, so it belongs on their side
-    // of the thread -- rendered on the left it would read as a message from
-    // the other person that happened to fail.
+    // A failed or pending send is always the viewer's own, so it belongs on
+    // their side of the thread -- rendered on the left it would read as a
+    // message from the other person.
     return [
       needsSeparator && (
         <li key="failed-day" className="message-day" aria-hidden="true">
@@ -1002,6 +1048,22 @@ export class Conversations extends Component {
           </div>
         </li>
       )),
+      pending && (
+        <li key={pending.id} className="message message--mine message--pending">
+          <div className="message__sender">
+            <small>
+              <strong>You</strong>
+            </small>
+          </div>
+          <div className="message__bubble">{pending.text}</div>
+          <div className="message__meta">
+            <small className="text-muted">
+              <i className="fa fa-clock-o fa-fw" aria-hidden="true" />{' '}
+              Sending...
+            </small>
+          </div>
+        </li>
+      ),
     ];
   }
 
@@ -1143,7 +1205,7 @@ export class Conversations extends Component {
             );
           })}
 
-          {this.renderFailedSends(
+          {this.renderLocalSends(
             messages.size > 0 ? dayKey(messages.last().createdAt) : null,
           )}
           <li ref={element => (this.threadEnd = element)} aria-hidden="true" />
@@ -1299,6 +1361,13 @@ export const ConversationsContainer = compose(
             return;
           }
 
+          if (this.unmounted) {
+            // Signing in is asynchronous: by the time it finishes the page
+            // may already be gone, and a listener started now would have
+            // nobody to stop it.
+            return;
+          }
+
           // Query on the uid Firebase actually signed us in as, NOT a
           // derived staff_{space}_{user} string. mintFirebaseToken keys staff
           // WITH a member record to their member GUID, and only staff without
@@ -1319,6 +1388,15 @@ export const ConversationsContainer = compose(
             `Firebase sign-in failed: ${e && e.message ? e.message : e}`,
           );
         });
+    },
+
+    // Both listeners belong to this page: leaving it stops them, rather
+    // than leaving Firestore streaming a list and a thread nobody is
+    // looking at for the rest of the session.
+    componentWillUnmount() {
+      this.unmounted = true;
+      this.props.unsubscribeConversations();
+      this.props.unsubscribeMessages();
     },
   }),
 )(Conversations);

@@ -1,8 +1,8 @@
 import { eventChannel } from 'redux-saga';
 import {
   call,
-  cancelled,
   put,
+  race,
   take,
   takeEvery,
   takeLatest,
@@ -126,7 +126,16 @@ export function* watchConversationSnapshots({ payload } = {}) {
 
   try {
     while (true) {
-      const event = yield take(channel);
+      // Either a snapshot, or the last page showing conversations going
+      // away. Without the second the listener would run for the rest of the
+      // session, billing reads for a list nobody is looking at.
+      const { event, stop } = yield race({
+        event: take(channel),
+        stop: take(types.UNSUBSCRIBE_CONVERSATIONS),
+      });
+      if (stop) {
+        break;
+      }
       if (event.error) {
         const detail = yield call(describeAuthState);
         yield put(
@@ -137,9 +146,10 @@ export function* watchConversationSnapshots({ payload } = {}) {
       }
     }
   } finally {
-    if (yield cancelled()) {
-      channel.close();
-    }
+    // Closes the channel and with it the Firestore listener, whether this
+    // task was cancelled by a newer subscription or stopped by the page
+    // being left. Closing an already-closed channel does nothing.
+    channel.close();
   }
 }
 
@@ -181,7 +191,15 @@ export function* watchAnnouncementThread({ payload } = {}) {
 
   try {
     while (true) {
-      const event = yield take(channel);
+      // Started by the same action as the conversations listener, so it
+      // stops on the same one.
+      const { event, stop } = yield race({
+        event: take(channel),
+        stop: take(types.UNSUBSCRIBE_CONVERSATIONS),
+      });
+      if (stop) {
+        break;
+      }
       if (event.error) {
         console.warn(
           '[conversations] announcement thread unavailable',
@@ -193,9 +211,7 @@ export function* watchAnnouncementThread({ payload } = {}) {
       }
     }
   } finally {
-    if (yield cancelled()) {
-      channel.close();
-    }
+    channel.close();
   }
 }
 
@@ -214,7 +230,13 @@ export function* watchMessageSnapshots({ payload } = {}) {
 
   try {
     while (true) {
-      const event = yield take(channel);
+      const { event, stop } = yield race({
+        event: take(channel),
+        stop: take(types.UNSUBSCRIBE_MESSAGES),
+      });
+      if (stop) {
+        break;
+      }
       yield put(
         event.error
           ? actions.setMessagesError(event.error.message)
@@ -222,9 +244,7 @@ export function* watchMessageSnapshots({ payload } = {}) {
       );
     }
   } finally {
-    if (yield cancelled()) {
-      channel.close();
-    }
+    channel.close();
   }
 }
 
@@ -801,6 +821,11 @@ export function* watchConversations() {
   // takeLatest: a new subscription cancels the previous one, whose finally
   // block closes its channel. Every page that shows conversations subscribes
   // on mount, so takeEvery left a listener behind on each visit.
+  //
+  // A subscription also ends when the page that wanted it is left: each
+  // watcher races its channel against the matching UNSUBSCRIBE, which the
+  // four pages dispatch on unmount. Nothing here holds a listener open for
+  // a screen nobody is on.
   yield takeLatest(types.SUBSCRIBE_CONVERSATIONS, watchConversationSnapshots);
   // Same action, second listener: the announcement thread is fetched by id
   // because no participant query can reach it.

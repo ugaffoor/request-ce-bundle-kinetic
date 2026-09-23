@@ -25,6 +25,7 @@ export const types = {
   ),
   // Live listener over the messages inside one conversation.
   SUBSCRIBE_MESSAGES: namespace('conversations', 'SUBSCRIBE_MESSAGES'),
+  UNSUBSCRIBE_MESSAGES: namespace('conversations', 'UNSUBSCRIBE_MESSAGES'),
   SET_MESSAGES: namespace('conversations', 'SET_MESSAGES'),
   SET_MESSAGES_ERROR: namespace('conversations', 'SET_MESSAGES_ERROR'),
   // Sending one message from the portal.
@@ -54,6 +55,8 @@ export const actions = {
   setAnnouncementThread: withPayload(types.SET_ANNOUNCEMENT_THREAD),
   // Pass { conversationId }.
   subscribeMessages: withPayload(types.SUBSCRIBE_MESSAGES),
+  // No payload: there is one messages listener, so there is nothing to name.
+  unsubscribeMessages: noPayload(types.UNSUBSCRIBE_MESSAGES),
   setMessages: withPayload(types.SET_MESSAGES),
   setMessagesError: withPayload(types.SET_MESSAGES_ERROR),
   // Pass { memberId, staffId, spaceSlug, text }.
@@ -136,6 +139,11 @@ export const reducer = (state = State(), { type, payload }) => {
         .set('messagesLoading', false)
         .set('messagesError', null)
         .set('messages', List(payload));
+    // Nothing is listening any more, so nothing is on its way: leaving the
+    // flag set would show a spinner on the next visit until the new listener
+    // returned, as UNSUBSCRIBE_CONVERSATIONS already avoids for the list.
+    case types.UNSUBSCRIBE_MESSAGES:
+      return state.set('messagesLoading', false);
     case types.SET_MESSAGES_ERROR:
       return state.set('messagesLoading', false).set('messagesError', payload);
     case types.SET_SENDING:

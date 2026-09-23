@@ -253,3 +253,25 @@
   padding: 0 4px;
   color: $darkgray;
 }
+
+// A message on its way: the same bubble, dimmed, so it reads as this
+// person's message rather than a placeholder -- and the dimming lifts when
+// the real one arrives in its place.
+.conversation-thread .message--pending {
+  opacity: 0.6;
+
+  .message__bubble {
+    background: $blue4;
+    border: 1px dashed $blue2;
+  }
+}
+
+// A conversation row is one thread, so the whole line is the target rather
+// than just the text in it.
+tr.conversation-row {
+  cursor: pointer;
+
+  &:hover {
+    background: $lightestgray;
+  }
+}
