@@ -44,6 +44,11 @@ const mapStateToProps = state => ({
   allLeads: state.member.leads.allLeads,
   leadsLoading: state.member.leads.leadsLoading,
   profile: state.app.profile,
+  // Conversations read the profile from the member app, as every other part
+  // of the feature does. state.app.profile above is the app package's own
+  // profile, which only carries memberships in the bundled portal -- gating
+  // on it hid the whole Conversations panel wherever it does not.
+  memberProfile: state.member.app.profile,
   space: state.member.app.space,
 });
 const mapDispatchToProps = {
@@ -1593,6 +1598,7 @@ export class CreateCampaign extends Component {
 
 export const CampaignView = ({
   profile,
+  memberProfile,
   emailCampaigns,
   emailCampaignsLoading,
   emailCampaignsLoadingTimestamp,
@@ -1631,7 +1637,7 @@ export const CampaignView = ({
           <div className="leadContents">
             <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
           </div>
-          {canUseConversations(profile) && (
+          {canUseConversations(memberProfile) && (
             <div className="taskContents">
               <ConversationsListContainer />
             </div>

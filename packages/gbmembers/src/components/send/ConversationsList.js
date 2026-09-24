@@ -331,18 +331,41 @@ export class ConversationsList extends Component {
         {loading ? (
           <ReactSpinner />
         ) : error ? (
-          <div className="alert alert-danger">
-            <strong>Could not load conversations.</strong>
-            <div>{error}</div>
-          </div>
+          // Still offer the way in: not being able to LIST conversations does
+          // not mean one cannot be started, and this is the branch a
+          // permissions or sign-in problem lands on.
+          <React.Fragment>
+            <div className="alert alert-danger">
+              <strong>Could not load conversations.</strong>
+              <div>{error}</div>
+            </div>
+            <NavLink to="/NewConversation" className="btn btn-primary">
+              Create conversation
+            </NavLink>
+          </React.Fragment>
         ) : groups.length < 1 ? (
-          <p>
-            {this.state.kind === CONVERSATION_KINDS.ALL
-              ? 'No conversations yet.'
-              : this.state.kind === CONVERSATION_KINDS.NEEDS_REPLY
-                ? 'Nothing is waiting on a reply.'
-                : 'Nothing matches this filter.'}
-          </p>
+          // An empty list is where someone is most likely to want to start
+          // something, and the header button is easy to miss up beside the
+          // title -- so the way in sits with the message that says there is
+          // nothing here.
+          <div className="text-center py-3">
+            <p className="text-muted">
+              {this.state.kind === CONVERSATION_KINDS.ALL
+                ? 'No conversations yet.'
+                : this.state.kind === CONVERSATION_KINDS.NEEDS_REPLY
+                  ? 'Nothing is waiting on a reply.'
+                  : 'Nothing matches this filter.'}
+            </p>
+            <NavLink to="/NewConversation" className="btn btn-primary">
+              Create conversation
+            </NavLink>
+            <div className="mt-2">
+              <small className="text-muted">
+                Or open a member&rsquo;s profile and press Message to talk to
+                them directly.
+              </small>
+            </div>
+          </div>
         ) : (
           <table className="table table-sm">
             <thead>
