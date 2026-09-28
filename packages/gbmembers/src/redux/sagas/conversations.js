@@ -50,7 +50,7 @@ import {
 export const conversationsQuery = (store, participantId) => {
   const conversations = collection(store, CONVERSATIONS_COLLECTION);
 
-  // Matches useConversations() in the mobile app exactly, including the
+  // Matches useMessageThreads() in the mobile app exactly, including the
   // orderBy: that is the shape firestore.indexes.json declares an index for
   // (participantIds CONTAINS + updatedAt DESC), and the shape these rules
   // were written against.
@@ -692,7 +692,7 @@ export function* deleteMessage({ payload } = {}) {
  * Removes a thread from THIS viewer's list only.
  *
  * Stamps their clearedAt and zeroes their unread badge, exactly as
- * clearConversationForMe() does in the app. Everything up to now is hidden
+ * clearMessageThreadForMe() does in the app. Everything up to now is hidden
  * from them and the thread drops out of their list -- until someone sends a
  * newer message, which brings it back with only the new messages showing. The
  * other participant sees no change at all.

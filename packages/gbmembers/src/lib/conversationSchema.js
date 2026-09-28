@@ -9,7 +9,9 @@
 // -- Collections --------------------------------------------------------
 
 export const MEMBERS_COLLECTION = 'members';
-export const CONVERSATIONS_COLLECTION = 'conversations';
+// The app calls these message threads; the collection was renamed from
+// 'conversations' to match.
+export const CONVERSATIONS_COLLECTION = 'messageThreads';
 export const MESSAGES_SUBCOLLECTION = 'messages';
 
 // -- Participant identifiers --------------------------------------------
@@ -48,7 +50,7 @@ export const isStaffParticipant = participantId =>
  * existing thread instead of forking a second one.
  */
 export const conversationId = (memberId, staffId) =>
-  // Must match conversationIdFor() in the app: [a, b].sort().join('_').
+  // Must match messageThreadIdFor() in the app: [a, b].sort().join('_').
   // Sorting matters -- deriving the id a different way would create a second
   // document for the same pair, and the two sides would stop seeing each
   // other's messages with no error to show for it.
@@ -443,7 +445,7 @@ export const participantInitials = (participantId, membersById) => {
 /**
  * What to call a thread in a list.
  *
- * A group carries its own name -- createGroupConversation() in the app writes
+ * A group carries its own name -- createGroupMessageThread() in the app writes
  * `name` -- while a 1:1 is named after the other participant. Naming a group
  * after `otherParticipantId` would pick an arbitrary member out of the group,
  * which is why groups need their own case.
@@ -579,7 +581,7 @@ export const CONVERSATION_FIELDS = {
   lastMessage: 'lastMessage',
   updatedAt: 'updatedAt',
   isGroup: 'isGroup',
-  // Groups only -- written by createGroupConversation() in the app.
+  // Groups only -- written by createGroupMessageThread() in the app.
   name: 'name',
   hasJunior: 'hasJunior',
   monitorable: 'monitorable',
@@ -625,7 +627,7 @@ export const normaliseConversation = (id, data, viewerId) => {
   return {
     id,
     // When this viewer last removed the thread. Per-viewer, not shared: the
-    // other participant sees no change. Matches clearConversationForMe() in
+    // other participant sees no change. Matches clearMessageThreadForMe() in
     // the app, which writes the same field.
     clearedAt: toDate(mine.clearedAt),
     // Messages this viewer has not opened. Kept by the Cloud Function -- one
@@ -663,7 +665,7 @@ export const normaliseConversation = (id, data, viewerId) => {
 /**
  * A thread the viewer has removed stays hidden until someone sends something
  * newer -- then it returns, showing only what arrived since. Mirrors
- * isConversationCleared() in the app so both clients hide the same threads.
+ * isMessageThreadCleared() in the app so both clients hide the same threads.
  */
 export const isConversationCleared = conversation => {
   if (!conversation || !conversation.clearedAt) {
@@ -727,7 +729,7 @@ export const conversationParticipants = (
 /**
  * What a quoted attachment is called, when the message being answered was a
  * photo or a voice note rather than words. Matches mediaLabel() in the app's
- * ConversationScreen, so the same quote reads the same in both places.
+ * MessageThreadScreen, so the same quote reads the same in both places.
  */
 export const quotedMediaLabel = kind => {
   switch (kind) {
