@@ -479,7 +479,7 @@ export function* sendMessage({ payload } = {}) {
     (!isAnnouncement && !existingConversationId && recipients.length < 1)
   ) {
     yield put(
-      actions.setSendError('Cannot send: the conversation is not ready.'),
+      actions.setSendError('Cannot send: the message thread is not ready.'),
     );
     return;
   }

@@ -473,8 +473,7 @@ export class Conversations extends Component {
         <p className="text-muted mt-3">
           <small>
             This is a broadcast &mdash; a one-way message, so it cannot be
-            replied to. Start a new conversation to message this person
-            directly.
+            replied to. Start a new message to contact this person directly.
           </small>
         </p>
       );
@@ -585,14 +584,14 @@ export class Conversations extends Component {
     if (error) {
       return (
         <div className="alert alert-danger">
-          <strong>Could not load conversations.</strong>
+          <strong>Could not load messages.</strong>
           <div>{error}</div>
         </div>
       );
     }
 
     if (conversations.size < 1) {
-      return <p>No conversations yet.</p>;
+      return <p>No messages yet.</p>;
     }
 
     const sorted = conversations
@@ -630,9 +629,9 @@ export class Conversations extends Component {
           {this.renderSearch()}
           <p>
             {this.state.search.trim()
-              ? `No conversations match "${this.state.search.trim()}".`
+              ? `No messages match "${this.state.search.trim()}".`
               : this.state.billingOwnersOnly
-                ? 'No conversations with billing owners.'
+                ? 'No messages with billing owners.'
                 : 'Nothing matches this filter.'}
           </p>
         </React.Fragment>
@@ -858,7 +857,7 @@ export class Conversations extends Component {
     return (
       <div className="form-group">
         <label className="sr-only" htmlFor="conversation-search">
-          Search conversations by name
+          Search messages by name
         </label>
         <input
           id="conversation-search"
@@ -1017,7 +1016,7 @@ export class Conversations extends Component {
     const confirmed = await confirm(
       <span>
         <span>
-          This deletes the <strong>entire conversation</strong> and every
+          This deletes the <strong>entire message thread</strong> and every
           message in it, for everyone in it &mdash; in GB Members and in the BJJ
           Members app. Nothing is left behind, and it cannot be undone.
         </span>
@@ -1117,7 +1116,7 @@ export class Conversations extends Component {
           No messages yet.
           {/* Not promised when the box below is closed to them. */}
           {!this.blockedTinyChampion() &&
-            ' Anything you send here starts a private conversation with them.'}
+            ' Anything you send here starts a private message thread with them.'}
         </p>
         <ul className="list-unstyled conversation-thread">
           {this.renderLocalSends(null)}
@@ -1192,7 +1191,7 @@ export class Conversations extends Component {
     const { messages, messagesLoading, messagesError } = this.props;
 
     if (!this.state.selectedId) {
-      return <p>Select a conversation to read it.</p>;
+      return <p>Select a message thread to read it.</p>;
     }
 
     if (this.state.draftMemberId && !this.getSelectedConversation()) {
@@ -1216,7 +1215,7 @@ export class Conversations extends Component {
       return (
         <React.Fragment>
           {this.renderGroupHeader(membersById)}
-          <p>No messages in this conversation.</p>
+          <p>No messages in this thread.</p>
         </React.Fragment>
       );
     }
@@ -1344,10 +1343,10 @@ export class Conversations extends Component {
       <div className="container-fluid leads">
         <div className="leadContents">
           <div className="options">
-            <h4 className="title">Conversations</h4>
+            <h4 className="title">Messages</h4>
             <p>
-              You do not have access to conversations. Ask a space admin to add
-              you to the Program Managers role.
+              You do not have access to messages. Ask a space admin to add you
+              to the Program Managers role.
             </p>
           </div>
         </div>
@@ -1373,7 +1372,7 @@ export class Conversations extends Component {
         <StatusMessagesContainer />
         <div className="leadContents">
           <div className="options">
-            <h4 className="title">Conversations</h4>
+            <h4 className="title">Messages</h4>
             <div className="row">
               <div className="col-md-4">{this.renderList(membersById)}</div>
               <div className="col-md-8">
@@ -1409,19 +1408,19 @@ export class Conversations extends Component {
         <div className="leadContents">
           <div className="options">
             <h4 className="title">
-              {withId ? participantName(withId, membersById) : 'Conversation'}
+              {withId ? participantName(withId, membersById) : 'Messages'}
               <span className="pull-right">
                 <NavLink to={`/Member/${memberId}`} className="btn btn-link">
                   Back to profile
                 </NavLink>
                 <NavLink to="/Conversations" className="btn btn-link">
-                  All conversations
+                  All messages
                 </NavLink>
               </span>
             </h4>
             {error && (
               <div className="alert alert-danger">
-                <strong>Could not load the conversation.</strong>
+                <strong>Could not load messages.</strong>
                 <div>{error}</div>
               </div>
             )}
@@ -1481,7 +1480,7 @@ export const ConversationsContainer = compose(
         .then(uid => {
           if (!uid) {
             this.props.setConversationsError(
-              'Not signed in to Firebase — sign out and sign in again to load conversations.',
+              'Not signed in to Firebase — sign out and sign in again to load messages.',
             );
             return;
           }

@@ -326,8 +326,8 @@ export class Announcements extends Component {
             <div className="options">
               <h4 className="title">Announcements and broadcasts</h4>
               <p>
-                You do not have access to conversations. Ask a space admin to
-                add you to the Program Managers role.
+                You do not have access to messages. Ask a space admin to add you
+                to the Program Managers role.
               </p>
             </div>
           </div>

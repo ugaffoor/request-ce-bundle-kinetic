@@ -195,7 +195,7 @@ export class MemberConversation extends Component {
     if (this.props.error) {
       return (
         <div className="alert alert-danger">
-          <strong>Could not load the conversation.</strong>
+          <strong>Could not load messages.</strong>
           <div>{this.props.error}</div>
         </div>
       );
@@ -207,7 +207,7 @@ export class MemberConversation extends Component {
 
     const conversation = this.getConversation();
     if (!conversation) {
-      return <p className="text-muted">No conversation yet.</p>;
+      return <p className="text-muted">No messages yet.</p>;
     }
 
     // The messages slice belongs to whichever thread was subscribed last;
@@ -251,7 +251,7 @@ export class MemberConversation extends Component {
         <div className="col-sm-10">
           <span style={{ width: '100%' }}>
             <h3>
-              Conversation
+              Messages
               <NavLink
                 to={`/MemberConversation/${this.props.memberItem.id}`}
                 className="btn btn-link btn-sm conversation-open"

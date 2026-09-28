@@ -300,9 +300,9 @@ export class ConversationsList extends Component {
     return (
       <div className="options">
         <h4 className="title">
-          Conversations
+          Messages
           <NavLink to="/NewConversation" className="btn btn-primary pull-right">
-            New Conversation
+            New Message
           </NavLink>
           <NavLink
             to="/Announcements"
@@ -336,11 +336,11 @@ export class ConversationsList extends Component {
           // permissions or sign-in problem lands on.
           <React.Fragment>
             <div className="alert alert-danger">
-              <strong>Could not load conversations.</strong>
+              <strong>Could not load messages.</strong>
               <div>{error}</div>
             </div>
             <NavLink to="/NewConversation" className="btn btn-primary">
-              Create conversation
+              New message
             </NavLink>
           </React.Fragment>
         ) : groups.length < 1 ? (
@@ -351,13 +351,13 @@ export class ConversationsList extends Component {
           <div className="text-center py-3">
             <p className="text-muted">
               {this.state.kind === CONVERSATION_KINDS.ALL
-                ? 'No conversations yet.'
+                ? 'No messages yet.'
                 : this.state.kind === CONVERSATION_KINDS.NEEDS_REPLY
                   ? 'Nothing is waiting on a reply.'
                   : 'Nothing matches this filter.'}
             </p>
             <NavLink to="/NewConversation" className="btn btn-primary">
-              Create conversation
+              New message
             </NavLink>
             <div className="mt-2">
               <small className="text-muted">
@@ -385,7 +385,7 @@ export class ConversationsList extends Component {
         {groups.length > PREVIEW_ROWS && (
           <p className="mb-0">
             <NavLink to="/Conversations">
-              View all {groups.length} conversations
+              View all {groups.length} message threads
             </NavLink>
           </p>
         )}
@@ -426,7 +426,7 @@ export const ConversationsListContainer = compose(
         .then(uid => {
           if (!uid) {
             this.props.setConversationsError(
-              'Not signed in to Firebase — sign out and sign in again to load conversations.',
+              'Not signed in to Firebase — sign out and sign in again to load messages.',
             );
             return;
           }

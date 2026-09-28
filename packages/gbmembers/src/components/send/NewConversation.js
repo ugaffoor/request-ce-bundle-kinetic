@@ -91,7 +91,7 @@ const STATUS_LISTS = [
 const TOAST_MILLIS = 6000;
 
 const KIND_LABELS = {
-  [SEND_KINDS.CONVERSATION]: 'Conversation',
+  [SEND_KINDS.CONVERSATION]: 'Message',
   [SEND_KINDS.GROUP]: 'Group',
   [SEND_KINDS.BROADCAST]: 'Broadcast',
   [SEND_KINDS.ANNOUNCEMENT]: 'Announcement',
@@ -639,10 +639,10 @@ export class NewConversation extends Component {
         <div className="container-fluid leads">
           <div className="leadContents">
             <div className="options">
-              <h4 className="title">New Conversation</h4>
+              <h4 className="title">New Message</h4>
               <p>
-                You do not have access to conversations. Ask a space admin to
-                add you to the Program Managers role.
+                You do not have access to messages. Ask a space admin to add you
+                to the Program Managers role.
               </p>
             </div>
           </div>
@@ -682,7 +682,7 @@ export class NewConversation extends Component {
         <StatusMessagesContainer />
         <div className="leadContents">
           <div className="options">
-            <h4 className="title">New Conversation</h4>
+            <h4 className="title">New Message</h4>
             {this.renderConnectionStatus()}
             {/*
               Only blank the form on the first load. AppContainer refetches
@@ -703,7 +703,7 @@ export class NewConversation extends Component {
                     onChange={e => this.setState({ kind: e.target.value })}
                   >
                     <option value={SEND_KINDS.CONVERSATION}>
-                      Conversation &mdash; each student can reply
+                      Message &mdash; each student can reply
                     </option>
                     <option value={SEND_KINDS.GROUP}>
                       Group &mdash; one shared thread, everyone sees everyone
@@ -775,9 +775,9 @@ export class NewConversation extends Component {
                     />
                     {this.tinyChampionsBlocked() && (
                       <small className="text-muted">
-                        Tiny Champions are listed but cannot be put in a
-                        conversation. Contact the person who pays for them
-                        instead, or use a group or broadcast.
+                        Tiny Champions are listed but cannot be sent a private
+                        message. Contact the person who pays for them instead,
+                        or use a group or broadcast.
                       </small>
                     )}
                   </div>
