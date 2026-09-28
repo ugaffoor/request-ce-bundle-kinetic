@@ -525,52 +525,49 @@ export class NewPriceIncrease extends Component {
               onChange={e => this.setState({ name: e.target.value })}
             />
           </div>
-          {getAttributeValue(this.props.space, 'Billing Company') ===
-            'PaySmart' && (
-            <div className="formField">
-              <label
+          <div className="formField">
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontWeight: 'normal',
+                cursor: 'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={this.state.rbaFeeIncrease}
+                onChange={e => {
+                  const checked = e.target.checked;
+                  this.setState({ rbaFeeIncrease: checked });
+                  if (checked && !this.state.excludeNonBillingDependants) {
+                    this.applyDependantExclusion(true);
+                  }
+                }}
+              />
+              <I18n>Strict value Increase</I18n>
+              <span
+                data-tip="This option should be used when you are adding a specific amount to the Fee value despite any discounts applied."
+                data-for="rba-fee-increase-tip"
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontWeight: 'normal',
-                  cursor: 'pointer',
+                  cursor: 'help',
+                  color: '#888',
+                  marginLeft: '4px',
+                  fontSize: '14px',
                 }}
               >
-                <input
-                  type="checkbox"
-                  checked={this.state.rbaFeeIncrease}
-                  onChange={e => {
-                    const checked = e.target.checked;
-                    this.setState({ rbaFeeIncrease: checked });
-                    if (checked && !this.state.excludeNonBillingDependants) {
-                      this.applyDependantExclusion(true);
-                    }
-                  }}
-                />
-                <I18n>Strict value Increase</I18n>
-                <span
-                  data-tip="This option should be used when you are adding a specific amount to the billing amount, such as to cover the current Admin Fees exactly. The additional value will be added despite any discounts applied. The increase will be reflected as a discount on the member"
-                  data-for="rba-fee-increase-tip"
-                  style={{
-                    cursor: 'help',
-                    color: '#888',
-                    marginLeft: '4px',
-                    fontSize: '14px',
-                  }}
-                >
-                  &#9432;
-                </span>
-                <ReactTooltip
-                  id="rba-fee-increase-tip"
-                  place="right"
-                  effect="solid"
-                  multiline={true}
-                  style={{ maxWidth: '320px' }}
-                />
-              </label>
-            </div>
-          )}
+                &#9432;
+              </span>
+              <ReactTooltip
+                id="rba-fee-increase-tip"
+                place="right"
+                effect="solid"
+                multiline={true}
+                style={{ maxWidth: '320px' }}
+              />
+            </label>
+          </div>
           <div className="formField">
             <label>
               <I18n>Increase Type</I18n>
@@ -1308,13 +1305,12 @@ export class NewPriceIncrease extends Component {
                             {!isExcluded &&
                               (() => {
                                 if (this.state.rbaFeeIncrease) {
-                                  const cost = parseFloat(d.cost || 0);
+                                  const fee = parseFloat(d.fee || 0);
                                   const increaseAmt = parseFloat(
                                     fixedAmount || 0,
                                   );
                                   const newTotal =
-                                    Math.round((cost + increaseAmt) * 100) /
-                                    100;
+                                    Math.round((fee + increaseAmt) * 100) / 100;
                                   return increaseAmt > 0
                                     ? `${this.currencySymbol}${newTotal.toFixed(
                                         2,
@@ -2038,7 +2034,7 @@ export class PriceIncreaseEdit extends Component {
               return opts.rbaFeeIncrease ? (
                 <div className="formField">
                   <label>
-                    <I18n>RBA Fee Increase</I18n>
+                    <I18n>Strict Price Increase</I18n>
                   </label>
                   <div className="displayValue">Yes</div>
                 </div>
@@ -2150,7 +2146,7 @@ export class PriceIncreaseEdit extends Component {
               const opts =
                 getJson(priceIncrease.values['Excluded Options']) || {};
               const lines = [];
-              if (opts.rbaFeeIncrease) lines.push('RBA Fee Increase');
+              if (opts.rbaFeeIncrease) lines.push('Strict Price Increase');
               if (opts.excludeFamilyAccounts)
                 lines.push('Exclude Family Accounts');
               if (opts.excludeNonBillingDependants)
@@ -2690,7 +2686,7 @@ export class PriceIncreaseEdit extends Component {
                     }
                   }}
                 />
-                <I18n>RBA Fee Increase</I18n>
+                <I18n>Strict Price Increase</I18n>
                 <span
                   data-tip="This option should be used when you are adding a specific amount to the billing amount. The additional value will be added despite any discounts applied. The increase will be reflected as a discount on the member"
                   data-for="rba-fee-increase-tip"
@@ -3455,13 +3451,12 @@ export class PriceIncreaseEdit extends Component {
                             {!isExcluded &&
                               (() => {
                                 if (this.state.rbaFeeIncrease) {
-                                  const cost = parseFloat(d.cost || 0);
+                                  const fee = parseFloat(d.fee || 0);
                                   const increaseAmt = parseFloat(
                                     fixedAmount || 0,
                                   );
                                   const newTotal =
-                                    Math.round((cost + increaseAmt) * 100) /
-                                    100;
+                                    Math.round((fee + increaseAmt) * 100) / 100;
                                   return increaseAmt > 0
                                     ? `${this.currencySymbol}${newTotal.toFixed(
                                         2,

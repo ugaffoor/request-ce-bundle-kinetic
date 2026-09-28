@@ -1168,10 +1168,41 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       : {};
 
   if (history.length > 0) {
-    var statusHistorySorted = history.sort(function(stat1, stat2) {
-      var date1 = moment(stat1.date);
-      var date2 = moment(stat2.date);
+    const dateFormats = [
+      'ddd MMM DD YYYY HH:mm:ss [GMT]ZZ',
+      'dd MMM DD YYYY hh:mm:ss Z',
+      'YYYY-MM-DD hh:mm:ss Z',
+    ];
+    const statusFromHistoryEntry = entry => {
+      if (entry['status'] === 'Active') return 'Active';
+      if (entry['status'] === 'Inactive') return 'Inactive';
+      if (entry['status'] === 'Deleted') {
+        if (statusHistorySorted.some(e => e['status'] === 'Inactive'))
+          return null;
+        return member['values']['Billing Customer Reference'] !== undefined &&
+          member['values']['Billing Customer Reference'] !== null &&
+          member['values']['Billing Customer Reference'] !== ''
+          ? 'Inactive'
+          : null;
+      }
+      if (entry['status'] === 'Casual') return 'Casual';
+      if (entry['status'] === 'Pending Cancellation')
+        return 'Pending Cancellation';
+      if (entry['status'] === 'Pending Registration')
+        return 'Pending Registration';
+      if (entry['status'] === 'Frozen' || entry['status'] === 'Suspended')
+        return 'Frozen';
+      if (
+        entry['status'] === 'Pending Freeze' ||
+        entry['status'] === 'Pending Suspension'
+      )
+        return 'Pending Freeze';
+      return null;
+    };
 
+    var statusHistorySorted = history.sort(function(stat1, stat2) {
+      var date1 = moment(stat1.date, dateFormats);
+      var date2 = moment(stat2.date, dateFormats);
       try {
         if (date1.isBefore(date2, 'day')) return -1;
         if (date1.isAfter(date2, 'day')) return 1;
@@ -1181,54 +1212,50 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       return 0;
     });
 
+    // Find the most recent entry that changed status within the date range
     for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
+      const entryDate = moment(statusHistorySorted[i]['date'], dateFormats);
       if (
-        moment(statusHistorySorted[i]['date'], [
-          'dd MMM DD YYYY hh:mm:ss Z',
-          'YYYY-MM-DD hh:mm:ss Z',
-        ]).isSameOrAfter(fromDate, 'day') &&
-        moment(statusHistorySorted[i]['date'], [
-          'dd MMM DD YYYY hh:mm:ss Z',
-          'YYYY-MM-DD hh:mm:ss Z',
-        ]).isSameOrBefore(
-          toDate,
-          'day',
-        ) /* ||
-        (fromDate.isSame(toDate, 'day') &&
-          fromDate.isSameOrAfter(
-            moment(new Date(statusHistorySorted[i]['date'])),
-            'day',
-          )) */
+        entryDate.isSameOrAfter(fromDate, 'day') &&
+        entryDate.isSameOrBefore(toDate, 'day')
       ) {
-        if (statusHistorySorted[i]['status'] === 'Active') {
-          return 'Active';
-        } else if (statusHistorySorted[i]['status'] === 'Inactive') {
-          return 'Inactive';
-        } else if (statusHistorySorted[i]['status'] === 'Deleted') {
-          return 'Deleted';
-        } else if (statusHistorySorted[i]['status'] === 'Casual') {
-          return 'Casual';
-        } else if (
-          statusHistorySorted[i]['status'] === 'Pending Cancellation'
-        ) {
-          return 'Pending Cancellation';
-        } else if (
-          statusHistorySorted[i]['status'] === 'Pending Registration'
-        ) {
-          return 'Pending Registration';
-        } else if (
-          statusHistorySorted[i]['status'] === 'Frozen' ||
-          statusHistorySorted[i]['status'] === 'Suspended'
-        ) {
-          return 'Frozen';
-        } else if (
-          statusHistorySorted[i]['status'] === 'Pending Freeze' ||
-          statusHistorySorted[i]['status'] === 'Pending Suspension'
-        ) {
-          return 'Pending Freeze';
-        }
-      } else {
+        const s = statusFromHistoryEntry(statusHistorySorted[i]);
+        if (s) return s;
       }
+    }
+
+    // No change within range — carry forward the most recent status before fromDate
+    // Frozen/PF are temporary: skip them if the member is no longer in that state
+    for (var j = statusHistorySorted.length - 1; j >= 0; j--) {
+      const entryDate = moment(statusHistorySorted[j]['date'], dateFormats);
+      if (entryDate.isBefore(fromDate, 'day')) {
+        let s = statusFromHistoryEntry(statusHistorySorted[j]);
+        if (s === 'Frozen' || s === 'Pending Freeze') {
+          const cv = member['values']['Status'];
+          if (
+            cv !== 'Frozen' &&
+            cv !== 'Suspended' &&
+            cv !== 'Pending Freeze' &&
+            cv !== 'Pending Suspension'
+          ) {
+            s = null;
+          }
+        }
+        if (s) return s;
+      }
+    }
+
+    // All history entries are after this period — member was in initial Active state since joining
+    if (
+      member['values']['Date Joined'] !== undefined &&
+      member['values']['Date Joined'] !== null &&
+      member['values']['Date Joined'] !== '' &&
+      moment(member['values']['Date Joined'], 'YYYY-MM-DD').isSameOrBefore(
+        toDate,
+        'day',
+      )
+    ) {
+      return 'Active';
     }
 
     if (statusHistorySorted.length > 0 && returnStatus) {
@@ -1343,7 +1370,7 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
               'YYYY-MM-DD',
             ).isSameOrBefore(toDate, 'day')
           ) {
-            return status;
+            return status || 'Active';
           }
 
           return '';
@@ -1353,16 +1380,44 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
     }
   }
 }
-export function memberPreviousStatus(member, fromDate, toDate) {
+export function memberPreviousStatus(member, fromDate, toDate, returnStatus) {
   var history =
     member.values['Status History'] !== undefined
       ? getJson(member.values['Status History'])
       : {};
+  const dateFormats = ['dd MMM DD YYYY hh:mm:ss Z', 'YYYY-MM-DD hh:mm:ss Z'];
+
+  const statusFromHistoryEntry = entry => {
+    if (entry['status'] === 'Active') return 'Active';
+    if (entry['status'] === 'Inactive') return 'Inactive';
+    if (entry['status'] === 'Deleted') {
+      if (statusHistorySorted.some(e => e['status'] === 'Inactive'))
+        return null;
+      return member['values']['Billing Customer Reference'] !== undefined &&
+        member['values']['Billing Customer Reference'] !== null &&
+        member['values']['Billing Customer Reference'] !== ''
+        ? 'Inactive'
+        : null;
+    }
+    if (entry['status'] === 'Casual') return 'Casual';
+    if (entry['status'] === 'Pending Cancellation')
+      return 'Pending Cancellation';
+    if (entry['status'] === 'Pending Registration')
+      return 'Pending Registration';
+    if (entry['status'] === 'Frozen' || entry['status'] === 'Suspended')
+      return 'Frozen';
+    if (
+      entry['status'] === 'Pending Freeze' ||
+      entry['status'] === 'Pending Suspension'
+    )
+      return 'Pending Freeze';
+    return null;
+  };
 
   if (history.length > 0) {
     var statusHistorySorted = history.sort(function(stat1, stat2) {
-      var date1 = moment(stat1.date);
-      var date2 = moment(stat2.date);
+      var date1 = moment(stat1.date, dateFormats);
+      var date2 = moment(stat2.date, dateFormats);
 
       try {
         if (date1.isBefore(date2, 'day')) return -1;
@@ -1373,41 +1428,26 @@ export function memberPreviousStatus(member, fromDate, toDate) {
       return 0;
     });
 
+    // Find a status change within the range and return the status before it
     for (var i = statusHistorySorted.length - 1; i >= 0; i--) {
+      const entryDate = moment(statusHistorySorted[i]['date'], dateFormats);
       if (
-        moment(new Date(statusHistorySorted[i]['date'])).isSameOrAfter(
-          fromDate,
-          'day',
-        ) &&
-        moment(new Date(statusHistorySorted[i]['date'])).isSameOrBefore(
-          toDate,
-          'day',
-        )
+        entryDate.isSameOrAfter(fromDate, 'day') &&
+        entryDate.isSameOrBefore(toDate, 'day')
       ) {
         if (i > 0) {
-          if (statusHistorySorted[i - 1]['status'] === 'Active') {
-            return 'Active';
-          } else if (statusHistorySorted[i - 1]['status'] === 'Inactive') {
-            return 'Inactive';
-          } else if (statusHistorySorted[i - 1]['status'] === 'Casual') {
-            return 'Casual';
-          } else if (
-            statusHistorySorted[i - 1]['status'] === 'Pending Cancellation'
-          ) {
-            return 'Pending Cancellation';
-          } else if (
-            statusHistorySorted[i - 1]['status'] === 'Frozen' ||
-            statusHistorySorted[i - 1]['status'] === 'Suspended'
-          ) {
-            return 'Frozen';
-          } else if (
-            statusHistorySorted[i - 1]['status'] === 'Pending Freeze' ||
-            statusHistorySorted[i - 1]['status'] === 'Pending Suspension'
-          ) {
-            return 'Pending Freeze';
-          }
+          const s = statusFromHistoryEntry(statusHistorySorted[i - 1]);
+          if (s) return s;
         }
-      } else {
+      }
+    }
+
+    // No change within range — carry forward the most recent status before fromDate
+    for (var j = statusHistorySorted.length - 1; j >= 0; j--) {
+      const entryDate = moment(statusHistorySorted[j]['date'], dateFormats);
+      if (entryDate.isBefore(fromDate, 'day')) {
+        const s = statusFromHistoryEntry(statusHistorySorted[j]);
+        if (s) return s;
       }
     }
 

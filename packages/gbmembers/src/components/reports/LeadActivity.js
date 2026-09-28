@@ -464,21 +464,28 @@ export class LeadsActivityReport extends Component {
   };
 
   dateFilter = (data, params) => {
-    let dateValue = moment(params.value).format('YYYY-MM-DD');
+    const localeDateFormat = moment.localeData().longDateFormat('L');
+    let dateValue = moment(params.value, 'YYYY-MM-DD');
     switch (params.type) {
       case '=':
         return data[params.field]
-          ? moment(data[params.field], 'DD-MM-YYYY').isSame(dateValue, 'day')
+          ? moment(data[params.field], localeDateFormat).isSame(
+              dateValue,
+              'day',
+            )
           : false;
         break;
       case '<':
         return data[params.field]
-          ? moment(data[params.field], 'DD-MM-YYYY').isBefore(dateValue, 'day')
+          ? moment(data[params.field], localeDateFormat).isBefore(
+              dateValue,
+              'day',
+            )
           : false;
         break;
       case '<=':
         return data[params.field]
-          ? moment(data[params.field], 'DD-MM-YYYY').isSameOrBefore(
+          ? moment(data[params.field], localeDateFormat).isSameOrBefore(
               dateValue,
               'day',
             )
@@ -486,12 +493,15 @@ export class LeadsActivityReport extends Component {
         break;
       case '>':
         return data[params.field]
-          ? moment(data[params.field], 'DD-MM-YYYY').isAfter(dateValue, 'day')
+          ? moment(data[params.field], localeDateFormat).isAfter(
+              dateValue,
+              'day',
+            )
           : false;
         break;
       case '>=':
         return data[params.field]
-          ? moment(data[params.field], 'DD-MM-YYYY').isSameOrAfter(
+          ? moment(data[params.field], localeDateFormat).isSameOrAfter(
               dateValue,
               'day',
             )
@@ -499,7 +509,10 @@ export class LeadsActivityReport extends Component {
         break;
       case '!=':
         return data[params.field]
-          ? !moment(data[params.field], 'DD-MM-YYYY').isSame(dateValue, 'day')
+          ? !moment(data[params.field], localeDateFormat).isSame(
+              dateValue,
+              'day',
+            )
           : false;
         break;
       case 'like':
@@ -511,9 +524,11 @@ export class LeadsActivityReport extends Component {
         if (!data[params.field]) {
           return false;
         }
-        let dateVal = moment(data[params.field]).format('DD-MM-YYYY');
         return params.includes.some(value =>
-          moment(value, 'YYYY-MM-DD').isSame(dateVal, 'day'),
+          moment(data[params.field], localeDateFormat).isSame(
+            moment(value, 'YYYY-MM-DD'),
+            'day',
+          ),
         );
         break;
     }
@@ -915,6 +930,43 @@ export class LeadsActivityReport extends Component {
         filter.filterValue = JSON.parse(filter.filterValue);
       }
     });
+
+    // Restore filterIds so remove-filter works for loaded preferences
+    filters.forEach(filter => {
+      if (!filter.filterId) return;
+      if (filter.filterType === 'Date Range') {
+        const match = /startDate:([^,]+),\s*endDate:([^\]]+)/.exec(
+          filter.filterValue,
+        );
+        if (match) {
+          this.filterIds[filter.filterId] = {
+            field: filter.filterColumn,
+            startDate: match[1].trim(),
+            endDate: match[2].trim(),
+          };
+        }
+      } else if (filter.filterType === 'includes') {
+        this.filterIds[filter.filterId] = {
+          field: filter.filterColumn,
+          includes: Array.isArray(filter.filterValue)
+            ? filter.filterValue
+            : JSON.parse(filter.filterValue),
+        };
+      } else {
+        const col = this.columnsToHide.find(
+          c => c.value === filter.filterColumn,
+        );
+        if (col && col.dataType === 'date') {
+          this.filterIds[filter.filterId] = {
+            field: filter.filterColumn,
+            type: filter.filterType,
+            value: filter.filterValue,
+            includes: [],
+          };
+        }
+      }
+    });
+
     var filterColumns = this.columnsToHide.filter(
       column =>
         !preference['Hidden Columns'].some(elm => elm.value === column.value),
@@ -955,6 +1007,32 @@ export class LeadsActivityReport extends Component {
               includes: filter.filterValue,
             },
           );
+        } else if (filter.filterType === 'Date Range') {
+          const match = /startDate:([^,]+),\s*endDate:([^\]]+)/.exec(
+            filter.filterValue,
+          );
+          if (match) {
+            compThis.leadsActivityGridref.current.addFilter(
+              compThis.dateRangeFilter,
+              {
+                field: filter.filterColumn,
+                startDate: match[1].trim(),
+                endDate: match[2].trim(),
+              },
+            );
+          }
+        } else if (
+          filter.filterId &&
+          compThis.columnsToHide.some(
+            col => col.value === filter.filterColumn && col.dataType === 'date',
+          )
+        ) {
+          compThis.leadsActivityGridref.current.addFilter(compThis.dateFilter, {
+            field: filter.filterColumn,
+            type: filter.filterType,
+            value: filter.filterValue,
+            includes: [],
+          });
         } else {
           compThis.leadsActivityGridref.current.addFilter(
             filter.filterColumn,

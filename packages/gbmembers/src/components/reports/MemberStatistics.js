@@ -134,11 +134,10 @@ export class MemberStatistics extends Component {
       member['values']['Date Joined'] !== null &&
       member['values']['Date Joined'] !== ''
     ) {
+      const joined = moment(member['values']['Date Joined'], 'YYYY-MM-DD');
       if (
-        moment(member['values']['Date Joined'], 'YYYY-MM-DD').isBetween(
-          fromDate,
-          toDate,
-        )
+        joined.isSameOrAfter(fromDate, 'day') &&
+        joined.isSameOrBefore(toDate, 'day')
       ) {
         return true;
       }
@@ -285,7 +284,24 @@ export class MemberStatistics extends Component {
         pendingFrozen[pendingFrozen.length] = member;
       }
       if (memberStatus === 'Inactive') {
-        cancellations[cancellations.length] = member;
+        const mHistory = getJson(member.values['Status History']) || [];
+        const becameInactiveInPeriod =
+          Array.isArray(mHistory) &&
+          mHistory.some(entry => {
+            const d = moment(entry.date, [
+              'ddd MMM DD YYYY HH:mm:ss [GMT]ZZ',
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ]);
+            return (
+              d.isSameOrAfter(fromDate, 'day') &&
+              d.isSameOrBefore(toDate, 'day') &&
+              (entry.status === 'Inactive' || entry.status === 'Deleted')
+            );
+          });
+        if (becameInactiveInPeriod) {
+          cancellations[cancellations.length] = member;
+        }
       }
       if (memberStatus === 'Pending Cancellation') {
         pendingCancellations[pendingCancellations.length] = member;

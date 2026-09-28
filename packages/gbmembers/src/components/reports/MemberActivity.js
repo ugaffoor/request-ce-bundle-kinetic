@@ -1122,6 +1122,31 @@ export class MemberActivityReport extends Component {
         filter.filterValue = JSON.parse(filter.filterValue);
       }
     });
+
+    // Restore filterIds so remove-filter works for loaded preferences
+    filters.forEach(filter => {
+      if (!filter.filterId) return;
+      if (filter.filterType === 'Date Range') {
+        const match = /startDate:([^,]+),\s*endDate:([^\]]+)/.exec(
+          filter.filterValue,
+        );
+        if (match) {
+          this.filterIds[filter.filterId] = {
+            field: filter.filterColumn,
+            startDate: match[1].trim(),
+            endDate: match[2].trim(),
+          };
+        }
+      } else if (filter.filterType === 'includes') {
+        this.filterIds[filter.filterId] = {
+          field: filter.filterColumn,
+          includes: Array.isArray(filter.filterValue)
+            ? filter.filterValue
+            : JSON.parse(filter.filterValue),
+        };
+      }
+    });
+
     var filterColumns = this.filterColumns.filter(
       column =>
         !preference['Hidden Columns'].some(elm => elm.value === column.value),
@@ -1157,12 +1182,26 @@ export class MemberActivityReport extends Component {
       filters.forEach((filter, index) => {
         if (filter.filterType === 'includes') {
           compThis.memberActivityGridref.current.addFilter(
-            this.includesFilter,
+            compThis.includesFilter,
             {
               field: filter.filterColumn,
               includes: filter.filterValue,
             },
           );
+        } else if (filter.filterType === 'Date Range') {
+          const match = /startDate:([^,]+),\s*endDate:([^\]]+)/.exec(
+            filter.filterValue,
+          );
+          if (match) {
+            compThis.memberActivityGridref.current.addFilter(
+              compThis.dateRangeFilter,
+              {
+                field: filter.filterColumn,
+                startDate: match[1].trim(),
+                endDate: match[2].trim(),
+              },
+            );
+          }
         } else {
           compThis.memberActivityGridref.current.addFilter(
             filter.filterColumn,

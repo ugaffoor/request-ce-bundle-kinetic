@@ -911,19 +911,88 @@ export class Statistics extends Component {
         }
       }
       if (memberStatus === 'Inactive') {
-        cancellations[cancellations.length] = member;
+        const mHistory = getJson(member.values['Status History']) || [];
+        const becameInactiveInPeriod =
+          Array.isArray(mHistory) &&
+          mHistory.some(entry => {
+            const d = moment(entry.date, [
+              'ddd MMM DD YYYY HH:mm:ss [GMT]ZZ',
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ]);
+            return (
+              d.isSameOrAfter(fromDate, 'day') &&
+              d.isSameOrBefore(toDate, 'day') &&
+              (entry.status === 'Inactive' || entry.status === 'Deleted')
+            );
+          });
+        if (becameInactiveInPeriod) {
+          cancellations[cancellations.length] = member;
+        }
       }
       if (memberStatus === 'Pending Cancellation') {
-        pendingCancellations[pendingCancellations.length] = member;
+        const mHistoryPC = getJson(member.values['Status History']) || [];
+        const becamePendingCancellationInPeriod =
+          Array.isArray(mHistoryPC) &&
+          mHistoryPC.some(entry => {
+            const d = moment(entry.date, [
+              'ddd MMM DD YYYY HH:mm:ss [GMT]ZZ',
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ]);
+            return (
+              d.isSameOrAfter(fromDate, 'day') &&
+              d.isSameOrBefore(toDate, 'day') &&
+              entry.status === 'Pending Cancellation'
+            );
+          });
+        if (becamePendingCancellationInPeriod) {
+          pendingCancellations[pendingCancellations.length] = member;
+        }
       }
       if (memberStatus === 'Frozen' || memberStatus === 'Suspended') {
-        frozen[frozen.length] = member;
+        const mHistoryF = getJson(member.values['Status History']) || [];
+        const becameFrozenInPeriod =
+          Array.isArray(mHistoryF) &&
+          mHistoryF.some(entry => {
+            const d = moment(entry.date, [
+              'ddd MMM DD YYYY HH:mm:ss [GMT]ZZ',
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ]);
+            return (
+              d.isSameOrAfter(fromDate, 'day') &&
+              d.isSameOrBefore(toDate, 'day') &&
+              (entry.status === 'Frozen' || entry.status === 'Suspended')
+            );
+          });
+        if (becameFrozenInPeriod) {
+          frozen[frozen.length] = member;
+        }
       }
       if (
         memberStatus === 'Pending Freeze' ||
         memberStatus === 'Pending Suspension'
       ) {
-        pendingFrozen[pendingFrozen.length] = member;
+        const mHistoryPF = getJson(member.values['Status History']) || [];
+        const becamePendingFreezeInPeriod =
+          Array.isArray(mHistoryPF) &&
+          mHistoryPF.some(entry => {
+            const d = moment(entry.date, [
+              'ddd MMM DD YYYY HH:mm:ss [GMT]ZZ',
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ]);
+            return (
+              d.isSameOrAfter(fromDate, 'day') &&
+              d.isSameOrBefore(toDate, 'day') &&
+              (entry.status === 'Pending Freeze' ||
+                entry.status === 'Pending Suspension')
+            );
+          });
+        if (becamePendingFreezeInPeriod) {
+          pendingFrozen[pendingFrozen.length] = member;
+        }
       }
     });
     members.forEach(member => {
