@@ -9,9 +9,9 @@ import { inlineStyle } from './SMSModalContainer';
  * two ways of reaching someone feel like one feature.
  *
  * The thread inside is the Conversations page itself, embedded: sending,
- * Enter to send, the pending bubble, the Tiny Champion safeguard and read
- * marking all behave exactly as they do on the full page, because they are
- * the same code.
+ * the pending bubble, the Tiny Champion safeguard and read marking all
+ * behave exactly as they do on the full page, because they are the same
+ * code.
  */
 export const MemberMessageModal = ({ memberItem, onClose }) => (
   <div>

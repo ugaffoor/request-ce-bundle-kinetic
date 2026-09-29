@@ -432,29 +432,6 @@ export class Conversations extends Component {
     });
   };
 
-  /**
-   * Enter sends; Shift+Enter starts a new line. The default would insert a
-   * line break, so Enter is stopped before it reaches the box -- including
-   * when there is nothing to send, since a stray blank line is not what the
-   * key was pressed for.
-   *
-   * Left alone while an input method is composing (Japanese, Chinese and the
-   * like), where Enter commits the candidate rather than finishing the
-   * message.
-   */
-  handleReplyKeyDown(event, canSend) {
-    if (event.key !== 'Enter' || event.shiftKey) {
-      return;
-    }
-    if (event.nativeEvent && event.nativeEvent.isComposing) {
-      return;
-    }
-    event.preventDefault();
-    if (canSend) {
-      this.sendReply();
-    }
-  }
-
   renderComposer() {
     const conversation = this.getSelectedConversation();
     if (!conversation && !this.state.draftMemberId) {
@@ -498,12 +475,10 @@ export class Conversations extends Component {
           className="form-control"
           rows="3"
           value={this.state.reply}
+          // Enter is a new line, as in any text box -- only the Send button
+          // sends, so a message is never sent half-written by a stray key.
           onChange={e => this.setState({ reply: e.target.value })}
-          onKeyDown={e => this.handleReplyKeyDown(e, canSend)}
         />
-        <small className="form-text text-muted">
-          Enter to send &middot; Shift+Enter for a new line
-        </small>
         {this.props.sendError && (
           <div className="alert alert-danger mt-2">
             <strong>Message not sent.</strong>
