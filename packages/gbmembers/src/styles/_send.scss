@@ -384,3 +384,15 @@ tr.conversation-row {
   overflow: hidden;
   color: $gray;
 }
+
+// The conversation inside the profile's Message pop-up. The thread scrolls
+// on its own, so the reply box stays in view however long the history runs
+// -- scrolling the whole pop-up would push it below the fold on every open.
+.conversation-embedded {
+  margin-top: 10px;
+
+  .conversation-thread {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+}

@@ -575,7 +575,8 @@ const enhance = compose(
 );
 export const SMSModalContainer = enhance(SMSModal);
 
-const inlineStyle = {
+// Exported so the profile's Message pop-up opens in the same frame.
+export const inlineStyle = {
   position: 'absolute',
   marginBottom: '20px',
   width: '80%',

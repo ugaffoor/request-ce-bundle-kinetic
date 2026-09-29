@@ -110,10 +110,14 @@ const routeConversationId = props =>
   (props.match && props.match.params && props.match.params.conversationId) ||
   null;
 
-// The Message button on a member's profile links here with the member rather
-// than a thread, because the thread may not exist yet.
+// The member this page is about, when it is about one: from the route when
+// reached by URL, or passed straight in when shown inside the profile's
+// Message pop-up. A member rather than a thread, because the thread may not
+// exist yet.
 const routeMemberId = props =>
-  (props.match && props.match.params && props.match.params.memberId) || null;
+  props.memberId ||
+  (props.match && props.match.params && props.match.params.memberId) ||
+  null;
 
 export class Conversations extends Component {
   constructor(props) {
@@ -1109,9 +1113,12 @@ export class Conversations extends Component {
   renderDraftThread(membersById) {
     return (
       <React.Fragment>
-        <h5 className="mb-3">
-          {participantName(this.state.draftMemberId, membersById)}
-        </h5>
+        {/* The pop-up already names them in its heading. */}
+        {!this.props.embedded && (
+          <h5 className="mb-3">
+            {participantName(this.state.draftMemberId, membersById)}
+          </h5>
+        )}
         <p className="text-muted">
           No messages yet.
           {/* Not promised when the box below is closed to them. */}
@@ -1363,6 +1370,16 @@ export class Conversations extends Component {
 
     const membersById = this.getMembersById();
 
+    // Inside the profile's pop-up: the pop-up supplies the title and the way
+    // out, so only the thread itself is drawn.
+    if (this.props.embedded) {
+      return (
+        <div className="conversation-embedded">
+          {this.renderMemberThreadBody(membersById)}
+        </div>
+      );
+    }
+
     if (routeMemberId(this.props)) {
       return this.renderMemberThread(membersById);
     }
@@ -1394,7 +1411,6 @@ export class Conversations extends Component {
    */
   renderMemberThread(membersById) {
     const memberId = routeMemberId(this.props);
-    const { loading, error } = this.props;
 
     const conversation = this.getSelectedConversation();
     const withId =
@@ -1418,26 +1434,41 @@ export class Conversations extends Component {
                 </NavLink>
               </span>
             </h4>
-            {error && (
-              <div className="alert alert-danger">
-                <strong>Could not load messages.</strong>
-                <div>{error}</div>
-              </div>
-            )}
-            {loading && !error ? (
-              <ReactSpinner />
-            ) : (
-              this.state.selectedId && (
-                <React.Fragment>
-                  {this.renderThreadActions()}
-                  {this.renderThread(membersById)}
-                  {this.renderComposer()}
-                </React.Fragment>
-              )
-            )}
+            {this.renderMemberThreadBody(membersById)}
           </div>
         </div>
       </div>
+    );
+  }
+
+  /**
+   * The thread with one member and the box to answer in, without the page
+   * around it -- shared by the full page and the profile's Message pop-up,
+   * so both behave identically.
+   */
+  renderMemberThreadBody(membersById) {
+    const { loading, error } = this.props;
+
+    return (
+      <React.Fragment>
+        {error && (
+          <div className="alert alert-danger">
+            <strong>Could not load messages.</strong>
+            <div>{error}</div>
+          </div>
+        )}
+        {loading && !error ? (
+          <ReactSpinner />
+        ) : (
+          this.state.selectedId && (
+            <React.Fragment>
+              {this.renderThreadActions()}
+              {this.renderThread(membersById)}
+              {this.renderComposer()}
+            </React.Fragment>
+          )
+        )}
+      </React.Fragment>
     );
   }
 }
@@ -1517,8 +1548,16 @@ export const ConversationsContainer = compose(
     // Both listeners belong to this page: leaving it stops them, rather
     // than leaving Firestore streaming a list and a thread nobody is
     // looking at for the rest of the session.
+    //
+    // Except inside the profile's pop-up. There is one listener of each
+    // kind, shared, and the profile's own conversation panel is using the
+    // very same ones -- closing the pop-up must not freeze the panel behind
+    // it. The panel stops them when the profile itself is left.
     componentWillUnmount() {
       this.unmounted = true;
+      if (this.props.embedded) {
+        return;
+      }
       this.props.unsubscribeConversations();
       this.props.unsubscribeMessages();
     },

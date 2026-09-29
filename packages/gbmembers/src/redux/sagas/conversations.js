@@ -264,7 +264,8 @@ export function* watchMessageSnapshots({ payload } = {}) {
  *
  * lastMessage, unreadCount, monitorable and hasJunior are deliberately NOT
  * written here: onChatMessageCreated owns them through the Admin SDK, and the
- * rules explicitly forbid a client asserting monitorable.
+ * rules explicitly forbid a client asserting monitorable. updatedAt IS
+ * written on creation -- see deliverTo for why the thread cannot wait for it.
  */
 /**
  * Writes one message into one conversation. Shared by the single and
@@ -297,6 +298,15 @@ function* deliverTo({
     const conversation = {
       [CONVERSATION_FIELDS.participantIds]: [memberId, staffId],
       staffChat: true,
+      // Stamped here, not left to the Cloud Function. Every list orders by
+      // updatedAt, and Firestore leaves a document with no value for the
+      // ordered field out of the results entirely -- so a new thread was
+      // invisible until onChatMessageCreated caught up, seconds later (more
+      // on a cold start). The page waits for the thread to appear before it
+      // follows its messages, so the first message to someone looked like it
+      // had vanished until the page was reopened. The app's
+      // upsertPairMessageThread stamps it the same way.
+      [CONVERSATION_FIELDS.updatedAt]: serverTimestamp(),
     };
     if (spaceSlug) {
       conversation.spaceSlug = spaceSlug;

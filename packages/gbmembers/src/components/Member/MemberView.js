@@ -82,6 +82,7 @@ import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { MemberConversationContainer } from './MemberConversation';
+import { MemberMessageModal } from './MemberMessageModal';
 import 'react-datetime/css/react-datetime.css';
 import ReactToPrint from 'react-to-print';
 import ReactTooltip from 'react-tooltip';
@@ -1017,6 +1018,8 @@ export const MemberView = ({
   showCallScriptModal,
   setShowSMSModal,
   showSMSModal,
+  setShowMessageModal,
+  showMessageModal,
   setShowChangeStatusModal,
   showChangeStatusModal,
   setShowRegisterMemberModal,
@@ -1498,14 +1501,24 @@ export const MemberView = ({
                       setShowSMSModal={setShowSMSModal}
                     />
                   )}
+                  {/* Opens over the profile, like Send SMS, rather than
+                      taking you away from it. The full page is still one
+                      click away from the Conversation panel's Open link. */}
                   {canUseConversations(profile) && (
-                    <NavLink
-                      to={`/MemberConversation/${memberItem.id}`}
+                    <button
+                      type="button"
                       className="btn btn-primary"
                       style={{ marginLeft: '10px' }}
+                      onClick={() => setShowMessageModal(true)}
                     >
                       Message
-                    </NavLink>
+                    </button>
+                  )}
+                  {showMessageModal && (
+                    <MemberMessageModal
+                      memberItem={memberItem}
+                      onClose={() => setShowMessageModal(false)}
+                    />
                   )}
                   {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                     <div />
@@ -2325,6 +2338,7 @@ export const MemberViewContainer = compose(
   withState('showStripeActivate', 'setShowStripeActivate', false),
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
+  withState('showMessageModal', 'setShowMessageModal', false),
   withState('showChangeStatusModal', 'setShowChangeStatusModal', false),
   withState('showNewReplyModal', 'setShowNewReplyModal', false),
   withState('showRegisterMemberModal', 'setShowRegisterMemberModal', false),
