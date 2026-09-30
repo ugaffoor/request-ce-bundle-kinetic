@@ -25,6 +25,7 @@ import {
 } from 'firebase/firestore';
 import { types, actions } from '../modules/conversations';
 import { getConversationStore } from '../../lib/firebase';
+import { uploadChatMedia } from '../../lib/chatMedia';
 import { describeAuthState } from '../../lib/firebaseAuth';
 import {
   announcementThreadId,
@@ -279,6 +280,11 @@ function* deliverTo({
   text,
   existingConversationId,
   broadcast,
+  replyTo,
+  attachment,
+  // A file already uploaded once for a send to several people -- each of
+  // their threads points at the same copy rather than uploading it again.
+  media: sharedMedia,
 }) {
   // A broadcast MUST NOT resolve to the 1:1 pair id: that is the same
   // document as the member's ordinary conversation, and the merge below would
@@ -333,14 +339,29 @@ function* deliverTo({
     });
   }
 
+  // A photo goes up before the message that carries it, so the message never
+  // points at a file that is not there yet. After the thread is created, as
+  // the file is stored under the thread's id.
+  let media = sharedMedia || null;
+  if (attachment) {
+    media = yield call(uploadChatMedia, id, staffId, attachment);
+  }
+
   yield call(
     addDoc,
     collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
     {
-      [MESSAGE_FIELDS.body]: text,
+      // A photo may be sent on its own; the app shows an empty caption as none.
+      [MESSAGE_FIELDS.body]: text || '',
       [MESSAGE_FIELDS.senderId]: staffId,
       // Server time, so ordering does not depend on the sender's clock.
       [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+      // The message this answers, when staff picked one. Same field and shape
+      // the app writes, so the quote shows on the member's phone as well.
+      ...(replyTo ? { replyTo } : {}),
+      // The same field the app writes, so the member's phone shows it as a
+      // photo and the Cloud Function previews it as one.
+      ...(media ? { media } : {}),
     },
   );
 }
@@ -362,6 +383,7 @@ function* deliverAnnouncement({
   text,
   audienceMembers,
   audienceStatus,
+  attachment,
 }) {
   const id = announcementThreadId(spaceSlug, domain);
 
@@ -378,13 +400,21 @@ function* deliverAnnouncement({
     { merge: true },
   );
 
+  // Uploaded once, into the school's thread. fanOutAnnouncement copies the
+  // `media` field into every member's delivered copy along with the text.
+  let media = null;
+  if (attachment) {
+    media = yield call(uploadChatMedia, id, staffId, attachment);
+  }
+
   yield call(
     addDoc,
     collection(store, CONVERSATIONS_COLLECTION, id, MESSAGES_SUBCOLLECTION),
     {
-      [MESSAGE_FIELDS.body]: text,
+      [MESSAGE_FIELDS.body]: text || '',
       [MESSAGE_FIELDS.senderId]: staffId,
       [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+      ...(media ? { media } : {}),
       // Same shape as sendAnnouncement() in the app, which is what the
       // fan-out function reads. `audience` is the programs filter the app
       // offers; the portal filters by member list instead, which arrives as
@@ -409,7 +439,15 @@ function* deliverAnnouncement({
  * requires it, and mayMessageIn() then passes on isGroup rather than needing
  * the friends-only waiver.
  */
-function* deliverGroup({ store, staffId, memberIds, spaceSlug, name, text }) {
+function* deliverGroup({
+  store,
+  staffId,
+  memberIds,
+  spaceSlug,
+  name,
+  text,
+  attachment,
+}) {
   const participantIds = [staffId].concat(
     memberIds.filter(id => id !== staffId),
   );
@@ -431,6 +469,12 @@ function* deliverGroup({ store, staffId, memberIds, spaceSlug, name, text }) {
     conversation,
   );
 
+  // After the group exists, so the file sits under its id like any other.
+  let media = null;
+  if (attachment) {
+    media = yield call(uploadChatMedia, created.id, staffId, attachment);
+  }
+
   yield call(
     addDoc,
     collection(
@@ -440,9 +484,10 @@ function* deliverGroup({ store, staffId, memberIds, spaceSlug, name, text }) {
       MESSAGES_SUBCOLLECTION,
     ),
     {
-      [MESSAGE_FIELDS.body]: text,
+      [MESSAGE_FIELDS.body]: text || '',
       [MESSAGE_FIELDS.senderId]: staffId,
       [MESSAGE_FIELDS.createdAt]: serverTimestamp(),
+      ...(media ? { media } : {}),
     },
   );
 }
@@ -468,6 +513,10 @@ export function* sendMessage({ payload } = {}) {
     // same deterministic 1:1 id, so a derived write can land in a broadcast
     // thread rather than the conversation on screen.
     conversationId: existingConversationId,
+    // A reply into an open thread may quote the message it answers.
+    replyTo,
+    // A photo or GIF prepared by prepareChatMedia, uploaded before sending.
+    attachment,
   } =
     payload || {};
 
@@ -481,7 +530,8 @@ export function* sendMessage({ payload } = {}) {
 
   if (
     !store ||
-    !text ||
+    // A photo can be the whole message; otherwise there must be words.
+    (!text && !attachment) ||
     !staffId ||
     // An announcement is addressed to the whole school, so it needs no
     // recipients -- but it does need to know which school.
@@ -519,6 +569,7 @@ export function* sendMessage({ payload } = {}) {
         text,
         audienceMembers,
         audienceStatus,
+        attachment,
       });
       yield put(actions.messageSent(Date.now()));
       return;
@@ -532,6 +583,7 @@ export function* sendMessage({ payload } = {}) {
         spaceSlug,
         name: groupName,
         text,
+        attachment,
       });
       yield put(actions.messageSent(Date.now()));
       return;
@@ -544,11 +596,28 @@ export function* sendMessage({ payload } = {}) {
         spaceSlug,
         text,
         existingConversationId,
+        replyTo,
+        attachment,
       });
     } else {
       // Each recipient gets their own 1:1 thread -- nobody learns who else
       // received it. Failures are collected rather than abandoning the rest,
       // so one bad recipient does not silently cancel everyone after them.
+      // A photo for several people is uploaded once and shared: nothing
+      // removes one thread's files on its own, so every copy stays valid,
+      // and a broadcast to a whole school is not the same file uploaded a
+      // few hundred times from one browser. A single recipient's photo goes
+      // under their own thread instead, as a reply's does.
+      const shared = !!attachment && recipients.length > 1;
+      const sharedMedia = shared
+        ? yield call(
+            uploadChatMedia,
+            `shared_${Date.now()}`,
+            staffId,
+            attachment,
+          )
+        : null;
+
       const failures = [];
       for (let i = 0; i < recipients.length; i++) {
         try {
@@ -559,6 +628,7 @@ export function* sendMessage({ payload } = {}) {
             spaceSlug,
             text,
             broadcast: kind === SEND_KINDS.BROADCAST,
+            ...(shared ? { media: sharedMedia } : { attachment }),
           });
         } catch (e) {
           failures.push(`${recipients[i]}: ${e.message || String(e)}`);

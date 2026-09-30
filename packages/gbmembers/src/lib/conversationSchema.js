@@ -223,6 +223,12 @@ export const conversationKind = conversation => {
   if (conversation.isAnnouncement) {
     return CONVERSATION_KINDS.ANNOUNCEMENT;
   }
+  // A reply to an announcement belongs with announcements. Without this, one
+  // with a single admin in it reads as a plain chat -- and on the Send tab
+  // was folded into the staff member's ordinary chat with that person.
+  if (conversation.isAnnouncementReply) {
+    return CONVERSATION_KINDS.ANNOUNCEMENT;
+  }
   // Checked after the two above: a broadcast or announcement carrying
   // isGroup is still better read as what restricts its behaviour.
   if (conversation.isGroup) {
@@ -458,6 +464,12 @@ export const conversationTitle = (conversation, membersById) => {
     return 'Unknown';
   }
 
+  // Named after who replied, not the thread's own name: that is always the
+  // announcement thread's, so every reply looked the same in the list.
+  if (conversation.isAnnouncementReply && conversation.announcementMember) {
+    return participantName(conversation.announcementMember, membersById);
+  }
+
   if (conversation.isGroup) {
     return (
       conversation.name ||
@@ -568,6 +580,7 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
         latest: ordered[0],
         isAnnouncement: ordered.some(c => c.isAnnouncement),
         isBroadcast: ordered.some(c => c.isBroadcast),
+        isAnnouncementReply: ordered.some(c => c.isAnnouncementReply),
       };
     })
     .sort((a, b) => time(b.latest) - time(a.latest));
@@ -643,6 +656,13 @@ export const normaliseConversation = (id, data, viewerId) => {
     // Only the school thread may be hard-deleted; a delivered copy may not.
     isAnnouncementThread: isAnnouncementThread(data),
     isAnnouncementCopy: isAnnouncementCopy(data),
+    // A member's reply to an announcement. The Cloud Function opens one per
+    // member, with every admin of the school in it, and names it after the
+    // announcement thread -- so every reply would otherwise read
+    // "Announcements". announcementMember is who replied: the person the
+    // thread is actually about, however many staff are in it.
+    isAnnouncementReply: !!data.announcementReply,
+    announcementMember: data.announcementMember || null,
     isBroadcast: isBroadcastConversation(data),
     broadcastSender: broadcastSenderOf(data),
     hasJunior: !!data[CONVERSATION_FIELDS.hasJunior],
@@ -744,6 +764,24 @@ export const quotedMediaLabel = kind => {
   }
 };
 
+// How much of the answered message a reply keeps. Matches REPLY_PREVIEW_MAX
+// in the app's chat.ts, so a quote is cut at the same place whichever side
+// wrote it.
+export const REPLY_PREVIEW_MAX = 140;
+
+/**
+ * The quote a reply stores: a snapshot of the message being answered, not a
+ * live link, so it still reads correctly after that message is withdrawn.
+ * The same shape replyRefFor() in the app writes (ChatReplyRef), so a reply
+ * from the portal shows its quote on the member's phone.
+ */
+export const replyRefFor = message => ({
+  id: message.id,
+  senderId: message.senderId,
+  text: (message.text || '').slice(0, REPLY_PREVIEW_MAX),
+  ...(message.mediaKind ? { mediaKind: message.mediaKind } : {}),
+});
+
 export const normaliseMessage = (id, data) => ({
   id,
   // Withdrawn for everyone by its sender. text is '' when set, so the UI
@@ -777,4 +815,20 @@ export const normaliseMessage = (id, data) => ({
   text: data[MESSAGE_FIELDS.body],
   senderId: data[MESSAGE_FIELDS.senderId],
   createdAt: toDate(data[MESSAGE_FIELDS.createdAt]),
+  // What kind of attachment this is, if any -- enough for a reply to quote it
+  // as "Photo" or "Voice message" rather than as nothing.
+  mediaKind: (data.media && data.media.kind) || null,
+  // The attachment itself: a photo, GIF or voice message, in the shape the
+  // app writes (ChatMedia). Only kept when it has somewhere to load from.
+  media:
+    data.media && data.media.url
+      ? {
+          kind: data.media.kind || null,
+          url: data.media.url,
+          mime: data.media.mime || null,
+          width: Number(data.media.width) || null,
+          height: Number(data.media.height) || null,
+          durationMillis: Number(data.media.durationMillis) || null,
+        }
+      : null,
 });

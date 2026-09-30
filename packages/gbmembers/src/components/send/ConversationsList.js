@@ -17,6 +17,7 @@ import {
   indexMembersById,
   groupConversationsByParticipant,
   matchesConversationKind,
+  isConversationCleared,
   needsReply,
   isUnread,
   previewSenderLabel,
@@ -181,6 +182,9 @@ export class ConversationsList extends Component {
             {group.isAnnouncement && (
               <span className="badge badge-info ml-2">Announcement</span>
             )}
+            {group.isAnnouncementReply && (
+              <span className="badge badge-info ml-2">Announcement reply</span>
+            )}
           </td>
           <td>{when(group.latest.updatedAt)}</td>
         </tr>
@@ -220,6 +224,11 @@ export class ConversationsList extends Component {
               {group.isAnnouncement && (
                 <span className="badge badge-info ml-2">Announcement</span>
               )}
+              {group.isAnnouncementReply && (
+                <span className="badge badge-info ml-2">
+                  Announcement reply
+                </span>
+              )}
             </button>
           </td>
           <td>{when(group.latest.updatedAt)}</td>
@@ -257,6 +266,11 @@ export class ConversationsList extends Component {
                   {conversation.isAnnouncement && (
                     <span className="badge badge-info ml-2">Announcement</span>
                   )}
+                  {conversation.isAnnouncementReply && (
+                    <span className="badge badge-info ml-2">
+                      Announcement reply
+                    </span>
+                  )}
                 </small>
               </td>
               <td>
@@ -277,6 +291,11 @@ export class ConversationsList extends Component {
     const groups = groupConversationsByParticipant(
       conversations
         .toArray()
+        // Threads this viewer removed stay hidden here too, until something
+        // newer arrives -- the same rule as the Messages page and the app.
+        // Without it, "Remove from my list" took a thread off one list and
+        // left it on this one.
+        .filter(conversation => !isConversationCleared(conversation))
         .filter(conversation =>
           matchesConversationKind(
             conversation,

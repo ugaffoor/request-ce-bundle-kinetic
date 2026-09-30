@@ -6,6 +6,7 @@ import ReactSpinner from 'react16-spinjs';
 import { KappNavLink as NavLink } from 'common';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { confirm } from '../helpers/Confirmation';
+import { prepareChatMedia } from '../../lib/chatMedia';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { actions as memberActions } from '../../redux/modules/members';
 import { canUseConversations } from '../../lib/conversationAccess';
@@ -30,6 +31,7 @@ import {
   participantPhoto,
   participantInitials,
   quotedMediaLabel,
+  replyRefFor,
   isTinyChampion,
   billingOwnerIdOf,
   conversationId,
@@ -141,6 +143,17 @@ export class Conversations extends Component {
       // the moment Send is pressed, and a bubble marked "Sending" stands in
       // until the listener returns the real message.
       pending: null,
+      // The message the next send answers, picked with a message's Reply.
+      replyingTo: null,
+      // A photo or GIF picked for the next send, ready to upload, and what
+      // went wrong picking one.
+      attachment: null,
+      attachmentError: null,
+      preparingAttachment: false,
+      // Member photos that would not load, by address, so their row shows
+      // initials instead of a broken image. Kept for the page's life: a photo
+      // that failed once is not retried on every render.
+      brokenPhotos: {},
       // A 1:1 opened from a member's profile before any message exists. The
       // thread is created on the first send; until then there is nothing in
       // Firestore to listen to, so the page renders the empty thread itself.
@@ -291,6 +304,8 @@ export class Conversations extends Component {
             id: `failed-${Date.now()}`,
             text: pending.text,
             createdAt: pending.createdAt,
+            replyTo: pending.replyTo,
+            previewUrl: pending.previewUrl,
           }),
         }));
       } else if (pending) {
@@ -325,6 +340,9 @@ export class Conversations extends Component {
       reply: '',
       failed: [],
       pending: null,
+      replyingTo: null,
+      attachment: null,
+      attachmentError: null,
     });
     this.props.subscribeMessages({ conversationId });
   }
@@ -367,11 +385,81 @@ export class Conversations extends Component {
    * attempted, and so the thread can show it travelling rather than the
    * text sitting in a greyed-out box with only the button saying anything.
    */
-  beginPending(text) {
+  beginPending(text, replyTo, attachment) {
     this.setState({
       reply: '',
-      pending: { id: `pending-${Date.now()}`, text, createdAt: new Date() },
+      replyingTo: null,
+      attachment: null,
+      attachmentError: null,
+      pending: {
+        id: `pending-${Date.now()}`,
+        text,
+        createdAt: new Date(),
+        replyTo: replyTo || null,
+        // The picked file itself, shown until the uploaded copy comes back.
+        previewUrl: attachment ? attachment.previewUrl : null,
+      },
     });
+  }
+
+  /**
+   * A photo or GIF chosen from the file picker. Checked and shrunk straight
+   * away, so a file that cannot be sent says so now rather than on Send.
+   */
+  pickAttachment = async event => {
+    const file = event.target.files && event.target.files[0];
+    // Cleared so picking the same file again after removing it still fires.
+    event.target.value = '';
+    if (!file) {
+      return;
+    }
+
+    this.setState({ preparingAttachment: true, attachmentError: null });
+    try {
+      const attachment = await prepareChatMedia(file);
+      this.discardAttachment();
+      this.setState({ attachment, preparingAttachment: false });
+    } catch (e) {
+      this.setState({
+        preparingAttachment: false,
+        attachmentError: e.message || 'That file could not be attached.',
+      });
+    }
+  };
+
+  /**
+   * Drops the picked photo before it is sent, and frees the copy the browser
+   * holds for its preview. After sending, the preview stays alive: the
+   * pending or failed bubble is still showing it.
+   */
+  discardAttachment = () => {
+    const attachment = this.state.attachment;
+    if (attachment && attachment.previewUrl) {
+      URL.revokeObjectURL(attachment.previewUrl);
+    }
+    this.setState({ attachment: null });
+  };
+
+  /**
+   * Picks the message the next send answers, and puts the cursor in the box
+   * so the reply can be typed straight away.
+   */
+  startReply(message) {
+    this.setState({ replyingTo: message });
+    if (this.replyBox) {
+      this.replyBox.focus();
+    }
+  }
+
+  /**
+   * Whether this thread has a box to answer in -- the only place a message
+   * can be replied to. The same cases renderComposer shuts: a one-way
+   * broadcast, and a Tiny Champion's private thread.
+   */
+  canComposeIn(conversation) {
+    return (
+      !!conversation && !conversation.isBroadcast && !this.blockedTinyChampion()
+    );
   }
 
   sendReply = () => {
@@ -388,15 +476,17 @@ export class Conversations extends Component {
     // A draft has no thread yet. Leaving conversationId out lets the saga
     // derive the pair id and create the thread document on this first send.
     if (!conversation && this.state.draftMemberId) {
-      if (!username || !this.props.spaceSlug || !text) {
+      const attachment = this.state.attachment;
+      if (!username || !this.props.spaceSlug || (!text && !attachment)) {
         return;
       }
-      this.beginPending(text);
+      this.beginPending(text, null, attachment);
       this.props.sendMessage({
         memberId: this.state.draftMemberId,
         staffId: getSignedInUid(),
         spaceSlug: this.props.spaceSlug,
         text,
+        ...(attachment ? { attachment } : {}),
       });
       return;
     }
@@ -404,17 +494,21 @@ export class Conversations extends Component {
     // isBroadcast is also checked in renderComposer, which is what actually
     // hides the box. Repeated here so the send path is safe on its own
     // rather than relying on the UI never offering it.
+    const attachment = this.state.attachment;
     if (
       !conversation ||
       conversation.isBroadcast ||
       !username ||
       !this.props.spaceSlug ||
-      !text
+      (!text && !attachment)
     ) {
       return;
     }
 
-    this.beginPending(text);
+    const replyTo = this.state.replyingTo
+      ? replyRefFor(this.state.replyingTo)
+      : null;
+    this.beginPending(text, replyTo, attachment);
 
     this.props.sendMessage({
       // Send into the thread that is actually open. Without this the saga
@@ -429,6 +523,8 @@ export class Conversations extends Component {
       staffId: getSignedInUid(),
       spaceSlug: this.props.spaceSlug,
       text,
+      ...(replyTo ? { replyTo } : {}),
+      ...(attachment ? { attachment } : {}),
     });
   };
 
@@ -465,13 +561,38 @@ export class Conversations extends Component {
       return this.renderTinyChampionNotice(tiny);
     }
 
-    const canSend = !this.props.sending && this.state.reply.trim() !== '';
+    // Words, a photo, or both -- but not while a photo is still being read.
+    const canSend =
+      !this.props.sending &&
+      !this.state.preparingAttachment &&
+      (this.state.reply.trim() !== '' || !!this.state.attachment);
 
     return (
       <div className="form-group mt-3">
         <label htmlFor="conversation-reply">Reply</label>
+        {this.state.replyingTo && (
+          <div className="composer-reply">
+            <div className="composer-reply__quote">
+              {this.renderQuote(
+                replyRefFor(this.state.replyingTo),
+                this.getMembersById(),
+                this.viewerParticipantId(),
+              )}
+            </div>
+            <button
+              type="button"
+              className="close"
+              aria-label="Cancel reply"
+              title="Cancel reply"
+              onClick={() => this.setState({ replyingTo: null })}
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        )}
         <textarea
           id="conversation-reply"
+          ref={element => (this.replyBox = element)}
           className="form-control"
           rows="3"
           value={this.state.reply}
@@ -479,20 +600,69 @@ export class Conversations extends Component {
           // sends, so a message is never sent half-written by a stray key.
           onChange={e => this.setState({ reply: e.target.value })}
         />
+        {this.state.attachment && (
+          <div className="composer-attachment">
+            <img
+              className="composer-attachment__thumb"
+              src={this.state.attachment.previewUrl}
+              alt="Photo to send"
+            />
+            <small className="text-muted">
+              {this.state.attachment.kind === 'gif' ? 'GIF' : 'Photo'} ready to
+              send
+            </small>
+            <button
+              type="button"
+              className="close ml-auto"
+              aria-label="Remove photo"
+              title="Remove photo"
+              onClick={this.discardAttachment}
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        )}
+        {this.state.attachmentError && (
+          <div className="alert alert-warning mt-2 mb-0">
+            {this.state.attachmentError}
+          </div>
+        )}
         {this.props.sendError && (
           <div className="alert alert-danger mt-2">
             <strong>Message not sent.</strong>
             <div>{this.props.sendError}</div>
           </div>
         )}
-        <button
-          type="button"
-          className="btn btn-primary mt-2"
-          disabled={!canSend}
-          onClick={this.sendReply}
-        >
-          {this.props.sending ? 'Sending...' : 'Send'}
-        </button>
+        <div className="composer-actions mt-2">
+          {/* A real button that opens a hidden file input, so it is
+              reachable from the keyboard like the Send beside it. */}
+          <input
+            ref={element => (this.filePicker = element)}
+            type="file"
+            accept="image/*"
+            className="d-none"
+            onChange={this.pickAttachment}
+          />
+          <button
+            type="button"
+            className="btn btn-outline-secondary mr-2"
+            disabled={this.props.sending || this.state.preparingAttachment}
+            onClick={() => this.filePicker && this.filePicker.click()}
+          >
+            <i className="fa fa-picture-o fa-fw" aria-hidden="true" />{' '}
+            {this.state.preparingAttachment
+              ? 'Reading photo...'
+              : 'Attach photo'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={!canSend}
+            onClick={this.sendReply}
+          >
+            {this.props.sending ? 'Sending...' : 'Send'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -665,11 +835,19 @@ export class Conversations extends Component {
                   <div>
                     <small>
                       {conversationTitle(conversation, membersById)}
-                      {conversation.isGroup && (
-                        <span className="badge badge-secondary ml-2">
-                          Group · {(conversation.participantIds || []).length}
+                      {/* A reply is labelled as one rather than as a group:
+                          its other members are simply the school's staff. */}
+                      {conversation.isAnnouncementReply && (
+                        <span className="badge badge-info ml-2">
+                          Announcement reply
                         </span>
                       )}
+                      {conversation.isGroup &&
+                        !conversation.isAnnouncementReply && (
+                          <span className="badge badge-secondary ml-2">
+                            Group · {(conversation.participantIds || []).length}
+                          </span>
+                        )}
                       {conversation.isBroadcast && (
                         <span className="badge badge-warning ml-2">
                           Broadcast
@@ -712,6 +890,63 @@ export class Conversations extends Component {
    * rather than a filled box, matching the app, so a run of replies does not
    * turn the thread into nested blocks.
    */
+  /**
+   * A message's attachment, above any caption. Photos and GIFs open full size
+   * in a new tab; a voice message plays in place. The portal sends only
+   * photos and GIFs, but shows everything the app can send.
+   *
+   * Sized from the dimensions stored with it where known, so the thread does
+   * not jump as each image arrives.
+   */
+  renderMedia(media) {
+    if (!media) {
+      return null;
+    }
+
+    if (media.kind === 'audio') {
+      return (
+        <audio
+          className="message__audio"
+          controls
+          preload="metadata"
+          src={media.url}
+        >
+          <a href={media.url} target="_blank" rel="noopener noreferrer">
+            Voice message
+          </a>
+        </audio>
+      );
+    }
+
+    if (media.kind === 'image' || media.kind === 'gif') {
+      return (
+        <a
+          className="message__media-link"
+          href={media.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Open full size"
+        >
+          <img
+            className="message__media"
+            src={media.url}
+            alt={media.kind === 'gif' ? 'GIF' : 'Photo'}
+            width={media.width || undefined}
+            height={media.height || undefined}
+            loading="lazy"
+          />
+        </a>
+      );
+    }
+
+    // A kind this portal does not know yet: still reachable, never silent.
+    return (
+      <a href={media.url} target="_blank" rel="noopener noreferrer">
+        Attachment
+      </a>
+    );
+  }
+
   renderQuote(replyTo, membersById, viewerId) {
     if (!replyTo) {
       return null;
@@ -767,7 +1002,7 @@ export class Conversations extends Component {
       );
     }
 
-    if (conversation.isGroup) {
+    if (conversation.isGroup && !conversation.isAnnouncementReply) {
       return (
         <span
           className="conversation-avatar conversation-avatar--group"
@@ -778,15 +1013,28 @@ export class Conversations extends Component {
       );
     }
 
-    const otherId = conversation.otherParticipantId;
+    // A reply to an announcement shows the member who replied, the same person
+    // it is named after -- not whichever participant happens to be first.
+    const otherId =
+      conversation.isAnnouncementReply && conversation.announcementMember
+        ? conversation.announcementMember
+        : conversation.otherParticipantId;
     const photo = participantPhoto(otherId, membersById);
-    if (photo) {
+    // A photo that will not load -- a moved file, an expired link, a value
+    // that is not a URL at all -- falls back to initials rather than leaving
+    // the browser's broken-image icon in the list.
+    if (photo && !this.state.brokenPhotos[photo]) {
       return (
         <img
           className="conversation-avatar conversation-avatar--photo"
           src={photo}
           alt=""
           aria-hidden="true"
+          onError={() =>
+            this.setState(state => ({
+              brokenPhotos: { ...state.brokenPhotos, [photo]: true },
+            }))
+          }
         />
       );
     }
@@ -897,7 +1145,10 @@ export class Conversations extends Component {
    */
   renderGroupHeader(membersById) {
     const conversation = this.getSelectedConversation();
-    if (!conversation || !conversation.isGroup) {
+    if (
+      !conversation ||
+      (!conversation.isGroup && !conversation.isAnnouncementReply)
+    ) {
       return null;
     }
 
@@ -906,6 +1157,16 @@ export class Conversations extends Component {
     return (
       <div className="mb-3">
         <h5 className="mb-1">{conversationTitle(conversation, membersById)}</h5>
+        {/* Says why the thread exists: without it, a member's name above a
+            row of staff reads like an ordinary group. */}
+        {conversation.isAnnouncementReply && (
+          <div className="mb-1">
+            <span className="badge badge-info">Announcement reply</span>{' '}
+            <small className="text-muted">
+              Replied to an announcement. Everyone below can see and answer.
+            </small>
+          </div>
+        )}
         <div className="mb-1">
           <small className="text-muted">
             {participantIds.length}{' '}
@@ -935,6 +1196,18 @@ export class Conversations extends Component {
    */
   canRemove(conversation, message) {
     if (!conversation || !message || message.deleted) {
+      return false;
+    }
+    // Not in a private one-to-one chat: there it reads as taking back what
+    // was said to one person mid-conversation, and the thread's own
+    // "Delete for everyone" above still clears the whole chat. Kept where
+    // withdrawing a single post is the point -- groups, broadcasts and
+    // announcements.
+    if (
+      !conversation.isGroup &&
+      !conversation.isBroadcast &&
+      !conversation.isAnnouncement
+    ) {
       return false;
     }
     // Only your own messages. The rules decide this too, but offering a
@@ -1017,6 +1290,7 @@ export class Conversations extends Component {
       draftMemberId: memberId ? memberId : null,
       reply: '',
       failed: [],
+      replyingTo: null,
     });
   };
 
@@ -1046,7 +1320,12 @@ export class Conversations extends Component {
       conversationId: conversation.id,
       viewerId,
     });
-    this.setState({ selectedId: null, reply: '', failed: [] });
+    this.setState({
+      selectedId: null,
+      reply: '',
+      failed: [],
+      replyingTo: null,
+    });
   };
 
   removeMessage = async message => {
@@ -1139,7 +1418,21 @@ export class Conversations extends Component {
               <strong>You</strong>
             </small>
           </div>
-          <div className="message__bubble text-muted">{failure.text}</div>
+          <div className="message__bubble text-muted">
+            {this.renderQuote(
+              failure.replyTo,
+              this.getMembersById(),
+              this.viewerParticipantId(),
+            )}
+            {failure.previewUrl && (
+              <img
+                className="message__media"
+                src={failure.previewUrl}
+                alt="Photo not sent"
+              />
+            )}
+            {failure.text}
+          </div>
           <div className="message__meta">
             <small>
               <span className="text-muted">{timeOf(failure.createdAt)}</span>
@@ -1157,7 +1450,21 @@ export class Conversations extends Component {
               <strong>You</strong>
             </small>
           </div>
-          <div className="message__bubble">{pending.text}</div>
+          <div className="message__bubble">
+            {this.renderQuote(
+              pending.replyTo,
+              this.getMembersById(),
+              this.viewerParticipantId(),
+            )}
+            {pending.previewUrl && (
+              <img
+                className="message__media"
+                src={pending.previewUrl}
+                alt="Photo being sent"
+              />
+            )}
+            {pending.text}
+          </div>
           <div className="message__meta">
             <small className="text-muted">
               <i className="fa fa-clock-o fa-fw" aria-hidden="true" />{' '}
@@ -1275,6 +1582,7 @@ export class Conversations extends Component {
                         the quote is part of what was taken back. */}
                     {!message.deleted &&
                       this.renderQuote(message.replyTo, membersById, viewerId)}
+                    {!message.deleted && this.renderMedia(message.media)}
                     {message.deleted ? (
                       <em className="text-muted">
                         {message.announcementRemoved
@@ -1291,6 +1599,19 @@ export class Conversations extends Component {
                         {timeOf(message.createdAt)}
                       </span>
                     </small>
+                    {/* Only where an answer could be sent, and never on a
+                        tombstone -- there is nothing left to quote. The same
+                        rule the app's message menu applies. */}
+                    {!message.deleted &&
+                      this.canComposeIn(selectedConversation) && (
+                        <button
+                          type="button"
+                          className="btn btn-link btn-sm p-0 ml-2"
+                          onClick={() => this.startReply(message)}
+                        >
+                          <small>Reply</small>
+                        </button>
+                      )}
                     {this.canRemove(selectedConversation, message) && (
                       <button
                         type="button"

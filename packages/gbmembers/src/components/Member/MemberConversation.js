@@ -18,6 +18,7 @@ import {
   participantName,
   DELETED_MESSAGE_TEXT,
   ANNOUNCEMENT_REMOVED_TEXT,
+  quotedMediaLabel,
 } from '../../lib/conversationSchema';
 
 const mapStateToProps = state => ({
@@ -156,7 +157,12 @@ export class MemberConversation extends Component {
                   : DELETED_MESSAGE_TEXT}
               </em>
             ) : (
-              row.original.text
+              // A photo or voice message sent without words is named rather
+              // than left as an empty row.
+              row.original.text ||
+              (row.original.mediaKind
+                ? quotedMediaLabel(row.original.mediaKind)
+                : '')
             )}
           </span>
         ),

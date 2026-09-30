@@ -6,6 +6,7 @@ import Select from 'react-select';
 import ReactSpinner from 'react16-spinjs';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { confirm } from '../helpers/Confirmation';
+import { prepareChatMedia } from '../../lib/chatMedia';
 import { actions as memberActions } from '../../redux/modules/members';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import {
@@ -132,6 +133,11 @@ export class NewConversation extends Component {
       kind: SEND_KINDS.CONVERSATION,
       groupName: '',
       message: '',
+      // A photo or GIF to go with the message, ready to upload; what went
+      // wrong picking one; and whether one is still being read.
+      attachment: null,
+      attachmentError: null,
+      preparingAttachment: false,
       // What the last send was -- the feature used and who received it --
       // shown as a confirmation without navigating away. Cleared when the next
       // message is typed.
@@ -387,6 +393,40 @@ export class NewConversation extends Component {
     );
   }
 
+  /**
+   * A photo or GIF chosen to go with the message. Checked and shrunk when
+   * picked, so a file that cannot be sent says so before anything is sent.
+   */
+  pickAttachment = async event => {
+    const file = event.target.files && event.target.files[0];
+    // Cleared so the same file can be picked again after removing it.
+    event.target.value = '';
+    if (!file) {
+      return;
+    }
+
+    this.setState({ preparingAttachment: true, attachmentError: null });
+    try {
+      const attachment = await prepareChatMedia(file);
+      this.discardAttachment();
+      this.setState({ attachment, preparingAttachment: false, sent: null });
+    } catch (e) {
+      this.setState({
+        preparingAttachment: false,
+        attachmentError: e.message || 'That file could not be attached.',
+      });
+    }
+  };
+
+  /** Drops the picked photo and frees the browser's copy of it. */
+  discardAttachment = () => {
+    const attachment = this.state.attachment;
+    if (attachment && attachment.previewUrl) {
+      URL.revokeObjectURL(attachment.previewUrl);
+    }
+    this.setState({ attachment: null });
+  };
+
   handleSend = async () => {
     const senderId = this.senderId();
     if (!senderId) {
@@ -436,6 +476,7 @@ export class NewConversation extends Component {
         text: this.state.message.trim(),
         audienceMembers: audience.memberIds,
         audienceStatus: audience.label,
+        ...(this.state.attachment ? { attachment: this.state.attachment } : {}),
       });
       return;
     }
@@ -474,6 +515,7 @@ export class NewConversation extends Component {
       staffId: senderId,
       spaceSlug: this.props.spaceSlug,
       text: this.state.message.trim(),
+      ...(this.state.attachment ? { attachment: this.state.attachment } : {}),
     });
   };
 
@@ -488,6 +530,7 @@ export class NewConversation extends Component {
       // navigating to the thread list meant coming back here every time. The
       // toast reports the send instead.
       this.setState({ message: '', sent: this.describeSend() });
+      this.discardAttachment();
 
       // Retired on a timer so a run of sends doesn't leave a stack of
       // confirmations on screen. Cleared on unmount, or this sets state on a
@@ -672,7 +715,9 @@ export class NewConversation extends Component {
       // that survived a change of list filter or send kind.
       (!this.tinyChampionsBlocked() ||
         this.selectedTinyChampions().length === 0) &&
-      this.state.message.trim() !== '' &&
+      // Words, a photo, or both -- but not while a photo is still being read.
+      (this.state.message.trim() !== '' || !!this.state.attachment) &&
+      !this.state.preparingAttachment &&
       !this.props.sending &&
       !!this.senderId();
 
@@ -844,6 +889,33 @@ export class NewConversation extends Component {
                       this.setState({ message: e.target.value, sent: null })
                     }
                   />
+                  {this.state.attachment && (
+                    <div className="composer-attachment">
+                      <img
+                        className="composer-attachment__thumb"
+                        src={this.state.attachment.previewUrl}
+                        alt="Photo to send"
+                      />
+                      <small className="text-muted">
+                        {this.state.attachment.kind === 'gif' ? 'GIF' : 'Photo'}{' '}
+                        will be sent with this message
+                      </small>
+                      <button
+                        type="button"
+                        className="close ml-auto"
+                        aria-label="Remove photo"
+                        title="Remove photo"
+                        onClick={this.discardAttachment}
+                      >
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                  )}
+                  {this.state.attachmentError && (
+                    <div className="alert alert-warning mt-2 mb-0">
+                      {this.state.attachmentError}
+                    </div>
+                  )}
                 </div>
                 <div className="form-group">
                   {this.props.sendError && (
@@ -852,6 +924,28 @@ export class NewConversation extends Component {
                       <div>{this.props.sendError}</div>
                     </div>
                   )}
+                  {/* A real button over a hidden file input, so it can be
+                      reached from the keyboard like Send beside it. */}
+                  <input
+                    ref={element => (this.filePicker = element)}
+                    type="file"
+                    accept="image/*"
+                    className="d-none"
+                    onChange={this.pickAttachment}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary mr-2"
+                    disabled={
+                      this.props.sending || this.state.preparingAttachment
+                    }
+                    onClick={() => this.filePicker && this.filePicker.click()}
+                  >
+                    <i className="fa fa-picture-o fa-fw" aria-hidden="true" />{' '}
+                    {this.state.preparingAttachment
+                      ? 'Reading photo...'
+                      : 'Attach photo'}
+                  </button>
                   <button
                     type="button"
                     className="btn btn-primary"

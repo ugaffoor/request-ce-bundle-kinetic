@@ -364,7 +364,7 @@ tr.conversation-row {
 // filled box, so a run of replies does not turn the thread into nested
 // blocks. Clamped to two lines: enough to recognise the message, never
 // enough to bury the reply underneath it.
-.conversation-thread .message__quote {
+.message__quote {
   margin-bottom: 4px;
   padding-left: 8px;
   border-left: 2px solid $blue2;
@@ -372,12 +372,12 @@ tr.conversation-row {
   line-height: 1.35;
 }
 
-.conversation-thread .message__quote-author {
+.message__quote-author {
   font-weight: 600;
   color: $darkgray;
 }
 
-.conversation-thread .message__quote-text {
+.message__quote-text {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -395,4 +395,72 @@ tr.conversation-row {
     max-height: 50vh;
     overflow-y: auto;
   }
+}
+
+// What the next send answers, shown above the reply box: the quote as it
+// will appear in the thread, with a close control to change your mind.
+.composer-reply {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: $lightestgray;
+}
+
+.composer-reply__quote {
+  flex: 1;
+  min-width: 0;
+
+  .message__quote {
+    margin-bottom: 0;
+  }
+}
+
+// An attachment inside a message: a photo or GIF opens full size in a new
+// tab, a voice message plays in place. Capped so a tall photo cannot take
+// over the thread; the caption, if any, sits underneath.
+.message__media-link {
+  display: block;
+}
+
+.message__media {
+  display: block;
+  max-width: 240px;
+  max-height: 300px;
+  width: auto;
+  height: auto;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.message__audio {
+  display: block;
+  width: 240px;
+  max-width: 100%;
+  margin-bottom: 4px;
+}
+
+// The photo picked for the next send, above the buttons, with a way to take
+// it back out.
+.composer-attachment {
+  display: flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: $lightestgray;
+
+  small {
+    margin-left: 10px;
+  }
+}
+
+.composer-attachment__thumb {
+  width: 56px;
+  height: 56px;
+  border-radius: 6px;
+  object-fit: cover;
 }
