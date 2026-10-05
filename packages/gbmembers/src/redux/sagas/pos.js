@@ -241,7 +241,7 @@ export function* fetchPOSStock(action) {
 }
 export function* fetchPOSItems(action) {
   try {
-    const search = new SubmissionSearch(true)
+    const baseSearch = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('submittedAt')
       .gteq(
@@ -252,16 +252,27 @@ export function* fetchPOSItems(action) {
         'submittedAt',
         action.payload.dateTo.format('YYYY-MM-DDT23:59:59.000Z'),
       )
-      .limit(1000)
-      .build();
+      .limit(1000);
 
-    const { submissions, serverError } = yield call(searchSubmissions, {
+    const first = yield call(searchSubmissions, {
       get: true,
       datastore: true,
       form: 'pos-purchased-item',
-      search,
+      search: baseSearch.build(),
     });
-    yield put(actions.setPOSItems(submissions));
+    let allSubmissions = first.submissions || [];
+    let nextPageToken = first.nextPageToken;
+    while (nextPageToken) {
+      const next = yield call(searchSubmissions, {
+        get: true,
+        datastore: true,
+        form: 'pos-purchased-item',
+        search: baseSearch.pageToken(nextPageToken).build(),
+      });
+      allSubmissions = allSubmissions.concat(next.submissions || []);
+      nextPageToken = next.nextPageToken;
+    }
+    yield put(actions.setPOSItems(allSubmissions));
   } catch (error) {
     console.log('Error in fetchPOSItems: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -269,7 +280,7 @@ export function* fetchPOSItems(action) {
 }
 export function* fetchPOSOrders(action) {
   try {
-    const search = new SubmissionSearch(true)
+    const baseSearch = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Date time processed]')
       .gteq(
@@ -284,16 +295,27 @@ export function* fetchPOSOrders(action) {
           'YYYY-MM-DDT23:59:00' + action.payload.timezoneOffset,
         ),
       )
-      .limit(1000)
-      .build();
+      .limit(1000);
 
-    const { submissions, serverError } = yield call(searchSubmissions, {
+    const first = yield call(searchSubmissions, {
       get: true,
       datastore: true,
       form: 'pos-order',
-      search,
+      search: baseSearch.build(),
     });
-    yield put(actions.setPOSOrders(submissions));
+    let allSubmissions = first.submissions || [];
+    let nextPageToken = first.nextPageToken;
+    while (nextPageToken) {
+      const next = yield call(searchSubmissions, {
+        get: true,
+        datastore: true,
+        form: 'pos-order',
+        search: baseSearch.pageToken(nextPageToken).build(),
+      });
+      allSubmissions = allSubmissions.concat(next.submissions || []);
+      nextPageToken = next.nextPageToken;
+    }
+    yield put(actions.setPOSOrders(allSubmissions));
   } catch (error) {
     console.log('Error in fetchPOSOrders: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -301,7 +323,7 @@ export function* fetchPOSOrders(action) {
 }
 export function* fetchPOSOrdersPI(action) {
   try {
-    const search = new SubmissionSearch(true)
+    const baseSearch = new SubmissionSearch(true)
       .includes(['details', 'values'])
       .index('values[Date time processed]')
       .gteq(
@@ -316,16 +338,27 @@ export function* fetchPOSOrdersPI(action) {
           'YYYY-MM-DDT23:59:00' + action.payload.timezoneOffset,
         ),
       )
-      .limit(1000)
-      .build();
+      .limit(1000);
 
-    const { submissions, serverError } = yield call(searchSubmissions, {
+    const first = yield call(searchSubmissions, {
       get: true,
       datastore: true,
       form: 'pos-order',
-      search,
+      search: baseSearch.build(),
     });
-    yield put(actions.setPOSOrdersPI(submissions));
+    let allSubmissions = first.submissions || [];
+    let nextPageToken = first.nextPageToken;
+    while (nextPageToken) {
+      const next = yield call(searchSubmissions, {
+        get: true,
+        datastore: true,
+        form: 'pos-order',
+        search: baseSearch.pageToken(nextPageToken).build(),
+      });
+      allSubmissions = allSubmissions.concat(next.submissions || []);
+      nextPageToken = next.nextPageToken;
+    }
+    yield put(actions.setPOSOrdersPI(allSubmissions));
   } catch (error) {
     console.log('Error in fetchPOSOrdersPI: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));
@@ -333,18 +366,29 @@ export function* fetchPOSOrdersPI(action) {
 }
 export function* fetchPOSDiscounts(action) {
   try {
-    const search = new SubmissionSearch()
+    const baseSearch = new SubmissionSearch()
       .includes(['details', 'values'])
-      .limit(1000)
-      .build();
+      .limit(1000);
 
-    const { submissions, serverError } = yield call(searchSubmissions, {
+    const first = yield call(searchSubmissions, {
       get: true,
       datastore: true,
       form: 'pos-discounts',
-      search,
+      search: baseSearch.build(),
     });
-    yield put(actions.setPOSDiscounts(submissions));
+    let allSubmissions = first.submissions || [];
+    let nextPageToken = first.nextPageToken;
+    while (nextPageToken) {
+      const next = yield call(searchSubmissions, {
+        get: true,
+        datastore: true,
+        form: 'pos-discounts',
+        search: baseSearch.pageToken(nextPageToken).build(),
+      });
+      allSubmissions = allSubmissions.concat(next.submissions || []);
+      nextPageToken = next.nextPageToken;
+    }
+    yield put(actions.setPOSDiscounts(allSubmissions));
   } catch (error) {
     console.log('Error in fetchPOSDiscounts: ' + util.inspect(error));
     yield put(errorActions.setSystemError(error));

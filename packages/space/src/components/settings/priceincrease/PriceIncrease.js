@@ -3840,15 +3840,34 @@ export class AuditMembersView extends Component {
     const tax1Label = getAttributeValue(space, 'TAX 1 Label') || 'TAX 1';
     const tax2Rate = parseFloat(getAttributeValue(space, 'TAX 2 Value') || 0);
     const tax2Label = getAttributeValue(space, 'TAX 2 Label') || 'TAX 2';
-    const calcExpected = baseFee =>
-      Math.round(
-        baseFee *
-          (1 +
-            (isNaN(adminFeeRate) ? 0 : adminFeeRate) +
-            (isNaN(tax1Rate) ? 0 : tax1Rate) +
-            (isNaN(tax2Rate) ? 0 : tax2Rate)) *
-          100,
-      ) / 100;
+    const paySmartApplyAdminFee =
+      getAttributeValue(space, 'PaySmart Apply Admin Fee') || '';
+    const PAYSMART_ADMIN_FEES = {
+      Weekly: 1.5,
+      Fortnightly: 2.3,
+      Monthly: 3.6,
+      Quarterly: 3.95,
+    };
+    const calcExpected = (baseFee, member) => {
+      let adminFeeFixed = 0;
+      let adminMultiplier = isNaN(adminFeeRate) ? 0 : adminFeeRate;
+      if (paySmartApplyAdminFee === 'YES' && member) {
+        const period = member.values['Billing Payment Period'];
+        adminFeeFixed = PAYSMART_ADMIN_FEES[period] || 0;
+        adminMultiplier = 0;
+      }
+      return (
+        Math.round(
+          (baseFee *
+            (1 +
+              adminMultiplier +
+              (isNaN(tax1Rate) ? 0 : tax1Rate) +
+              (isNaN(tax2Rate) ? 0 : tax2Rate)) +
+            adminFeeFixed) *
+            100,
+        ) / 100
+      );
+    };
     const membersById = (allMembers || []).reduce((map, m) => {
       map[m.id] = m;
       return map;
@@ -4033,7 +4052,7 @@ export class AuditMembersView extends Component {
                       (sum, f) => sum + parseFloat(f.fee || 0),
                       0,
                     );
-                    const totalExpected = calcExpected(baseFee);
+                    const totalExpected = calcExpected(baseFee, m);
                     const baseBillingCost = m.values['Membership Cost'];
                     return (
                       baseBillingCost != null &&
@@ -4057,7 +4076,7 @@ export class AuditMembersView extends Component {
                     (sum, f) => sum + parseFloat(f.fee || 0),
                     0,
                   );
-                  const totalExpected = calcExpected(baseFee);
+                  const totalExpected = calcExpected(baseFee, m);
                   const baseBillingCost = m.values['Membership Cost'];
                   return (
                     baseBillingCost != null &&
@@ -4131,7 +4150,7 @@ export class AuditMembersView extends Component {
                   (sum, f) => sum + parseFloat(f.fee || 0),
                   0,
                 );
-                const totalExpected = calcExpected(baseFee);
+                const totalExpected = calcExpected(baseFee, m);
                 const baseBillingCost = m.values['Membership Cost'];
                 const sortedFees = [...filteredFees].sort((a, b) => {
                   if (a.id === m.id) return -1;

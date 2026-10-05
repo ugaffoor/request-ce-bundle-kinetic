@@ -239,13 +239,15 @@ function onTermsFormLoaded() {
     overflow: 'hidden',
   });
   let termsContent = $("[name='Terms Information']").val();
+  const termsContainer = document.getElementById('terms_editor');
+  if (!termsContainer) return;
   ReactDOM.render(
     <ScriptEditor
       text={termsContent}
       label="Terms and Conditions"
       elementName="Terms Information"
     />,
-    document.getElementById('terms_editor'),
+    termsContainer,
   );
   $("[data-element-name='Submit Button']").click(onTermsFormSubmit);
 }
@@ -270,9 +272,11 @@ function onCallScriptFormLoaded() {
     overflow: 'hidden',
   });
   let scriptContent = $("[name='Script']").val();
+  const scriptContainer = document.getElementById('script_editor');
+  if (!scriptContainer) return;
   ReactDOM.render(
     <ScriptEditor text={scriptContent} label="Script" elementName="Script" />,
-    document.getElementById('script_editor'),
+    scriptContainer,
   );
   $("[data-element-name='Submit Button']").click(onCallScriptFormSubmit);
 }
