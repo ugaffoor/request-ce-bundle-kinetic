@@ -33,6 +33,12 @@ import Barcode from 'react-barcode';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
+import {
+  requestPaymentChange,
+  clearPaymentChange,
+  isPaymentChangeRequested,
+  paymentChangeRequestedBy,
+} from '../../lib/changePayment';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
@@ -1020,6 +1026,9 @@ export const MemberView = ({
   showSMSModal,
   setShowMessageModal,
   showMessageModal,
+  requestChangePayment,
+  cancelChangePayment,
+  changePaymentSaving,
   setShowChangeStatusModal,
   showChangeStatusModal,
   setShowRegisterMemberModal,
@@ -1520,6 +1529,39 @@ export const MemberView = ({
                       onClose={() => setShowMessageModal(false)}
                     />
                   )}
+                  {/* Asks the member to change how they pay, through the BJJ
+                      Members app: while the request is open the app shows
+                      them "Change payment method". Once it has been dealt
+                      with, the same button clears it -- see
+                      lib/changePayment. */}
+                  {Utils.isMemberOf(profile, 'Role::Program Managers') &&
+                    (isPaymentChangeRequested(memberItem) ? (
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                        style={{ marginLeft: '10px' }}
+                        disabled={changePaymentSaving}
+                        onClick={cancelChangePayment}
+                        title={`Requested by ${paymentChangeRequestedBy(
+                          memberItem,
+                        ) ||
+                          'a program manager'}. The member sees "Change payment method" in the BJJ Members app until this is cleared.`}
+                      >
+                        {changePaymentSaving
+                          ? 'Saving...'
+                          : 'Cancel Change Payment'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ marginLeft: '10px' }}
+                        disabled={changePaymentSaving}
+                        onClick={requestChangePayment}
+                      >
+                        {changePaymentSaving ? 'Sending...' : 'Change Payment'}
+                      </button>
+                    ))}
                   {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                     <div />
                   ) : (
@@ -2339,6 +2381,7 @@ export const MemberViewContainer = compose(
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showMessageModal', 'setShowMessageModal', false),
+  withState('changePaymentSaving', 'setChangePaymentSaving', false),
   withState('showChangeStatusModal', 'setShowChangeStatusModal', false),
   withState('showNewReplyModal', 'setShowNewReplyModal', false),
   withState('showRegisterMemberModal', 'setShowRegisterMemberModal', false),
@@ -2351,6 +2394,34 @@ export const MemberViewContainer = compose(
     false,
   ),
   withHandlers({
+    // The save and the notifications live in lib/changePayment, where they
+    // can be tested; these only hand over what the profile has. The request
+    // is signed with the program manager's name, which the app shows the
+    // member as "Requested by ...".
+    requestChangePayment: ({
+      memberItem,
+      space,
+      profile,
+      addNotification,
+      setChangePaymentSaving,
+    }) => () =>
+      requestPaymentChange({
+        member: memberItem,
+        space,
+        requestedBy: profile && (profile.displayName || profile.username),
+        addNotification,
+        setSaving: setChangePaymentSaving,
+      }),
+    cancelChangePayment: ({
+      memberItem,
+      addNotification,
+      setChangePaymentSaving,
+    }) => () =>
+      clearPaymentChange({
+        member: memberItem,
+        addNotification,
+        setSaving: setChangePaymentSaving,
+      }),
     handleDateChange: ({ setContactDate }) => date => {
       setContactDate(moment(date).format(contact_date_format));
     },
