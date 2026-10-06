@@ -1542,10 +1542,10 @@ export const MemberView = ({
                         style={{ marginLeft: '10px' }}
                         disabled={changePaymentSaving}
                         onClick={cancelChangePayment}
-                        title={`Requested by ${paymentChangeRequestedBy(
+                        title={`Approved by ${paymentChangeRequestedBy(
                           memberItem,
                         ) ||
-                          'a program manager'}. The member sees "Change payment method" in the BJJ Members app until this is cleared.`}
+                          'a program manager'} (see Billing Changes). The member sees "Change payment method" in the BJJ Members app until this is cleared.`}
                       >
                         {changePaymentSaving
                           ? 'Saving...'
@@ -2395,9 +2395,9 @@ export const MemberViewContainer = compose(
   ),
   withHandlers({
     // The save and the notifications live in lib/changePayment, where they
-    // can be tested; these only hand over what the profile has. The request
-    // is signed with the program manager's name, which the app shows the
-    // member as "Requested by ...".
+    // can be tested; these only hand over what the profile has. Each is
+    // recorded in the member's Billing Changes under the program manager's
+    // name, which the app shows the member as "Requested by ...".
     requestChangePayment: ({
       memberItem,
       space,
@@ -2408,17 +2408,19 @@ export const MemberViewContainer = compose(
       requestPaymentChange({
         member: memberItem,
         space,
-        requestedBy: profile && (profile.displayName || profile.username),
+        staff: profile,
         addNotification,
         setSaving: setChangePaymentSaving,
       }),
     cancelChangePayment: ({
       memberItem,
+      profile,
       addNotification,
       setChangePaymentSaving,
     }) => () =>
       clearPaymentChange({
         member: memberItem,
+        staff: profile,
         addNotification,
         setSaving: setChangePaymentSaving,
       }),

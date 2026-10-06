@@ -1,25 +1,39 @@
 /**
- * The Change Payment button on a member's profile: asks the member, through
- * the BJJ Members app, to change how they pay.
+ * The Change Payment button on a member's profile: approves the member, in
+ * the BJJ Members app, to change how they pay. Without an approval the app
+ * never offers "Change payment method".
  *
- * The request is two fields on the member's own record in Kinetic -- the
- * contract the app already reads (MemberRecord.paymentChangeRequested in its
- * src/api/kinetic.ts):
+ * The approval is kept in the member's existing "Billing Changes" history on
+ * their Kinetic record -- the list the portal already appends to for every
+ * billing change, and the Billing tab already shows -- so no new fields are
+ * needed. Each approval and each withdrawal is one more entry:
  *
- *   Payment Change Requested     "YES" while the request is open; anything
- *                                else means none
- *   Payment Change Requested By  who asked, shown to the member
+ *   action  "Payment Change Requested" or "Payment Change Cleared"
+ *   user    the program manager's username, like every other entry
+ *   by      their display name, shown to the member as "Requested by ..."
+ *   date    'YYYY-MM-DD HH:mm', like every other entry
+ *   at      the exact time (ISO), which decides which entry is newest
+ *   from    ''
+ *   to      '' -- the history table reads to.amount, so never null
+ *   reason  a readable note for the Billing tab
  *
- * While it is "YES" the app's Profile shows "Change payment method", which
- * opens the member's change-payment form for their billing provider. The
- * program manager clears it here once it has been dealt with.
+ * The newest of those two actions is the current state, by `at`. Not by
+ * position: the Billing tab sorts the list in place when it shows it, so the
+ * order a later save writes back is not reliably chronological. The app
+ * reads it the same way (paymentChangeFromHistory in its src/api/kinetic.ts).
  */
+import moment from 'moment';
 import { updateSubmission } from '@kineticdata/react';
 import { NOTICE_TYPES } from '../redux/modules/errors';
 import { getAttributeValue } from './react-kinops-components/src/utils';
 
-export const REQUESTED_FIELD = 'Payment Change Requested';
-export const REQUESTED_BY_FIELD = 'Payment Change Requested By';
+export const BILLING_CHANGES_FIELD = 'Billing Changes';
+export const REQUESTED_ACTION = 'Payment Change Requested';
+export const CLEARED_ACTION = 'Payment Change Cleared';
+
+// The format every Billing Changes entry is written and sorted in --
+// contact_date_format in components/leads/LeadsUtils.js.
+const BILLING_DATE_FORMAT = 'YYYY-MM-DD HH:mm';
 
 const nameOf = member => {
   const values = (member && member.values) || {};
@@ -29,17 +43,74 @@ const nameOf = member => {
   );
 };
 
-/** Whether a request is open -- read exactly as the app reads it. */
-export const isPaymentChangeRequested = member =>
-  ((member && member.values && member.values[REQUESTED_FIELD]) || '')
-    .toString()
-    .trim()
-    .toUpperCase() === 'YES';
+/**
+ * The member's Billing Changes as a list: [] when there are none, null when
+ * the stored value cannot be read. Stored as a JSON string or, once the
+ * portal has touched it, as the parsed list -- the same two shapes the
+ * Billing tab handles.
+ */
+const billingChangesOf = member => {
+  let changes = member && member.values && member.values[BILLING_CHANGES_FIELD];
+  if (!changes) {
+    return [];
+  }
+  if (typeof changes !== 'object') {
+    try {
+      changes = JSON.parse(changes);
+    } catch (e) {
+      return null;
+    }
+  }
+  return Array.isArray(changes) ? changes : null;
+};
 
-/** Who asked, or null. */
+// When an entry was made: its exact time, else its minute-level date.
+const entryTime = entry => {
+  const exact = Date.parse(entry.at);
+  if (!isNaN(exact)) {
+    return exact;
+  }
+  const loose = moment(entry.date, BILLING_DATE_FORMAT, true);
+  return loose.isValid() ? loose.valueOf() : 0;
+};
+
+/**
+ * The newest approval or withdrawal in a member's history, or null. On a tie
+ * the one further down the list wins, which is the later write.
+ */
+export const latestPaymentChange = member => {
+  let latest = null;
+  let latestTime = -Infinity;
+  (billingChangesOf(member) || []).forEach(entry => {
+    if (
+      !entry ||
+      (entry.action !== REQUESTED_ACTION && entry.action !== CLEARED_ACTION)
+    ) {
+      return;
+    }
+    const time = entryTime(entry);
+    if (time >= latestTime) {
+      latest = entry;
+      latestTime = time;
+    }
+  });
+  return latest;
+};
+
+/** Whether the member is currently approved. */
+export const isPaymentChangeRequested = member => {
+  const latest = latestPaymentChange(member);
+  return !!latest && latest.action === REQUESTED_ACTION;
+};
+
+/** Who approved it, or null. */
 export const paymentChangeRequestedBy = member => {
-  const value = member && member.values && member.values[REQUESTED_BY_FIELD];
-  return typeof value === 'string' && value.trim() !== '' ? value.trim() : null;
+  const latest = latestPaymentChange(member);
+  if (!latest || latest.action !== REQUESTED_ACTION) {
+    return null;
+  }
+  const by = (latest.by || latest.user || '').toString().trim();
+  return by || null;
 };
 
 /**
@@ -130,21 +201,53 @@ const save = async (update, member, values) => {
 };
 
 /**
- * Asks the member to change their payment method: saves the request onto
- * their record and says how it went. Green "Sent" clears itself; red "Not
- * sent" stays until closed, as every failure does in the portal.
- *
- * On success the member's values are updated in place, so the profile shows
- * the open request at once without reloading. `update` is replaceable for
- * testing.
+ * Adds one approval or withdrawal to the member's Billing Changes and saves
+ * it. Refuses rather than writing when the existing history cannot be read:
+ * saving a fresh list over it would wipe the member's billing history.
+ * On success the member's values are updated in place, so the profile and
+ * its Billing tab show the change at once.
+ */
+const appendEntry = async ({ member, staff, action, reason, update, now }) => {
+  const changes = billingChangesOf(member);
+  if (changes === null) {
+    return `${nameOf(
+      member,
+    )}'s Billing Changes history could not be read, so nothing was saved over it.`;
+  }
+  const at = now();
+  const entry = {
+    date: moment(at).format(BILLING_DATE_FORMAT),
+    at: at.toISOString(),
+    user: (staff && staff.username) || '',
+    by: (staff && (staff.displayName || staff.username)) || '',
+    action,
+    from: '',
+    to: '',
+    reason,
+  };
+  const next = changes.concat(entry);
+  const failure = await save(update, member, {
+    [BILLING_CHANGES_FIELD]: next,
+  });
+  if (!failure) {
+    member.values[BILLING_CHANGES_FIELD] = next;
+  }
+  return failure;
+};
+
+/**
+ * Approves the member to change their payment method and says how it went:
+ * green "Sent" clears itself; red "Not sent" stays until closed, as every
+ * failure does in the portal. `update` and `now` are replaceable for testing.
  */
 export const requestPaymentChange = async ({
   member,
   space,
-  requestedBy,
+  staff,
   addNotification,
   setSaving = () => {},
   update = updateSubmission,
+  now = () => new Date(),
 }) => {
   const name = nameOf(member);
   const blocked = blockedReason(member, space);
@@ -153,25 +256,25 @@ export const requestPaymentChange = async ({
     return false;
   }
 
-  const values = {
-    [REQUESTED_FIELD]: 'YES',
-    [REQUESTED_BY_FIELD]: requestedBy || '',
-  };
-
   setSaving(true);
-  const failure = await save(update, member, values);
+  const failure = await appendEntry({
+    member,
+    staff,
+    action: REQUESTED_ACTION,
+    reason: 'Approved to change payment method in the BJJ Members app',
+    update,
+    now,
+  });
+  setSaving(false);
+
   if (failure) {
-    setSaving(false);
     addNotification(
       NOTICE_TYPES.ERROR,
-      `${name} was not asked to change their payment method. ${failure}`,
+      `${name} was not approved to change their payment method. ${failure}`,
       'Not sent',
     );
     return false;
   }
-
-  Object.assign(member.values, values);
-  setSaving(false);
   addNotification(
     NOTICE_TYPES.SUCCESS,
     `${name} can now change their payment method in the BJJ Members app.`,
@@ -181,33 +284,38 @@ export const requestPaymentChange = async ({
 };
 
 /**
- * Withdraws an open request once it has been dealt with, so the app stops
- * offering the option. "NO" rather than blank, following the member form's
- * YES/NO convention; the app treats anything but "YES" as no request.
+ * Withdraws the approval once it has been dealt with, so the app stops
+ * offering the option. Recorded as its own entry, so the history keeps both.
  */
 export const clearPaymentChange = async ({
   member,
+  staff,
   addNotification,
   setSaving = () => {},
   update = updateSubmission,
+  now = () => new Date(),
 }) => {
   const name = nameOf(member);
-  const values = { [REQUESTED_FIELD]: 'NO', [REQUESTED_BY_FIELD]: '' };
 
   setSaving(true);
-  const failure = await save(update, member, values);
+  const failure = await appendEntry({
+    member,
+    staff,
+    action: CLEARED_ACTION,
+    reason: 'Approval to change payment method withdrawn',
+    update,
+    now,
+  });
+  setSaving(false);
+
   if (failure) {
-    setSaving(false);
     addNotification(
       NOTICE_TYPES.ERROR,
-      `The payment change request for ${name} was not cleared. ${failure}`,
+      `The approval for ${name} was not cleared. ${failure}`,
       'Not cleared',
     );
     return false;
   }
-
-  Object.assign(member.values, values);
-  setSaving(false);
   addNotification(
     NOTICE_TYPES.SUCCESS,
     `${name} will no longer see "Change payment method" in the app.`,
