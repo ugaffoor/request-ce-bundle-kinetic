@@ -1543,7 +1543,11 @@ export const MemberView = ({
                     (isPaymentChangeRequested(memberItem) ? (
                       <button
                         type="button"
-                        className="btn btn-outline-secondary"
+                        // btn-primary for the profile's button layout --
+                        // the stack on the right is positioned by that class
+                        // -- and btn-muted so it reads as undoing, not
+                        // starting, something.
+                        className="btn btn-primary btn-muted"
                         style={{ marginLeft: '10px' }}
                         disabled={changePaymentSaving}
                         onClick={cancelChangePayment}

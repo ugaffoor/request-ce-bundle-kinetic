@@ -785,6 +785,17 @@
           text-transform: capitalize;
           font-size: 15px;
         }
+        // "Cancel Change Payment": the same size and place as the buttons
+        // around it, in a quieter colour, because it withdraws an approval
+        // rather than starting something.
+        .btn-primary.btn-muted,
+        .btn-primary.btn-muted:hover,
+        .btn-primary.btn-muted:focus,
+        .btn-primary.btn-muted:not(:disabled):not(.disabled):active {
+          background-color: $secondary;
+          border-color: $secondary;
+          color: $white;
+        }
         .username {
           clear: right;
           float: right;
