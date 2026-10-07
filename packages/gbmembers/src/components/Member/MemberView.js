@@ -38,6 +38,7 @@ import {
   clearPaymentChange,
   isPaymentChangeRequested,
   paymentChangeRequestedBy,
+  paymentChangeCompletedAt,
 } from '../../lib/changePayment';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
@@ -1533,7 +1534,11 @@ export const MemberView = ({
                       Members app: while the request is open the app shows
                       them "Change payment method". Once it has been dealt
                       with, the same button clears it -- see
-                      lib/changePayment. */}
+                      lib/changePayment. A request covers one change: once
+                      the member has made it, the app records "Payment Change
+                      Completed" in their Billing Changes and this offers
+                      Change Payment again, so the next one needs a fresh
+                      approval. */}
                   {Utils.isMemberOf(profile, 'Role::Program Managers') &&
                     (isPaymentChangeRequested(memberItem) ? (
                       <button
@@ -1558,6 +1563,15 @@ export const MemberView = ({
                         style={{ marginLeft: '10px' }}
                         disabled={changePaymentSaving}
                         onClick={requestChangePayment}
+                        title={
+                          paymentChangeCompletedAt(memberItem)
+                            ? `Changed their payment method in the BJJ Members app on ${moment(
+                                paymentChangeCompletedAt(memberItem),
+                              ).format(
+                                'L LT',
+                              )}. Press to let them change it again.`
+                            : undefined
+                        }
                       >
                         {changePaymentSaving ? 'Sending...' : 'Change Payment'}
                       </button>

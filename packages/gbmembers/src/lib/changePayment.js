@@ -17,7 +17,14 @@
  *   to      '' -- the history table reads to.amount, so never null
  *   reason  a readable note for the Billing tab
  *
- * The newest of those two actions is the current state, by `at`. Not by
+ * An approval covers ONE change. When the member makes it, the app adds a
+ * third kind of entry in the same shape -- "Payment Change Completed", with
+ * the member as `user`/`by` and the services submission as `submissionId`
+ * (recordPaymentChangeCompleted in the app's src/api/kinetic.ts). Like a
+ * withdrawal it closes the approval: the app stops offering the option, and
+ * this profile offers Change Payment again for the next one.
+ *
+ * The newest of those three actions is the current state, by `at`. Not by
  * position: the Billing tab sorts the list in place when it shows it, so the
  * order a later save writes back is not reliably chronological. The app
  * reads it the same way (paymentChangeFromHistory in its src/api/kinetic.ts).
@@ -30,6 +37,13 @@ import { getAttributeValue } from './react-kinops-components/src/utils';
 export const BILLING_CHANGES_FIELD = 'Billing Changes';
 export const REQUESTED_ACTION = 'Payment Change Requested';
 export const CLEARED_ACTION = 'Payment Change Cleared';
+// Written by the BJJ Members app, never by the portal.
+export const COMPLETED_ACTION = 'Payment Change Completed';
+const PAYMENT_CHANGE_ACTIONS = [
+  REQUESTED_ACTION,
+  CLEARED_ACTION,
+  COMPLETED_ACTION,
+];
 
 // The format every Billing Changes entry is written and sorted in --
 // contact_date_format in components/leads/LeadsUtils.js.
@@ -75,17 +89,15 @@ const entryTime = entry => {
 };
 
 /**
- * The newest approval or withdrawal in a member's history, or null. On a tie
- * the one further down the list wins, which is the later write.
+ * The newest approval, withdrawal or completed change in a member's history,
+ * or null. On a tie the one further down the list wins, which is the later
+ * write.
  */
 export const latestPaymentChange = member => {
   let latest = null;
   let latestTime = -Infinity;
   (billingChangesOf(member) || []).forEach(entry => {
-    if (
-      !entry ||
-      (entry.action !== REQUESTED_ACTION && entry.action !== CLEARED_ACTION)
-    ) {
+    if (!entry || !PAYMENT_CHANGE_ACTIONS.includes(entry.action)) {
       return;
     }
     const time = entryTime(entry);
@@ -111,6 +123,17 @@ export const paymentChangeRequestedBy = member => {
   }
   const by = (latest.by || latest.user || '').toString().trim();
   return by || null;
+};
+
+/**
+ * When the member last used an approval -- the time of a "Payment Change
+ * Completed" entry that is the current state -- or null.
+ */
+export const paymentChangeCompletedAt = member => {
+  const latest = latestPaymentChange(member);
+  return latest && latest.action === COMPLETED_ACTION
+    ? entryTime(latest)
+    : null;
 };
 
 /**
