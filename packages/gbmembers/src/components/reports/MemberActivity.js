@@ -143,20 +143,19 @@ export class MemberActivityReport extends Component {
       });
     }
 
+    const dateSorter = function(a, b, aRow, bRow, column, dir) {
+      const fmt = moment.localeData().longDateFormat('L');
+      const ma = moment(a, fmt);
+      const mb = moment(b, fmt);
+      if (dir === 'asc') return mb.isAfter(ma) ? 1 : -1;
+      return ma.isAfter(mb) ? -1 : 1;
+    };
+
     this.allColumns = [
       {
         title: 'Last Modified Date',
         field: 'lastModifiedDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          a = moment(a);
-          b = moment(b);
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
+        sorter: dateSorter,
       },
       {
         title: 'Name',
@@ -169,6 +168,12 @@ export class MemberActivityReport extends Component {
       { title: 'Last Name', field: 'lastname' },
       { title: 'Gender', field: 'gender' },
       { title: 'Status', field: 'status' },
+      {
+        title: 'Status Date',
+        field: 'statusDate',
+        dataType: 'date',
+        sorter: dateSorter,
+      },
       { title: 'Email', field: 'email', tooltip: true },
       { title: 'Additional Email', field: 'additionalEmail', tooltip: true },
       { title: 'Phone', field: 'phone', tooltip: true },
@@ -201,14 +206,34 @@ export class MemberActivityReport extends Component {
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
       { title: 'Max Weekly Classes', field: 'maxWeeklyClasses' },
-      { title: 'Date Joined', field: 'dateJoined' },
+      { title: 'Date Joined', field: 'dateJoined', sorter: dateSorter },
       { title: 'Days Since Joined', field: 'daysSinceJoined' },
-      { title: 'Last Attendance Date', field: 'lastAttendanceDate' },
-      { title: 'Last Promotion Date', field: 'lastPromotionDate' },
-      { title: 'Last Payment Date', field: 'lastPaymentDate' },
-      { title: 'Cash Term Start Date', field: 'cashStartDate' },
-      { title: 'Cash Term End Date', field: 'cashEndDate' },
-      { title: 'Waiver Complete Date', field: 'waiverCompleteDate' },
+      {
+        title: 'Last Attendance Date',
+        field: 'lastAttendanceDate',
+        sorter: dateSorter,
+      },
+      {
+        title: 'Last Promotion Date',
+        field: 'lastPromotionDate',
+        sorter: dateSorter,
+      },
+      {
+        title: 'Last Payment Date',
+        field: 'lastPaymentDate',
+        sorter: dateSorter,
+      },
+      {
+        title: 'Cash Term Start Date',
+        field: 'cashStartDate',
+        sorter: dateSorter,
+      },
+      { title: 'Cash Term End Date', field: 'cashEndDate', sorter: dateSorter },
+      {
+        title: 'Waiver Complete Date',
+        field: 'waiverCompleteDate',
+        sorter: dateSorter,
+      },
       { title: 'Billing User', field: 'billingUser' },
       { title: 'Lead Source', field: 'leadSource' },
       { title: 'Biller Migrated', field: 'billerMigrated' },
@@ -361,6 +386,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
       { label: 'Date Joined', value: 'dateJoined' },
+      { label: 'Status Date', value: 'statusDate' },
       { label: 'Days Since Joined', value: 'daysSinceJoined' },
       { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
       { label: 'Last Promotion Date', value: 'lastPromotionDate' },
@@ -411,56 +437,57 @@ export class MemberActivityReport extends Component {
       {
         label: 'Member Columns',
         options: [
-          { label: 'Name', value: 'name' },
-          { label: 'First Name', value: 'firstname' },
-          { label: 'Last Name', value: 'lastname' },
-          { label: 'Gender', value: 'gender' },
-          { label: 'Status', value: 'status' },
-          { label: 'Email', value: 'email' },
-          { label: 'Additional Email', value: 'additionalEmail' },
-          { label: 'Phone', value: 'phone' },
-          { label: 'Additional Phone', value: 'additionalPhone' },
-          { label: 'Address', value: 'address' },
-          { label: K.translate('Suburb'), value: 'suburb' },
-          { label: 'State', value: 'state' },
-          { label: K.translate('Postcode'), value: 'postcode' },
-          { label: 'Age (Years)', value: 'age' },
-          { label: 'DOB (Year)', value: 'year' },
-          { label: 'DOB', value: 'dob' },
-          { label: 'Member Type', value: 'memberType' },
-          { label: 'Program', value: 'program' },
-          { label: 'Fee Program', value: 'feeProgram' },
           { label: 'Account Created', value: 'accountCreated' },
-          { label: 'Opt-Out', value: 'optout' },
+          { label: 'Additional Email', value: 'additionalEmail' },
+          { label: 'Additional Phone', value: 'additionalPhone' },
+          { label: 'Additional Program 1', value: 'additionalProgram1' },
+          { label: 'Additional Program 2', value: 'additionalProgram2' },
+          { label: 'Address', value: 'address' },
+          { label: 'Age (Years)', value: 'age' },
           { label: 'Barcode', value: 'barcode' },
           { label: 'Belt', value: 'belt' },
           { label: 'Belt Size', value: 'beltSize' },
-          { label: 'Parent or Guardian', value: 'parentOrGuardian' },
           { label: 'Billing Parent', value: 'billingParent' },
+          { label: 'Cash Term End Date', value: 'cashEndDate' },
+          { label: 'Cash Term Start Date', value: 'cashStartDate' },
+          { label: 'Date Joined', value: 'dateJoined' },
+          { label: 'Days Since Joined', value: 'daysSinceJoined' },
+          { label: 'DOB', value: 'dob' },
+          { label: 'DOB (Year)', value: 'year' },
+          { label: 'Email', value: 'email' },
+          { label: 'Emails Received', value: 'emailsReceived' },
+          { label: 'Emails Sent', value: 'emailsSent' },
           { label: 'Emergency Contact Name', value: 'emergencyContactName' },
           { label: 'Emergency Contact Phone', value: 'emergencyContactPhone' },
           {
             label: 'Emergency Contact Relationship',
             value: 'emergencyContactRelationship',
           },
-          { label: 'Medical Allergies', value: 'medicalAllergies' },
-          { label: 'Additional Program 1', value: 'additionalProgram1' },
-          { label: 'Additional Program 2', value: 'additionalProgram2' },
-          { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
-          { label: 'Lead Source', value: 'leadSource' },
-          { label: 'Notes', value: 'history' },
           { label: 'Events', value: 'events' },
-          { label: 'Emails Sent', value: 'emailsSent' },
-          { label: 'Emails Received', value: 'emailsReceived' },
-          { label: 'SMS Sent', value: 'smsSent' },
-          { label: 'SMS Received', value: 'smsReceived' },
+          { label: 'Fee Program', value: 'feeProgram' },
+          { label: 'First Name', value: 'firstname' },
+          { label: 'Gender', value: 'gender' },
           { label: 'Last Attendance Date', value: 'lastAttendanceDate' },
-          { label: 'Last Promotion Date', value: 'lastPromotionDate' },
-          { label: 'Date Joined', value: 'dateJoined' },
-          { label: 'Days Since Joined', value: 'daysSinceJoined' },
+          { label: 'Last Name', value: 'lastname' },
           { label: 'Last Payment Date', value: 'lastPaymentDate' },
-          { label: 'Cash Term Start Date', value: 'cashStartDate' },
-          { label: 'Cash Term End Date', value: 'cashEndDate' },
+          { label: 'Last Promotion Date', value: 'lastPromotionDate' },
+          { label: 'Lead Source', value: 'leadSource' },
+          { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
+          { label: 'Medical Allergies', value: 'medicalAllergies' },
+          { label: 'Member Type', value: 'memberType' },
+          { label: 'Name', value: 'name' },
+          { label: 'Notes', value: 'history' },
+          { label: 'Opt-Out', value: 'optout' },
+          { label: 'Parent or Guardian', value: 'parentOrGuardian' },
+          { label: 'Phone', value: 'phone' },
+          { label: K.translate('Postcode'), value: 'postcode' },
+          { label: 'Program', value: 'program' },
+          { label: 'SMS Received', value: 'smsReceived' },
+          { label: 'SMS Sent', value: 'smsSent' },
+          { label: 'State', value: 'state' },
+          { label: 'Status', value: 'status' },
+          { label: 'Status Date', value: 'statusDate' },
+          { label: K.translate('Suburb'), value: 'suburb' },
           { label: 'Waiver Complete Date', value: 'waiverCompleteDate' },
         ],
       },
@@ -469,27 +496,27 @@ export class MemberActivityReport extends Component {
       this.columnsToHide.push({
         label: 'Billing Columns',
         options: [
-          { label: 'Billing User', value: 'billingUser' },
-          { label: 'Biller Migrated', value: 'billerMigrated' },
-          { label: 'Biller ID', value: 'billerId' },
-          { label: 'Customer Id', value: 'customerId' },
           { label: 'Archive Billing Id', value: 'archiveBillingId' },
           {
             label: 'Archive Billing Reference',
             value: 'archiveBillingReference',
           },
-          { label: 'Non Paying', value: 'nonPaying' },
-          { label: 'Send Payment Receipt', value: 'sendPaymentReceipt' },
-          { label: 'Last Payment Date', value: 'lastPaymentDate' },
-          { label: 'Cash Term Start Date', value: 'cashStartDate' },
-          { label: 'Cash Term End Date', value: 'cashEndDate' },
-          { label: 'Waiver Complete Date', value: 'waiverCompleteDate' },
-          { label: 'Cost', value: 'cost' },
-          { label: 'Fee', value: 'fee' },
           { label: 'Average', value: 'average' },
+          { label: 'Biller ID', value: 'billerId' },
+          { label: 'Biller Migrated', value: 'billerMigrated' },
+          { label: 'Billing User', value: 'billingUser' },
+          { label: 'Cash Term End Date', value: 'cashEndDate' },
+          { label: 'Cash Term Start Date', value: 'cashStartDate' },
+          { label: 'Cost', value: 'cost' },
+          { label: 'Customer Id', value: 'customerId' },
+          { label: 'Family Members', value: 'familyMembers' },
+          { label: 'Fee', value: 'fee' },
+          { label: 'Last Payment Date', value: 'lastPaymentDate' },
+          { label: 'Non Paying', value: 'nonPaying' },
           { label: 'Payment Period', value: 'paymentPeriod' },
           { label: 'Payment Type', value: 'paymentType' },
-          { label: 'Family Members', value: 'familyMembers' },
+          { label: 'Send Payment Receipt', value: 'sendPaymentReceipt' },
+          { label: 'Waiver Complete Date', value: 'waiverCompleteDate' },
         ],
       });
       if (getAttributeValue(this.props.space, 'Member TAX ID') === 'YES') {
@@ -742,6 +769,7 @@ export class MemberActivityReport extends Component {
         filterColumn === 'createdDate' ||
         filterColumn === 'lastModifiedDate' ||
         filterColumn === 'dateJoined' ||
+        filterColumn === 'statusDate' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate' ||
         filterColumn === 'lastPromotionDate' ||
@@ -770,6 +798,7 @@ export class MemberActivityReport extends Component {
         filterColumn === 'createdDate' ||
         filterColumn === 'lastModifiedDate' ||
         filterColumn === 'dateJoined' ||
+        filterColumn === 'statusDate' ||
         filterColumn === 'lastPaymentDate' ||
         filterColumn === 'lastAttendanceDate' ||
         filterColumn === 'lastPromotionDate' ||
@@ -821,6 +850,7 @@ export class MemberActivityReport extends Component {
       filterColumn !== 'createdDate' &&
       filterColumn !== 'lastModifiedDate' &&
       filterColumn !== 'dateJoined' &&
+      filterColumn !== 'statusDate' &&
       filterColumn !== 'lastPaymentDate' &&
       filterColumn !== 'lastAttendanceDate' &&
       filterColumn !== 'lastPromotionDate' &&
@@ -1006,6 +1036,7 @@ export class MemberActivityReport extends Component {
       !event.target.value === 'createdDate' &&
       !event.target.value === 'lastModifiedDate' &&
       !event.target.value === 'dateJoined' &&
+      !event.target.value === 'statusDate' &&
       !event.target.value === 'lastPaymentDate' &&
       !event.target.value === 'lastAttendanceDate' &&
       !event.target.value === 'lastPromotionDate' &&
@@ -1025,6 +1056,7 @@ export class MemberActivityReport extends Component {
       event.target.value === 'createdDate' ||
       event.target.value === 'lastModifiedDate' ||
       event.target.value === 'dateJoined' ||
+      event.target.value === 'statusDate' ||
       event.target.value === 'lastPaymentDate' ||
       event.target.value === 'lastAttendanceDate' ||
       event.target.value === 'lastPromotionDate' ||
@@ -1398,6 +1430,26 @@ export class MemberActivityReport extends Component {
           member.values['Date Joined'] !== undefined
             ? moment(member.values['Date Joined']).format('L')
             : '',
+        statusDate: (() => {
+          const history = getJson(member.values['Status History']);
+          if (Array.isArray(history) && history.length > 0) {
+            const dateFormats = [
+              'ddd MMM DD YYYY HH:mm:ss [GMT]ZZ',
+              'dd MMM DD YYYY hh:mm:ss Z',
+              'YYYY-MM-DD hh:mm:ss Z',
+            ];
+            const sorted = [...history].sort((a, b) => {
+              const da = moment(a.date, dateFormats);
+              const db = moment(b.date, dateFormats);
+              return db.valueOf() - da.valueOf();
+            });
+            const latest = moment(sorted[0].date, dateFormats);
+            if (latest.isValid()) return latest.format('L');
+          }
+          return member.values['Date Joined']
+            ? moment(member.values['Date Joined']).format('L')
+            : '';
+        })(),
         daysSinceJoined:
           member.values['Date Joined'] !== undefined
             ? Math.round(
@@ -2184,6 +2236,11 @@ export class MemberActivityReport extends Component {
                     {this.state.columns.some(c => c.field === 'dateJoined') && (
                       <option key="dateJoined" value="dateJoined">
                         Date Joined
+                      </option>
+                    )}
+                    {this.state.columns.some(c => c.field === 'statusDate') && (
+                      <option key="statusDate" value="statusDate">
+                        Status Date
                       </option>
                     )}
                   </select>

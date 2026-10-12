@@ -118,34 +118,38 @@ export class LeadsActivityReport extends Component {
     this.handleEventsCellClick = this.handleEventsCellClick.bind(this);
     this.setDeleteLeadsModal = this.setDeleteLeadsModal.bind(this);
 
+    const dateSorter = function(a, b, aRow, bRow, column, dir) {
+      const fmt = moment.localeData().longDateFormat('L');
+      if (!a && !b) return 0;
+      if (!a) return dir === 'asc' ? 1 : -1;
+      if (!b) return dir === 'asc' ? -1 : 1;
+      const ma = moment(a, fmt);
+      const mb = moment(b, fmt);
+      if (dir === 'asc') return mb.isAfter(ma) ? 1 : -1;
+      return ma.isAfter(mb) ? -1 : 1;
+    };
+
+    const dateTimeSorter = function(a, b, aRow, bRow, column, dir) {
+      const fmt = moment.localeData().longDateFormat('L') + ' HH:mm';
+      if (!a && !b) return 0;
+      if (!a) return dir === 'asc' ? 1 : -1;
+      if (!b) return dir === 'asc' ? -1 : 1;
+      const ma = moment(a, fmt);
+      const mb = moment(b, fmt);
+      if (dir === 'asc') return mb.isAfter(ma) ? 1 : -1;
+      return ma.isAfter(mb) ? -1 : 1;
+    };
+
     this.allColumns = [
       {
         title: 'Created Date',
         field: 'createdDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          a = moment(a, 'L HH:mm');
-          b = moment(b, 'L HH:mm');
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
+        sorter: dateTimeSorter,
       },
       {
         title: 'Last Modified Date',
         field: 'lastModifiedDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          a = moment(a, 'L HH:mm');
-          b = moment(b, 'L HH:mm');
-          if (dir === 'asc') {
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc') {
-            return a.isAfter(b) ? -1 : 1;
-          }
-          return 0;
-        },
+        sorter: dateTimeSorter,
       },
       {
         title: 'Name',
@@ -169,37 +173,13 @@ export class LeadsActivityReport extends Component {
       { title: K.translate('Kids/Adults'), field: 'sourceReference3' },
       { title: K.translate('Source Reference 4'), field: 'sourceReference4' },
       { title: K.translate('Source Reference 5'), field: 'sourceReference5' },
-      {
-        title: 'Reminder Date',
-        field: 'reminderDate',
-        sorter: function(a, b, aRow, bRow, column, dir, sorterParams) {
-          if (dir === 'asc' && b !== '' && a !== '') {
-            a = moment(a, 'L');
-            b = moment(b, 'L');
-            return b.isAfter(a) ? 1 : -1;
-          } else if (dir === 'desc' && b !== '' && a !== '') {
-            a = moment(a, 'L');
-            b = moment(b, 'L');
-            return a.isAfter(b) ? -1 : 1;
-          }
-
-          if (dir === 'asc' && b === '' && a === '') {
-            return 0;
-          } else if (dir === 'asc' && a === '' && b !== '') {
-            return 1;
-          } else if (dir === 'asc' && a !== '' && b === '') {
-            return -1;
-          } else if (dir === 'desc' && a !== '' && b === '') {
-            return -1;
-          } else if (dir === 'desc' && a === '' && b !== '') {
-            return -1;
-          }
-
-          return 0;
-        },
-      },
+      { title: 'Reminder Date', field: 'reminderDate', sorter: dateSorter },
       { title: 'Days Since Last Contact', field: 'daysSinceLastContact' },
-      { title: 'Last Contact Date', field: 'lastContactDate' },
+      {
+        title: 'Last Contact Date',
+        field: 'lastContactDate',
+        sorter: dateSorter,
+      },
       {
         title: 'Notes',
         field: 'history',
@@ -1798,7 +1778,7 @@ export class LeadsActivityReport extends Component {
     const options = {
       height: 450,
       pagination: 'local',
-      paginationSize: 10,
+      paginationSize: 1000,
       paginationSizeSelector: [10, 20, 50, 100, 1000, 10000],
       tooltipsHeader: true,
       downloadDataFormatter: data => data,

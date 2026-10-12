@@ -1179,11 +1179,15 @@ export function memberStatusInDates(member, fromDate, toDate, returnStatus) {
       if (entry['status'] === 'Deleted') {
         if (statusHistorySorted.some(e => e['status'] === 'Inactive'))
           return null;
-        return member['values']['Billing Customer Reference'] !== undefined &&
-          member['values']['Billing Customer Reference'] !== null &&
-          member['values']['Billing Customer Reference'] !== ''
-          ? 'Inactive'
-          : null;
+        if (
+          member['values']['Status'] === 'Inactive' ||
+          (member['values']['Billing Customer Reference'] !== undefined &&
+            member['values']['Billing Customer Reference'] !== null &&
+            member['values']['Billing Customer Reference'] !== '')
+        ) {
+          return 'Inactive';
+        }
+        return null;
       }
       if (entry['status'] === 'Casual') return 'Casual';
       if (entry['status'] === 'Pending Cancellation')

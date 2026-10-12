@@ -3472,15 +3472,21 @@ class Checkout extends Component {
                                 />
                               </div>
                               <div className="stockItems">
-                                {product.packageStock.map((stock, index) => (
-                                  <div className="stockItem" key={index}>
-                                    <div className="name">{stock['name']}</div>
-                                    <div className="colour">
-                                      {stock['colour']}
+                                {(product.packageStock || []).map(
+                                  (stock, index) => (
+                                    <div className="stockItem" key={index}>
+                                      <div className="name">
+                                        {stock['name']}
+                                      </div>
+                                      <div className="colour">
+                                        {stock['colour']}
+                                      </div>
+                                      <div className="size">
+                                        {stock['size']}
+                                      </div>
                                     </div>
-                                    <div className="size">{stock['size']}</div>
-                                  </div>
-                                ))}
+                                  ),
+                                )}
                               </div>
                             </div>
                           ))}
@@ -3940,7 +3946,7 @@ class ProductEditDisplay extends React.PureComponent {
             />
             <div className="products">
               <div className="label">Product Options</div>
-              {this.props.product.packageStock.map((product, i) => {
+              {(this.props.product.packageStock || []).map((product, i) => {
                 return (
                   <div className="name" key={i}>
                     {product.values['Name']}-{product.values['Colour']}
@@ -4107,7 +4113,7 @@ class ProductDisplay extends React.PureComponent {
             />
             <div className="products">
               <div className="label">Product Options</div>
-              {this.props.product.packageStock.map((product, i) => {
+              {(this.props.product.packageStock || []).map((product, i) => {
                 return (
                   <div className="name" key={i}>
                     {product.values['Name']}-{product.values['Colour']}
@@ -4647,19 +4653,21 @@ export class ProShop extends Component {
                       posBarcodes={this.props.posBarcodes}
                     />
                   )}
-                  <div
-                    className="addButton"
-                    onClick={e => {
-                      this.setShowAddProductDialog(true);
-                    }}
-                  >
-                    <img src={addIcon} alt="Add" />
-                    <span className="appName">
-                      {this.props.productType === 'Apparel'
-                        ? 'ADD PRODUCT'
-                        : 'ADD ' + this.props.productType.toUpperCase()}
-                    </span>
-                  </div>
+                  {this.state.editProductsSwitch && (
+                    <div
+                      className="addButton"
+                      onClick={e => {
+                        this.setShowAddProductDialog(true);
+                      }}
+                    >
+                      <img src={addIcon} alt="Add" />
+                      <span className="appName">
+                        {this.props.productType === 'Apparel'
+                          ? 'ADD PRODUCT'
+                          : 'ADD ' + this.props.productType.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
                   {this.state.showAddProductDialog && (
                     <AddProductDialogContainer
                       setShowAddProductDialog={this.setShowAddProductDialog}
@@ -5017,7 +5025,7 @@ export const ProShopContainer = compose(
       var products = posCheckout['Checkout Items']['products'];
       products.forEach((product, i) => {
         if (product['productType'] === 'Package') {
-          product.packageStock.forEach((stock, i) => {
+          (product.packageStock || []).forEach((stock, i) => {
             var values = {};
             values['Product ID'] = stock['productID'];
             values['Product Name'] = stock['name'];
@@ -5042,7 +5050,7 @@ export const ProShopContainer = compose(
       });
       products.forEach((product, i) => {
         if (product['productType'] === 'Package') {
-          product.packageStock.forEach((stockProd, i) => {
+          (product.packageStock || []).forEach((stockProd, i) => {
             decrementPOSStock({
               productID: stockProd['productID'],
               size: stockProd['size'],

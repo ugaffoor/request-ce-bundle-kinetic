@@ -63,7 +63,7 @@ export class AddProductToCheckoutDialog extends Component {
   getStockSelected(product, size, packagedProductSizes) {
     var stockItem = undefined;
     if (product.values['Product Type'] === 'Package') {
-      var selectedProducts = product.packageStock.filter(stock => {
+      var selectedProducts = (product.packageStock || []).filter(stock => {
         var idx = packagedProductSizes.findIndex((prodSize, i) => {
           var id = prodSize.split('_')[0];
           return id === stock.id;
@@ -238,100 +238,105 @@ export class AddProductToCheckoutDialog extends Component {
                 )}
                 {this.props.product.values['Product Type'] === 'Package' && (
                   <div className="products">
-                    {this.props.product.packageStock.map((product, i) => {
-                      return (
-                        <div className="name" key={i}>
-                          <label htmlFor={product.id}>
-                            <input
-                              type="checkbox"
-                              id={product.id}
-                              value={product.id}
-                              disabled={product.stock.length === 0}
-                              onChange={e => {
-                                var selected = this.state.packagedProducts;
-                                var productSizes = this.state
-                                  .packagedProductSizes;
-                                if (e.target.checked) {
-                                  selected[selected.length] = e.target.value;
-                                } else {
+                    {(this.props.product.packageStock || []).map(
+                      (product, i) => {
+                        return (
+                          <div className="name" key={i}>
+                            <label htmlFor={product.id}>
+                              <input
+                                type="checkbox"
+                                id={product.id}
+                                value={product.id}
+                                disabled={product.stock.length === 0}
+                                onChange={e => {
+                                  var selected = this.state.packagedProducts;
+                                  var productSizes = this.state
+                                    .packagedProductSizes;
+                                  if (e.target.checked) {
+                                    selected[selected.length] = e.target.value;
+                                  } else {
+                                    var idx = selected.findIndex(
+                                      element => element === e.target.value,
+                                    );
+                                    selected = selected.splice(idx + 1, 1);
+
+                                    idx = productSizes.findIndex(
+                                      element =>
+                                        element.indexOf(e.target.value) !== -1,
+                                    );
+                                    productSizes = productSizes.splice(
+                                      idx + 1,
+                                      1,
+                                    );
+
+                                    $(
+                                      '#' +
+                                        e.target.value +
+                                        'sizes option:selected',
+                                    ).prop('selected', false);
+                                  }
+                                  this.setState({
+                                    packagedProducts: selected,
+                                    packagedProductSizes: productSizes,
+                                  });
+                                  this.enableSizeSelect(
+                                    e.target.checked,
+                                    e.target.value,
+                                  );
+                                  console.log('selected:' + e.target.checked);
+                                }}
+                              />
+                              {product.values['Name']}-{
+                                product.values['Colour']
+                              }
+                            </label>
+                            <div className="sizes">
+                              <select
+                                name={product.id + 'sizes'}
+                                id={product.id + 'sizes'}
+                                disabled
+                                onChange={e => {
+                                  var selected = this.state
+                                    .packagedProductSizes;
+                                  var id = e.target.id.replace('sizes', '');
                                   var idx = selected.findIndex(
-                                    element => element === e.target.value,
-                                  );
-                                  selected = selected.splice(idx + 1, 1);
-
-                                  idx = productSizes.findIndex(
                                     element =>
-                                      element.indexOf(e.target.value) !== -1,
+                                      id + '_' + e.target.value === element,
                                   );
-                                  productSizes = productSizes.splice(
-                                    idx + 1,
-                                    1,
+                                  if (idx !== -1) {
+                                    selected = selected.splice(idx + 1, 1);
+                                  }
+
+                                  selected[selected.length] =
+                                    id + '_' + e.target.value;
+                                  this.setState({
+                                    packagedProductSizes: selected,
+                                  });
+                                }}
+                              >
+                                <option value="" />
+                                {product.values['Sizes'].map((stock, i) => {
+                                  return (
+                                    <option
+                                      value={stock}
+                                      disabled={
+                                        product.stock.length === 0 ||
+                                        product.stock.findIndex(
+                                          element =>
+                                            element.values['Size'] === stock,
+                                        ) === -1
+                                      }
+                                    >
+                                      {stock}
+                                    </option>
                                   );
-
-                                  $(
-                                    '#' +
-                                      e.target.value +
-                                      'sizes option:selected',
-                                  ).prop('selected', false);
-                                }
-                                this.setState({
-                                  packagedProducts: selected,
-                                  packagedProductSizes: productSizes,
-                                });
-                                this.enableSizeSelect(
-                                  e.target.checked,
-                                  e.target.value,
-                                );
-                                console.log('selected:' + e.target.checked);
-                              }}
-                            />
-                            {product.values['Name']}-{product.values['Colour']}
-                          </label>
-                          <div className="sizes">
-                            <select
-                              name={product.id + 'sizes'}
-                              id={product.id + 'sizes'}
-                              disabled
-                              onChange={e => {
-                                var selected = this.state.packagedProductSizes;
-                                var id = e.target.id.replace('sizes', '');
-                                var idx = selected.findIndex(
-                                  element =>
-                                    id + '_' + e.target.value === element,
-                                );
-                                if (idx !== -1) {
-                                  selected = selected.splice(idx + 1, 1);
-                                }
-
-                                selected[selected.length] =
-                                  id + '_' + e.target.value;
-                                this.setState({
-                                  packagedProductSizes: selected,
-                                });
-                              }}
-                            >
-                              <option value="" />
-                              {product.values['Sizes'].map((stock, i) => {
-                                return (
-                                  <option
-                                    value={stock}
-                                    disabled={
-                                      product.stock.length === 0 ||
-                                      product.stock.findIndex(
-                                        element =>
-                                          element.values['Size'] === stock,
-                                      ) === -1
-                                    }
-                                  >
-                                    {stock}
-                                  </option>
-                                );
-                              })}
-                            </select>
+                                })}
+                              </select>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      },
+                    )}
                   </div>
                 )}
                 <div className="quantity">

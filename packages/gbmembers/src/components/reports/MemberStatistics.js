@@ -306,15 +306,31 @@ export class MemberStatistics extends Component {
       if (memberStatus === 'Pending Cancellation') {
         pendingCancellations[pendingCancellations.length] = member;
       }
-      if (memberStatus === 'Pending Registration') {
+      const isStartedMain =
+        member.values['Status'] !== 'Inactive' &&
+        member.values['Non Paying'] !== 'YES' &&
+        member.values['Billing Payment Type'] !== 'Cash' &&
+        (member.values['Billing Parent Member'] === null ||
+          member.values['Billing Parent Member'] === undefined ||
+          member.values['Billing Parent Member'] === '') &&
+        (((member.values['Billing Customer Reference'] === null ||
+          member.values['Billing Customer Reference'] === undefined ||
+          member.values['Billing Customer Reference'] === '') &&
+          member.migrationForm !== undefined &&
+          member.migrationForm.coreState !== 'Submitted') ||
+          (member.migrationForm !== undefined &&
+            member.migrationForm.form.slug ===
+              getAttributeValue(
+                this.props.space,
+                'Billing Company',
+              ).toLowerCase() +
+                '-remote-registration' &&
+            member.migrationForm.coreState === 'Submitted' &&
+            member.values['Biller Migrated'] !== 'YES'));
+      if (memberStatus === 'Pending Registration' || isStartedMain) {
         pendingRegistrations[pendingRegistrations.length] = member;
       }
-      if (
-        (memberStatus === 'Active' ||
-          memberStatus === 'Pending Freeze' ||
-          memberStatus === 'Pending Cancellation') &&
-        member.values['Non Paying'] === 'YES'
-      ) {
+      if (memberStatus === 'Active' && member.values['Non Paying'] === 'YES') {
         nonpayingMembers[nonpayingMembers.length] = member;
       }
       if (
@@ -795,13 +811,27 @@ export class MemberStatistics extends Component {
     );
   }
   getFilteredMembers(members) {
-    if (!this.state.memberFilter) return members;
-    const f = this.state.memberFilter.toLowerCase();
-    return members.filter(
-      m =>
-        (m.values['First Name'] || '').toLowerCase().includes(f) ||
-        (m.values['Last Name'] || '').toLowerCase().includes(f),
-    );
+    const filtered = this.state.memberFilter
+      ? (() => {
+          const f = this.state.memberFilter.toLowerCase();
+          return members.filter(
+            m =>
+              (m.values['First Name'] || '').toLowerCase().includes(f) ||
+              (m.values['Last Name'] || '').toLowerCase().includes(f),
+          );
+        })()
+      : members;
+    return [...filtered].sort((a, b) => {
+      const nameA = `${a.values['Last Name'] || ''} ${a.values['First Name'] ||
+        ''}`
+        .trim()
+        .toLowerCase();
+      const nameB = `${b.values['Last Name'] || ''} ${b.values['First Name'] ||
+        ''}`
+        .trim()
+        .toLowerCase();
+      return nameA < nameB ? -1 : nameA > nameB ? 1 : 0;
+    });
   }
   exportAllCSV() {
     const fileDownload = require('js-file-download');
