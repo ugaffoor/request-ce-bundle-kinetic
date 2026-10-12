@@ -464,3 +464,23 @@ tr.conversation-row {
   border-radius: 6px;
   object-fit: cover;
 }
+
+// The Messages filter tabs. They are buttons styled as links, and the theme
+// gives a selected .btn-link a solid $primary background while leaving its
+// text the link colour -- dark on dark, so the selected tab's label vanished.
+// Drawn here as an ordinary selected tab instead: white, with dark text, in
+// every state the theme would otherwise darken.
+.conversation-filter .nav-link.btn-link {
+  &.active,
+  &.active:hover,
+  &.active:focus,
+  &.active:active,
+  &:not(:disabled):not(.disabled).active,
+  &:not(:disabled):not(.disabled).active:hover,
+  &:not(:disabled):not(.disabled).active:focus {
+    background-color: $white;
+    border-color: $lightgray $lightgray $white;
+    color: $darkgray;
+    font-weight: 600;
+  }
+}

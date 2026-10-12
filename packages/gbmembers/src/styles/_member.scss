@@ -785,6 +785,29 @@
           text-transform: capitalize;
           font-size: 15px;
         }
+        // "Account Deactivated": a status, not an action, so it is disabled.
+        // The portal's danger red, as on its danger links. !important because
+        // _temp.scss paints every disabled .btn-primary near-black with
+        // !important, and nothing without it can win against that.
+        .btn-primary.account-deactivated,
+        .btn-primary.account-deactivated:hover,
+        .btn-primary.account-deactivated:focus,
+        .btn-primary.account-deactivated:disabled {
+          background-color: #ca332d !important;
+          border-color: #ca332d !important;
+          color: $white !important;
+        }
+        // "Account Activated": the same, in Bootstrap's success green -- the
+        // green of the portal's success badges, and dark enough for white
+        // text.
+        .btn-primary.account-activated,
+        .btn-primary.account-activated:hover,
+        .btn-primary.account-activated:focus,
+        .btn-primary.account-activated:disabled {
+          background-color: #28a745 !important;
+          border-color: #28a745 !important;
+          color: $white !important;
+        }
         // "Cancel Change Payment": the same size and place as the buttons
         // around it, in a quieter colour, because it withdraws an approval
         // rather than starting something.

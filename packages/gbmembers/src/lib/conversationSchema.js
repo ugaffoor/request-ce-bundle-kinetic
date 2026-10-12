@@ -199,6 +199,10 @@ export const CONVERSATION_KINDS = {
   // in the same filter because that is where someone looks for it.
   NEEDS_REPLY: 'needs_reply',
   CONVERSATION: 'conversation',
+  // Also a filter rather than a kind of its own: threads a member opened with
+  // "Message your academy" in the app. They stay direct messages too -- each
+  // is a conversation with that member -- this just picks them out.
+  ACADEMY_CHAT: 'academy_chat',
   GROUP: 'group',
   ANNOUNCEMENT: 'announcement',
   BROADCAST: 'broadcast',
@@ -208,6 +212,7 @@ export const CONVERSATION_KIND_LABELS = {
   [CONVERSATION_KINDS.ALL]: 'All',
   [CONVERSATION_KINDS.NEEDS_REPLY]: 'Needs reply',
   [CONVERSATION_KINDS.CONVERSATION]: 'Direct messages',
+  [CONVERSATION_KINDS.ACADEMY_CHAT]: 'Academy chats',
   [CONVERSATION_KINDS.GROUP]: 'Groups',
   [CONVERSATION_KINDS.ANNOUNCEMENT]: 'Announcements',
   [CONVERSATION_KINDS.BROADCAST]: 'Broadcasts',
@@ -226,6 +231,11 @@ export const conversationKind = conversation => {
   // A reply to an announcement belongs with announcements. Without this, one
   // with a single admin in it reads as a plain chat -- and on the Send tab
   // was folded into the staff member's ordinary chat with that person.
+  // A member writing to the academy is a conversation with that member, even
+  // though every program manager is in it -- not a group anyone set up.
+  if (conversation.isAcademyChat) {
+    return CONVERSATION_KINDS.CONVERSATION;
+  }
   if (conversation.isAnnouncementReply) {
     return CONVERSATION_KINDS.ANNOUNCEMENT;
   }
@@ -267,7 +277,9 @@ export const matchesConversationKind = (conversation, kind, viewerId) =>
   kind === CONVERSATION_KINDS.ALL ||
   (kind === CONVERSATION_KINDS.NEEDS_REPLY
     ? needsReply(conversation, viewerId)
-    : conversationKind(conversation) === kind);
+    : kind === CONVERSATION_KINDS.ACADEMY_CHAT
+      ? !!conversation && !!conversation.isAcademyChat
+      : conversationKind(conversation) === kind);
 
 // -- participant names --------------------------------------------------
 
@@ -464,6 +476,12 @@ export const conversationTitle = (conversation, membersById) => {
     return 'Unknown';
   }
 
+  // Named after the member who wrote in, not the school the app names it
+  // after for that member's own view.
+  if (conversation.isAcademyChat && conversation.academyMember) {
+    return participantName(conversation.academyMember, membersById);
+  }
+
   // Named after who replied, not the thread's own name: that is always the
   // announcement thread's, so every reply looked the same in the list.
   if (conversation.isAnnouncementReply && conversation.announcementMember) {
@@ -559,8 +577,13 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
     // never merges with the person's chat or with each other.
     const plainChat =
       conversationKind(conversation) === CONVERSATION_KINDS.CONVERSATION;
+    // An academy chat is keyed on the member who opened it: every other
+    // participant is staff, so "whoever isn't the viewer" could just as well
+    // be another program manager.
     const key = plainChat
-      ? conversation.otherParticipantId || ''
+      ? (conversation.isAcademyChat && conversation.academyMember) ||
+        conversation.otherParticipantId ||
+        ''
       : conversation.id;
     if (!groups.has(key)) {
       groups.set(key, { participantId: key, plainChat, list: [] });
@@ -581,6 +604,7 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
         isAnnouncement: ordered.some(c => c.isAnnouncement),
         isBroadcast: ordered.some(c => c.isBroadcast),
         isAnnouncementReply: ordered.some(c => c.isAnnouncementReply),
+        isAcademyChat: ordered.some(c => c.isAcademyChat),
       };
     })
     .sort((a, b) => time(b.latest) - time(a.latest));
@@ -663,6 +687,13 @@ export const normaliseConversation = (id, data, viewerId) => {
     // thread is actually about, however many staff are in it.
     isAnnouncementReply: !!data.announcementReply,
     announcementMember: data.announcementMember || null,
+    // A member's "Message your academy" thread from the BJJ Members app: the
+    // member plus every program manager. The app names it after the school,
+    // which is right for the member -- they are writing to their academy --
+    // but tells a program manager nothing. academyMember is the member who
+    // opened it, the person it is about.
+    isAcademyChat: !!data.academyChat,
+    academyMember: data.academyMember || null,
     isBroadcast: isBroadcastConversation(data),
     broadcastSender: broadcastSenderOf(data),
     hasJunior: !!data[CONVERSATION_FIELDS.hasJunior],
@@ -732,14 +763,24 @@ export const describeAudience = (message, membersById) => {
  * Everyone in a thread other than the viewer, by name. The school's
  * announcement thread has no participants, so it reads as the whole school.
  */
+// Past this many participants a conversation is described by its size
+// rather than by name -- a run of a dozen names buries the thread it is
+// meant to describe.
+export const MAX_LISTED_PARTICIPANTS = 4;
+
+export const participantCountLabel = count =>
+  `${count} ${count === 1 ? 'participant' : 'participants'}`;
+
 export const conversationParticipants = (
   conversation,
   membersById,
   viewerId,
 ) => {
-  const others = (conversation.participantIds || []).filter(
-    pid => pid !== viewerId,
-  );
+  const all = conversation.participantIds || [];
+  if (all.length > MAX_LISTED_PARTICIPANTS) {
+    return participantCountLabel(all.length);
+  }
+  const others = all.filter(pid => pid !== viewerId);
   if (others.length < 1) {
     return conversation.isAnnouncementThread ? 'Whole school' : '';
   }

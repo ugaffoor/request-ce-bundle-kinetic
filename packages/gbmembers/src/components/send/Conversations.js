@@ -34,6 +34,8 @@ import {
   replyRefFor,
   isTinyChampion,
   billingOwnerIdOf,
+  MAX_LISTED_PARTICIPANTS,
+  participantCountLabel,
   conversationId,
   billingOwnerIds,
   involvesBillingOwner,
@@ -154,6 +156,10 @@ export class Conversations extends Component {
       // initials instead of a broken image. Kept for the page's life: a photo
       // that failed once is not retried on every render.
       brokenPhotos: {},
+      // The thread whose full participant list is showing, when it has too
+      // many people to list by default. Cleared whenever a thread is opened,
+      // so every one starts as just a number.
+      participantsShownFor: null,
       // A 1:1 opened from a member's profile before any message exists. The
       // thread is created on the first send; until then there is nothing in
       // Firestore to listen to, so the page renders the empty thread itself.
@@ -343,6 +349,7 @@ export class Conversations extends Component {
       replyingTo: null,
       attachment: null,
       attachmentError: null,
+      participantsShownFor: null,
     });
     this.props.subscribeMessages({ conversationId });
   }
@@ -821,10 +828,50 @@ export class Conversations extends Component {
               >
                 {this.renderAvatar(conversation, membersById)}
                 <div className="conversation-item__body">
+                  {/* Read top to bottom: whose thread it is, then who said
+                      the last thing in it, then what they said. */}
+                  <div className="conversation-item__title">
+                    {conversationTitle(conversation, membersById)}
+                    {/* A reply is labelled as one rather than as a group:
+                        its other members are simply the school's staff. */}
+                    {conversation.isAnnouncementReply && (
+                      <span className="badge badge-info ml-2">
+                        Announcement reply
+                      </span>
+                    )}
+                    {/* Came in through "Message your academy" in the app:
+                        addressed to the program managers as a role. */}
+                    {conversation.isAcademyChat && (
+                      <span className="badge badge-success ml-2">
+                        Academy chat
+                      </span>
+                    )}
+                    {conversation.isGroup &&
+                      !conversation.isAnnouncementReply &&
+                      !conversation.isAcademyChat && (
+                        <span className="badge badge-secondary ml-2">
+                          Group · {(conversation.participantIds || []).length}
+                        </span>
+                      )}
+                    {conversation.isBroadcast && (
+                      <span className="badge badge-warning ml-2">
+                        Broadcast
+                      </span>
+                    )}
+                    {conversation.isAnnouncement && (
+                      <span className="badge badge-info ml-2">
+                        Announcement
+                      </span>
+                    )}
+                  </div>
                   {conversation.lastMessage && (
                     <div>
-                      {senderLabel && <strong>{senderLabel}: </strong>}
-                      {conversation.lastMessage.text}
+                      <small>
+                        {/* The sender is named in groups, where the title is
+                            the group's and says nothing about who spoke. */}
+                        {senderLabel && <strong>{senderLabel}: </strong>}
+                        {conversation.lastMessage.text}
+                      </small>
                       {needsReply(conversation, getSignedInUid()) && (
                         <span className="badge badge-danger ml-2">
                           Needs reply
@@ -832,34 +879,6 @@ export class Conversations extends Component {
                       )}
                     </div>
                   )}
-                  <div>
-                    <small>
-                      {conversationTitle(conversation, membersById)}
-                      {/* A reply is labelled as one rather than as a group:
-                          its other members are simply the school's staff. */}
-                      {conversation.isAnnouncementReply && (
-                        <span className="badge badge-info ml-2">
-                          Announcement reply
-                        </span>
-                      )}
-                      {conversation.isGroup &&
-                        !conversation.isAnnouncementReply && (
-                          <span className="badge badge-secondary ml-2">
-                            Group · {(conversation.participantIds || []).length}
-                          </span>
-                        )}
-                      {conversation.isBroadcast && (
-                        <span className="badge badge-warning ml-2">
-                          Broadcast
-                        </span>
-                      )}
-                      {conversation.isAnnouncement && (
-                        <span className="badge badge-info ml-2">
-                          Announcement
-                        </span>
-                      )}
-                    </small>
-                  </div>
                   <small className="text-muted">
                     {when(conversation.updatedAt)}
                   </small>
@@ -1002,7 +1021,11 @@ export class Conversations extends Component {
       );
     }
 
-    if (conversation.isGroup && !conversation.isAnnouncementReply) {
+    if (
+      conversation.isGroup &&
+      !conversation.isAnnouncementReply &&
+      !conversation.isAcademyChat
+    ) {
       return (
         <span
           className="conversation-avatar conversation-avatar--group"
@@ -1015,10 +1038,13 @@ export class Conversations extends Component {
 
     // A reply to an announcement shows the member who replied, the same person
     // it is named after -- not whichever participant happens to be first.
+    // An academy chat likewise shows the member who wrote in.
     const otherId =
       conversation.isAnnouncementReply && conversation.announcementMember
         ? conversation.announcementMember
-        : conversation.otherParticipantId;
+        : conversation.isAcademyChat && conversation.academyMember
+          ? conversation.academyMember
+          : conversation.otherParticipantId;
     const photo = participantPhoto(otherId, membersById);
     // A photo that will not load -- a moved file, an expired link, a value
     // that is not a URL at all -- falls back to initials rather than leaving
@@ -1117,7 +1143,7 @@ export class Conversations extends Component {
 
   renderKindFilter() {
     return (
-      <ul className="nav nav-tabs mb-2" role="tablist">
+      <ul className="nav nav-tabs mb-2 conversation-filter" role="tablist">
         {Object.keys(CONVERSATION_KIND_LABELS).map(kind => (
           <li className="nav-item" key={kind}>
             <button
@@ -1147,12 +1173,15 @@ export class Conversations extends Component {
     const conversation = this.getSelectedConversation();
     if (
       !conversation ||
-      (!conversation.isGroup && !conversation.isAnnouncementReply)
+      (!conversation.isGroup &&
+        !conversation.isAnnouncementReply &&
+        !conversation.isAcademyChat)
     ) {
       return null;
     }
 
     const participantIds = conversation.participantIds || [];
+    const showNames = this.state.participantsShownFor === conversation.id;
 
     return (
       <div className="mb-3">
@@ -1167,21 +1196,47 @@ export class Conversations extends Component {
             </small>
           </div>
         )}
+        {conversation.isAcademyChat && (
+          <div className="mb-1">
+            <span className="badge badge-success">Academy chat</span>{' '}
+            <small className="text-muted">
+              Sent through "Message your academy" in the app. Every program
+              manager below can see and answer.
+            </small>
+          </div>
+        )}
         <div className="mb-1">
           <small className="text-muted">
-            {participantIds.length}{' '}
-            {participantIds.length === 1 ? 'participant' : 'participants'}
+            {participantCountLabel(participantIds.length)}
           </small>
+          {/* A big group is summed up as a number; the names are a click
+              away for when it matters who is in it. */}
+          {participantIds.length > MAX_LISTED_PARTICIPANTS && (
+            <button
+              type="button"
+              className="btn btn-link btn-sm p-0 ml-2"
+              aria-expanded={showNames}
+              onClick={() =>
+                this.setState({
+                  participantsShownFor: showNames ? null : conversation.id,
+                })
+              }
+            >
+              <small>{showNames ? 'Hide names' : 'Show names'}</small>
+            </button>
+          )}
         </div>
-        <ul className="list-inline mb-0">
-          {participantIds.map(participantId => (
-            <li key={participantId} className="list-inline-item">
-              <span className="badge badge-light">
-                {participantName(participantId, membersById)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        {(participantIds.length <= MAX_LISTED_PARTICIPANTS || showNames) && (
+          <ul className="list-inline mb-0">
+            {participantIds.map(participantId => (
+              <li key={participantId} className="list-inline-item">
+                <span className="badge badge-light">
+                  {participantName(participantId, membersById)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
         <hr />
       </div>
     );

@@ -168,13 +168,6 @@ export class ConversationsList extends Component {
           onClick={this.openRow}
         >
           <td>
-            <NavLink to={`/Conversations/${group.latest.id}`}>
-              {this.renderPreview(group.latest, membersById, viewerId)}
-            </NavLink>
-            {unreadBadge(unread)}
-            {waiting && needsReplyBadge}
-          </td>
-          <td>
             {group.name}
             {group.isBroadcast && (
               <span className="badge badge-warning ml-2">Broadcast</span>
@@ -185,6 +178,16 @@ export class ConversationsList extends Component {
             {group.isAnnouncementReply && (
               <span className="badge badge-info ml-2">Announcement reply</span>
             )}
+            {group.isAcademyChat && (
+              <span className="badge badge-success ml-2">Academy chat</span>
+            )}
+          </td>
+          <td>
+            <NavLink to={`/Conversations/${group.latest.id}`}>
+              {this.renderPreview(group.latest, membersById, viewerId)}
+            </NavLink>
+            {unreadBadge(unread)}
+            {waiting && needsReplyBadge}
           </td>
           <td>{when(group.latest.updatedAt)}</td>
         </tr>
@@ -197,13 +200,6 @@ export class ConversationsList extends Component {
           className={`conversation-row ${rowClass}`}
           onClick={event => this.toggleRow(group.participantId, event)}
         >
-          <td>
-            {group.latest.lastMessage
-              ? this.renderPreview(group.latest, membersById, viewerId)
-              : ''}
-            {unreadBadge(unread)}
-            {waiting && needsReplyBadge}
-          </td>
           <td>
             <button
               type="button"
@@ -229,7 +225,17 @@ export class ConversationsList extends Component {
                   Announcement reply
                 </span>
               )}
+              {group.isAcademyChat && (
+                <span className="badge badge-success ml-2">Academy chat</span>
+              )}
             </button>
+          </td>
+          <td>
+            {group.latest.lastMessage
+              ? this.renderPreview(group.latest, membersById, viewerId)
+              : ''}
+            {unreadBadge(unread)}
+            {waiting && needsReplyBadge}
           </td>
           <td>{when(group.latest.updatedAt)}</td>
         </tr>
@@ -245,15 +251,6 @@ export class ConversationsList extends Component {
               onClick={this.openRow}
             >
               <td style={{ paddingLeft: '2.5rem' }}>
-                <NavLink to={`/Conversations/${conversation.id}`}>
-                  <small>
-                    {this.renderPreview(conversation, membersById, viewerId)}
-                  </small>
-                </NavLink>
-                {unreadBadge(conversation.unreadCount)}
-                {needsReply(conversation, viewerId) && needsReplyBadge}
-              </td>
-              <td>
                 <small>
                   {conversationParticipants(
                     conversation,
@@ -271,7 +268,21 @@ export class ConversationsList extends Component {
                       Announcement reply
                     </span>
                   )}
+                  {conversation.isAcademyChat && (
+                    <span className="badge badge-success ml-2">
+                      Academy chat
+                    </span>
+                  )}
                 </small>
+              </td>
+              <td>
+                <NavLink to={`/Conversations/${conversation.id}`}>
+                  <small>
+                    {this.renderPreview(conversation, membersById, viewerId)}
+                  </small>
+                </NavLink>
+                {unreadBadge(conversation.unreadCount)}
+                {needsReply(conversation, viewerId) && needsReplyBadge}
               </td>
               <td>
                 <small>{when(conversation.updatedAt)}</small>
@@ -383,8 +394,8 @@ export class ConversationsList extends Component {
           <table className="table table-sm">
             <thead>
               <tr>
-                <th>Last message</th>
                 <th>Participants</th>
+                <th>Last message</th>
                 <th>Date and time</th>
               </tr>
             </thead>

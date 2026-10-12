@@ -89,6 +89,10 @@ import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { MemberConversationContainer } from './MemberConversation';
+import {
+  subscribeAppAccountStatus,
+  APP_ACCOUNT_STATUS,
+} from '../../lib/appAccounts';
 import { MemberMessageModal } from './MemberMessageModal';
 import 'react-datetime/css/react-datetime.css';
 import ReactToPrint from 'react-to-print';
@@ -115,6 +119,7 @@ const mapStateToProps = state => ({
   snippets: state.member.app.snippets,
   profile: state.member.app.profile,
   isSmsEnabled: state.member.app.isSmsEnabled,
+  spaceSlug: state.member.app.spaceSlug,
   belts: state.member.app.belts,
   attendances: state.member.attendance.memberAttendances,
   attendancesLoading: state.member.attendance.fetchingMemberAttendances,
@@ -1030,6 +1035,7 @@ export const MemberView = ({
   requestChangePayment,
   cancelChangePayment,
   changePaymentSaving,
+  appAccountStatus,
   setShowChangeStatusModal,
   showChangeStatusModal,
   setShowRegisterMemberModal,
@@ -1580,6 +1586,36 @@ export const MemberView = ({
                         {changePaymentSaving ? 'Sending...' : 'Change Payment'}
                       </button>
                     ))}
+                  {/* The member's BJJ Members app account (appAccounts.js):
+                      green once they have signed in to the app, red if they
+                      have since deleted the account, nothing if they have
+                      never used it. Statuses, not actions: disabled, with no
+                      handler. btn-primary for the profile's button layout;
+                      the second class gives the colour. */}
+                  {appAccountStatus === APP_ACCOUNT_STATUS.ACTIVATED && (
+                    <button
+                      type="button"
+                      className="btn btn-primary account-activated"
+                      style={{ marginLeft: '10px' }}
+                      disabled
+                      aria-disabled="true"
+                      title="This member has activated their BJJ Members app account."
+                    >
+                      Account Activated
+                    </button>
+                  )}
+                  {appAccountStatus === APP_ACCOUNT_STATUS.DEACTIVATED && (
+                    <button
+                      type="button"
+                      className="btn btn-primary account-deactivated"
+                      style={{ marginLeft: '10px' }}
+                      disabled
+                      aria-disabled="true"
+                      title="This member has deactivated their BJJ Members app account. Their membership and billing are unaffected."
+                    >
+                      Account Deactivated
+                    </button>
+                  )}
                   {!Utils.isMemberOf(profile, 'Role::Program Managers') ? (
                     <div />
                   ) : (
@@ -2400,6 +2436,9 @@ export const MemberViewContainer = compose(
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showMessageModal', 'setShowMessageModal', false),
   withState('changePaymentSaving', 'setChangePaymentSaving', false),
+  // This member's BJJ Members app account: an APP_ACCOUNT_STATUS, or null
+  // until Firestore answers.
+  withState('appAccountStatus', 'setAppAccountStatus', null),
   withState('showChangeStatusModal', 'setShowChangeStatusModal', false),
   withState('showNewReplyModal', 'setShowNewReplyModal', false),
   withState('showRegisterMemberModal', 'setShowRegisterMemberModal', false),
@@ -3145,7 +3184,35 @@ export const MemberViewContainer = compose(
       $('.content')
         .parent('div')[0]
         .scrollIntoView(true);
+      this.followAppAccount(this.props.memberItem.id);
     },
-    componentWillUnmount() {},
+    componentDidUpdate(prevProps) {
+      // Moving to another member's profile reuses this component, so the
+      // listener moves with it.
+      if (prevProps.memberItem.id !== this.props.memberItem.id) {
+        this.followAppAccount(this.props.memberItem.id);
+      }
+    },
+    // Listens to one member's app account, replacing any earlier listener.
+    // The status goes back to unknown first, so the previous member's badge
+    // is never shown against this one.
+    followAppAccount(memberId) {
+      if (this.stopAppAccount) {
+        this.stopAppAccount();
+      }
+      this.props.setAppAccountStatus(null);
+      this.stopAppAccount = subscribeAppAccountStatus({
+        space: this.props.space,
+        spaceSlug: this.props.spaceSlug,
+        username: this.props.profile && this.props.profile.username,
+        memberId,
+        onChange: status => this.props.setAppAccountStatus(status),
+      });
+    },
+    componentWillUnmount() {
+      if (this.stopAppAccount) {
+        this.stopAppAccount();
+      }
+    },
   }),
 )(MemberView);
