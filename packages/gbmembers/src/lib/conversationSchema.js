@@ -199,10 +199,6 @@ export const CONVERSATION_KINDS = {
   // in the same filter because that is where someone looks for it.
   NEEDS_REPLY: 'needs_reply',
   CONVERSATION: 'conversation',
-  // Also a filter rather than a kind of its own: threads a member opened with
-  // "Message your academy" in the app. They stay direct messages too -- each
-  // is a conversation with that member -- this just picks them out.
-  ACADEMY_CHAT: 'academy_chat',
   GROUP: 'group',
   ANNOUNCEMENT: 'announcement',
   BROADCAST: 'broadcast',
@@ -212,7 +208,6 @@ export const CONVERSATION_KIND_LABELS = {
   [CONVERSATION_KINDS.ALL]: 'All',
   [CONVERSATION_KINDS.NEEDS_REPLY]: 'Needs reply',
   [CONVERSATION_KINDS.CONVERSATION]: 'Direct messages',
-  [CONVERSATION_KINDS.ACADEMY_CHAT]: 'Academy chats',
   [CONVERSATION_KINDS.GROUP]: 'Groups',
   [CONVERSATION_KINDS.ANNOUNCEMENT]: 'Announcements',
   [CONVERSATION_KINDS.BROADCAST]: 'Broadcasts',
@@ -231,9 +226,10 @@ export const conversationKind = conversation => {
   // A reply to an announcement belongs with announcements. Without this, one
   // with a single admin in it reads as a plain chat -- and on the Send tab
   // was folded into the staff member's ordinary chat with that person.
-  // A member writing to the academy is a conversation with that member, even
-  // though every program manager is in it -- not a group anyone set up.
-  if (conversation.isAcademyChat) {
+  // A one-to-one shared with the program managers is a conversation with
+  // that person, even though every program manager is in it -- not a group
+  // anyone set up.
+  if (conversation.isSharedOneToOne) {
     return CONVERSATION_KINDS.CONVERSATION;
   }
   if (conversation.isAnnouncementReply) {
@@ -277,9 +273,7 @@ export const matchesConversationKind = (conversation, kind, viewerId) =>
   kind === CONVERSATION_KINDS.ALL ||
   (kind === CONVERSATION_KINDS.NEEDS_REPLY
     ? needsReply(conversation, viewerId)
-    : kind === CONVERSATION_KINDS.ACADEMY_CHAT
-      ? !!conversation && !!conversation.isAcademyChat
-      : conversationKind(conversation) === kind);
+    : conversationKind(conversation) === kind);
 
 // -- participant names --------------------------------------------------
 
@@ -476,12 +470,6 @@ export const conversationTitle = (conversation, membersById) => {
     return 'Unknown';
   }
 
-  // Named after the member who wrote in, not the school the app names it
-  // after for that member's own view.
-  if (conversation.isAcademyChat && conversation.academyMember) {
-    return participantName(conversation.academyMember, membersById);
-  }
-
   // Named after who replied, not the thread's own name: that is always the
   // announcement thread's, so every reply looked the same in the list.
   if (conversation.isAnnouncementReply && conversation.announcementMember) {
@@ -577,13 +565,10 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
     // never merges with the person's chat or with each other.
     const plainChat =
       conversationKind(conversation) === CONVERSATION_KINDS.CONVERSATION;
-    // An academy chat is keyed on the member who opened it: every other
-    // participant is staff, so "whoever isn't the viewer" could just as well
-    // be another program manager.
+    // otherParticipantId already names the person a shared one-to-one is
+    // with, not a colleague it's shared with (see normaliseConversation).
     const key = plainChat
-      ? (conversation.isAcademyChat && conversation.academyMember) ||
-        conversation.otherParticipantId ||
-        ''
+      ? conversation.otherParticipantId || ''
       : conversation.id;
     if (!groups.has(key)) {
       groups.set(key, { participantId: key, plainChat, list: [] });
@@ -604,7 +589,7 @@ export const groupConversationsByParticipant = (conversations, membersById) => {
         isAnnouncement: ordered.some(c => c.isAnnouncement),
         isBroadcast: ordered.some(c => c.isBroadcast),
         isAnnouncementReply: ordered.some(c => c.isAnnouncementReply),
-        isAcademyChat: ordered.some(c => c.isAcademyChat),
+        isSharedOneToOne: ordered.some(c => c.isSharedOneToOne),
       };
     })
     .sort((a, b) => time(b.latest) - time(a.latest));
@@ -657,6 +642,20 @@ export const toDate = value => {
  */
 export const normaliseConversation = (id, data, viewerId) => {
   const participantIds = data[CONVERSATION_FIELDS.participantIds] || [];
+  // A chat shared with every program manager (see lib/programManagers.js):
+  // pmCore is who it started with -- for a one-to-one, the person first, then
+  // the program manager.
+  const pmCore = Array.isArray(data.pmCore) ? data.pmCore : [];
+  const isSharedOneToOne =
+    !!data.pmShared &&
+    !data[CONVERSATION_FIELDS.isGroup] &&
+    !isBroadcastConversation(data);
+  // To the team, a shared broadcast is with the member it was sent to -- not
+  // whichever colleague happens to be first in participantIds.
+  const sharedBroadcastRecipient =
+    isBroadcastConversation(data) && data.pmShared
+      ? pmCore.find(pid => pid !== broadcastSenderOf(data))
+      : null;
   const lastMessage = data[CONVERSATION_FIELDS.lastMessage];
   const meta = data[CONVERSATION_FIELDS.participantsMeta] || {};
   const mine = (viewerId && meta[viewerId]) || {};
@@ -673,8 +672,27 @@ export const normaliseConversation = (id, data, viewerId) => {
     // viewer, like clearedAt: the other side has its own count.
     unreadCount: Number(mine.unreadCount) || 0,
     participantIds,
-    otherParticipantId: participantIds.find(pid => pid !== viewerId),
+    // To the team, a shared one-to-one is with the person in it, and a shared
+    // broadcast with the member it went to -- not whichever colleague comes
+    // first in participantIds.
+    otherParticipantId:
+      (isSharedOneToOne ? pmCore.find(pid => pid !== viewerId) : null) ||
+      (sharedBroadcastRecipient && sharedBroadcastRecipient !== viewerId
+        ? sharedBroadcastRecipient
+        : null) ||
+      participantIds.find(pid => pid !== viewerId),
+    pmShared: !!data.pmShared,
+    pmCore,
+    isSharedOneToOne,
     isGroup: !!data[CONVERSATION_FIELDS.isGroup],
+    // Whether the app shows this thread as a group: its isGroup flag, or, for
+    // a thread older than the flag, more than two people in it -- the rule in
+    // the app's chat.ts. isGroup above stays as stored, so nothing that sorts
+    // or files threads moves; this only decides what a thread is called.
+    readsAsGroup:
+      typeof data[CONVERSATION_FIELDS.isGroup] === 'boolean'
+        ? data[CONVERSATION_FIELDS.isGroup]
+        : participantIds.length > 2,
     name: data[CONVERSATION_FIELDS.name] || null,
     isAnnouncement: isAnnouncementConversation(id, participantIds, data),
     // Only the school thread may be hard-deleted; a delivered copy may not.
@@ -687,13 +705,6 @@ export const normaliseConversation = (id, data, viewerId) => {
     // thread is actually about, however many staff are in it.
     isAnnouncementReply: !!data.announcementReply,
     announcementMember: data.announcementMember || null,
-    // A member's "Message your academy" thread from the BJJ Members app: the
-    // member plus every program manager. The app names it after the school,
-    // which is right for the member -- they are writing to their academy --
-    // but tells a program manager nothing. academyMember is the member who
-    // opened it, the person it is about.
-    isAcademyChat: !!data.academyChat,
-    academyMember: data.academyMember || null,
     isBroadcast: isBroadcastConversation(data),
     broadcastSender: broadcastSenderOf(data),
     hasJunior: !!data[CONVERSATION_FIELDS.hasJunior],
@@ -763,6 +774,11 @@ export const describeAudience = (message, membersById) => {
  * Everyone in a thread other than the viewer, by name. The school's
  * announcement thread has no participants, so it reads as the whole school.
  */
+// The tag on a one-to-one shared with every program manager, wherever the
+// thread appears -- spelled out, because a bare "Shared" leaves staff to
+// guess who else can read it.
+export const SHARED_ONE_TO_ONE_LABEL = 'Shared with program managers';
+
 // Past this many participants a conversation is described by its size
 // rather than by name -- a run of a dozen names buries the thread it is
 // meant to describe.
@@ -770,6 +786,16 @@ export const MAX_LISTED_PARTICIPANTS = 4;
 
 export const participantCountLabel = count =>
   `${count} ${count === 1 ? 'participant' : 'participants'}`;
+
+/**
+ * A group thread's name, for showing it among a person's chats -- or null
+ * when the thread is not a group. A group with no name is still called one,
+ * so it never reads as a private chat with whoever is listed beside it.
+ */
+export const groupThreadName = conversation =>
+  conversation && conversation.readsAsGroup
+    ? conversation.name || 'Group chat'
+    : null;
 
 export const conversationParticipants = (
   conversation,
@@ -856,6 +882,12 @@ export const normaliseMessage = (id, data) => ({
   text: data[MESSAGE_FIELDS.body],
   senderId: data[MESSAGE_FIELDS.senderId],
   createdAt: toDate(data[MESSAGE_FIELDS.createdAt]),
+  // When the words were last changed (see editMessage in the saga), so the
+  // thread can say "edited".
+  editedAt: toDate(data.editedAt),
+  // A delivered copy of an announcement: it follows the announcement when
+  // that is edited, so it is never edited itself.
+  broadcast: !!data.broadcast,
   // What kind of attachment this is, if any -- enough for a reply to quote it
   // as "Photo" or "Voice message" rather than as nothing.
   mediaKind: (data.media && data.media.kind) || null,

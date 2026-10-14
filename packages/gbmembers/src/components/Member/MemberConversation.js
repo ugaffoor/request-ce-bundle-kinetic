@@ -20,6 +20,7 @@ import {
   ANNOUNCEMENT_REMOVED_TEXT,
   quotedMediaLabel,
 } from '../../lib/conversationSchema';
+import { sharedOneToOneWith } from '../../lib/programManagers';
 
 const mapStateToProps = state => ({
   conversations: state.member.conversations.data,
@@ -137,10 +138,15 @@ export class MemberConversation extends Component {
     if (!this.state.viewerId) {
       return null;
     }
-    const id = conversationId(this.props.memberItem.id, this.state.viewerId);
-    return this.props.conversations
-      .toArray()
-      .find(conversation => conversation.id === id);
+    // The viewer's own thread with them, else one of theirs shared with the
+    // program managers -- a colleague's chat with this member, which every
+    // program manager is in (see lib/programManagers.js).
+    const all = this.props.conversations.toArray();
+    const pair = conversationId(this.props.memberItem.id, this.state.viewerId);
+    return (
+      all.find(conversation => conversation.id === pair) ||
+      sharedOneToOneWith(all, this.props.memberItem.id)
+    );
   }
 
   getColumns() {

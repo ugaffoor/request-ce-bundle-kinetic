@@ -12,6 +12,10 @@ import { actions as memberActions } from '../../redux/modules/members';
 import { canUseConversations } from '../../lib/conversationAccess';
 import { initialiseFirebase } from '../../lib/firebase';
 import {
+  sharedOneToOneWith,
+  subscribeProgramManagerIds,
+} from '../../lib/programManagers';
+import {
   ensureFirebaseSignIn,
   getSignedInUid,
   identityKey,
@@ -41,6 +45,7 @@ import {
   involvesBillingOwner,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
+  SHARED_ONE_TO_ONE_LABEL,
 } from '../../lib/conversationSchema';
 
 const mapStateToProps = state => ({
@@ -69,6 +74,7 @@ const mapDispatchToProps = {
   setConversationsError: conversationActions.setConversationsError,
   sendMessage: conversationActions.sendMessage,
   deleteMessage: conversationActions.deleteMessage,
+  editMessage: conversationActions.editMessage,
   markConversationRead: conversationActions.markConversationRead,
   clearConversation: conversationActions.clearConversation,
   deleteConversation: conversationActions.deleteConversation,
@@ -164,7 +170,20 @@ export class Conversations extends Component {
       // thread is created on the first send; until then there is nothing in
       // Firestore to listen to, so the page renders the empty thread itself.
       draftMemberId: null,
+      // The message being edited: the reply box holds its words until saved
+      // (sendReply) or cancelled.
+      editing: null,
+      // The school's program managers -- who may edit or delete the team's
+      // messages in a chat shared with them (see sentByTheTeam).
+      programManagerIds: new Set(),
     };
+  }
+
+  componentWillUnmount() {
+    if (this.stopProgramManagers) {
+      this.stopProgramManagers();
+      this.stopProgramManagers = null;
+    }
   }
 
   /**
@@ -192,13 +211,17 @@ export class Conversations extends Component {
       return;
     }
 
+    // Their own thread with this viewer, else a one-to-one of theirs shared
+    // with the program managers (a colleague's chat with them -- see
+    // lib/programManagers.js), else a draft the first send will create.
     const id = conversationId(member.id, viewerId);
-    const existing = this.props.conversations
-      .toArray()
-      .find(conversation => conversation.id === id);
+    const all = this.props.conversations.toArray();
+    const existing =
+      all.find(conversation => conversation.id === id) ||
+      sharedOneToOneWith(all, member.id);
 
     if (existing) {
-      this.openConversation(id);
+      this.openConversation(existing.id);
     } else {
       this.setState({
         selectedId: id,
@@ -229,6 +252,16 @@ export class Conversations extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    if (
+      !this.stopProgramManagers &&
+      this.props.spaceSlug &&
+      !this.props.loading
+    ) {
+      this.stopProgramManagers = subscribeProgramManagerIds(
+        this.props.spaceSlug,
+        ids => this.setState({ programManagerIds: ids }),
+      );
+    }
     // The list and the roster arrive on their own listeners, at different
     // times; try again whenever either changes until the member is resolved.
     if (
@@ -474,6 +507,22 @@ export class Conversations extends Component {
     const username = this.props.profile && this.props.profile.username;
     const text = this.state.reply.trim();
 
+    // Saving an edit rather than sending. Empty only where a photo still
+    // carries the message (firestore.rules agrees).
+    if (this.state.editing && conversation) {
+      const target = this.state.editing;
+      if (!text && !target.mediaKind) {
+        return;
+      }
+      this.props.editMessage({
+        conversationId: conversation.id,
+        messageId: target.id,
+        text,
+      });
+      this.setState({ editing: null, reply: '' });
+      return;
+    }
+
     // Repeated from renderComposer, which is what hides the box, so the send
     // path is safe on its own rather than relying on the UI never offering it.
     if (this.blockedTinyChampion()) {
@@ -576,27 +625,54 @@ export class Conversations extends Component {
 
     return (
       <div className="form-group mt-3">
-        <label htmlFor="conversation-reply">Reply</label>
-        {this.state.replyingTo && (
+        <label htmlFor="conversation-reply">
+          {this.state.editing ? 'Edit message' : 'Reply'}
+        </label>
+        {this.state.editing && (
           <div className="composer-reply">
             <div className="composer-reply__quote">
-              {this.renderQuote(
-                replyRefFor(this.state.replyingTo),
-                this.getMembersById(),
-                this.viewerParticipantId(),
-              )}
+              <small className="text-muted">
+                {this.state.editing.senderId === getSignedInUid()
+                  ? 'Editing your message'
+                  : `Editing ${participantName(
+                      this.state.editing.senderId,
+                      this.getMembersById(),
+                    )}'s message`}{' '}
+                &mdash; saving changes it for everyone in the chat.
+              </small>
             </div>
             <button
               type="button"
               className="close"
-              aria-label="Cancel reply"
-              title="Cancel reply"
-              onClick={() => this.setState({ replyingTo: null })}
+              aria-label="Cancel edit"
+              title="Cancel edit"
+              onClick={() => this.setState({ editing: null, reply: '' })}
             >
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
         )}
+        {this.state.replyingTo &&
+          !this.state.editing && (
+            <div className="composer-reply">
+              <div className="composer-reply__quote">
+                {this.renderQuote(
+                  replyRefFor(this.state.replyingTo),
+                  this.getMembersById(),
+                  this.viewerParticipantId(),
+                )}
+              </div>
+              <button
+                type="button"
+                className="close"
+                aria-label="Cancel reply"
+                title="Cancel reply"
+                onClick={() => this.setState({ replyingTo: null })}
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          )}
         <textarea
           id="conversation-reply"
           ref={element => (this.replyBox = element)}
@@ -667,7 +743,11 @@ export class Conversations extends Component {
             disabled={!canSend}
             onClick={this.sendReply}
           >
-            {this.props.sending ? 'Sending...' : 'Send'}
+            {this.state.editing
+              ? 'Save edit'
+              : this.props.sending
+                ? 'Sending...'
+                : 'Send'}
           </button>
         </div>
       </div>
@@ -839,16 +919,15 @@ export class Conversations extends Component {
                         Announcement reply
                       </span>
                     )}
-                    {/* Came in through "Message your academy" in the app:
-                        addressed to the program managers as a role. */}
-                    {conversation.isAcademyChat && (
+                    {/* Shared with every program manager, so nobody takes
+                        it for a private chat. */}
+                    {conversation.isSharedOneToOne && (
                       <span className="badge badge-success ml-2">
-                        Academy chat
+                        {SHARED_ONE_TO_ONE_LABEL}
                       </span>
                     )}
                     {conversation.isGroup &&
-                      !conversation.isAnnouncementReply &&
-                      !conversation.isAcademyChat && (
+                      !conversation.isAnnouncementReply && (
                         <span className="badge badge-secondary ml-2">
                           Group · {(conversation.participantIds || []).length}
                         </span>
@@ -1021,11 +1100,7 @@ export class Conversations extends Component {
       );
     }
 
-    if (
-      conversation.isGroup &&
-      !conversation.isAnnouncementReply &&
-      !conversation.isAcademyChat
-    ) {
+    if (conversation.isGroup && !conversation.isAnnouncementReply) {
       return (
         <span
           className="conversation-avatar conversation-avatar--group"
@@ -1038,13 +1113,10 @@ export class Conversations extends Component {
 
     // A reply to an announcement shows the member who replied, the same person
     // it is named after -- not whichever participant happens to be first.
-    // An academy chat likewise shows the member who wrote in.
     const otherId =
       conversation.isAnnouncementReply && conversation.announcementMember
         ? conversation.announcementMember
-        : conversation.isAcademyChat && conversation.academyMember
-          ? conversation.academyMember
-          : conversation.otherParticipantId;
+        : conversation.otherParticipantId;
     const photo = participantPhoto(otherId, membersById);
     // A photo that will not load -- a moved file, an expired link, a value
     // that is not a URL at all -- falls back to initials rather than leaving
@@ -1175,7 +1247,7 @@ export class Conversations extends Component {
       !conversation ||
       (!conversation.isGroup &&
         !conversation.isAnnouncementReply &&
-        !conversation.isAcademyChat)
+        !conversation.isSharedOneToOne)
     ) {
       return null;
     }
@@ -1196,12 +1268,13 @@ export class Conversations extends Component {
             </small>
           </div>
         )}
-        {conversation.isAcademyChat && (
+        {conversation.isSharedOneToOne && (
           <div className="mb-1">
-            <span className="badge badge-success">Academy chat</span>{' '}
+            <span className="badge badge-success">
+              {SHARED_ONE_TO_ONE_LABEL}
+            </span>{' '}
             <small className="text-muted">
-              Sent through "Message your academy" in the app. Every program
-              manager below can see and answer.
+              Every program manager is in it. Everyone below can see and answer.
             </small>
           </div>
         )}
@@ -1265,9 +1338,59 @@ export class Conversations extends Component {
     ) {
       return false;
     }
-    // Only your own messages. The rules decide this too, but offering a
+    // Your own messages -- and, in a chat shared with every program manager,
+    // any message the team sent, so a colleague who is away is not the only
+    // one who can take it back. The rules decide this too, but offering a
     // control that always fails is worse than not offering it.
-    return message.senderId === getSignedInUid();
+    return (
+      message.senderId === getSignedInUid() ||
+      this.sentByTheTeam(conversation, message) ||
+      // Any announcement, whoever on the team posted it -- only program
+      // managers see Messages here, and the rules let staff withdraw one.
+      conversation.isAnnouncementThread
+    );
+  }
+
+  /**
+   * A program manager's message in a chat shared with every program manager
+   * (a one-to-one with one, or a group or broadcast with one in it). Only program managers
+   * see Messages here, so the viewer is always one.
+   */
+  sentByTheTeam(conversation, message) {
+    return (
+      !!conversation &&
+      !!message &&
+      conversation.pmShared &&
+      this.state.programManagerIds.has(message.senderId)
+    );
+  }
+
+  /**
+   * Whether this message's words can be changed: your own; the team's in a
+   * chat shared with every program manager; or an announcement, which any
+   * staff member may correct. Never a tombstone, and never a delivered copy
+   * of an announcement -- that follows the announcement when it is edited.
+   */
+  canEdit(conversation, message) {
+    if (!conversation || !message || message.deleted || message.broadcast) {
+      return false;
+    }
+    return (
+      message.senderId === getSignedInUid() ||
+      this.sentByTheTeam(conversation, message) ||
+      conversation.isAnnouncementThread
+    );
+  }
+
+  startEdit(message) {
+    this.setState({
+      editing: message,
+      reply: message.text || '',
+      replyingTo: null,
+    });
+    if (this.replyBox) {
+      this.replyBox.focus();
+    }
   }
 
   /**
@@ -1652,8 +1775,18 @@ export class Conversations extends Component {
                     <small>
                       <span className="text-muted">
                         {timeOf(message.createdAt)}
+                        {!message.deleted && message.editedAt && ' · edited'}
                       </span>
                     </small>
+                    {this.canEdit(selectedConversation, message) && (
+                      <button
+                        type="button"
+                        className="btn btn-link btn-sm p-0 ml-2"
+                        onClick={() => this.startEdit(message)}
+                      >
+                        <small>Edit</small>
+                      </button>
+                    )}
                     {/* Only where an answer could be sent, and never on a
                         tombstone -- there is nothing left to quote. The same
                         rule the app's message menu applies. */}

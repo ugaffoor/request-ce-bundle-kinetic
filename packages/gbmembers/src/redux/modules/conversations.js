@@ -33,6 +33,10 @@ export const types = {
   SET_SENDING: namespace('conversations', 'SET_SENDING'),
   SET_SEND_ERROR: namespace('conversations', 'SET_SEND_ERROR'),
   MESSAGE_SENT: namespace('conversations', 'MESSAGE_SENT'),
+  // Changing the words of a message that has already gone out.
+  EDIT_MESSAGE: namespace('conversations', 'EDIT_MESSAGE'),
+  // Changing the words of one broadcast send, in every recipient's thread.
+  EDIT_BROADCAST: namespace('conversations', 'EDIT_BROADCAST'),
   // Withdrawing a post that has already gone out.
   DELETE_MESSAGE: namespace('conversations', 'DELETE_MESSAGE'),
   SET_DELETING: namespace('conversations', 'SET_DELETING'),
@@ -64,6 +68,10 @@ export const actions = {
   setSending: withPayload(types.SET_SENDING),
   setSendError: withPayload(types.SET_SEND_ERROR),
   messageSent: withPayload(types.MESSAGE_SENT),
+  // Pass { conversationId, messageId, text }.
+  editMessage: withPayload(types.EDIT_MESSAGE),
+  // Pass { conversationIds, previousText, text }.
+  editBroadcast: withPayload(types.EDIT_BROADCAST),
   // Pass { conversationId, messageId }.
   deleteMessage: withPayload(types.DELETE_MESSAGE),
   setDeleting: withPayload(types.SET_DELETING),

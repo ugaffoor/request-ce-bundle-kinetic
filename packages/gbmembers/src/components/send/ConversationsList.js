@@ -14,6 +14,7 @@ import {
 } from '../../lib/firebaseAuth';
 import {
   conversationParticipants,
+  groupThreadName,
   indexMembersById,
   groupConversationsByParticipant,
   matchesConversationKind,
@@ -23,6 +24,7 @@ import {
   previewSenderLabel,
   CONVERSATION_KINDS,
   CONVERSATION_KIND_LABELS,
+  SHARED_ONE_TO_ONE_LABEL,
 } from '../../lib/conversationSchema';
 
 /**
@@ -178,8 +180,10 @@ export class ConversationsList extends Component {
             {group.isAnnouncementReply && (
               <span className="badge badge-info ml-2">Announcement reply</span>
             )}
-            {group.isAcademyChat && (
-              <span className="badge badge-success ml-2">Academy chat</span>
+            {group.isSharedOneToOne && (
+              <span className="badge badge-success ml-2">
+                {SHARED_ONE_TO_ONE_LABEL}
+              </span>
             )}
           </td>
           <td>
@@ -225,8 +229,10 @@ export class ConversationsList extends Component {
                   Announcement reply
                 </span>
               )}
-              {group.isAcademyChat && (
-                <span className="badge badge-success ml-2">Academy chat</span>
+              {group.isSharedOneToOne && (
+                <span className="badge badge-success ml-2">
+                  {SHARED_ONE_TO_ONE_LABEL}
+                </span>
               )}
             </button>
           </td>
@@ -252,10 +258,29 @@ export class ConversationsList extends Component {
             >
               <td style={{ paddingLeft: '2.5rem' }}>
                 <small>
-                  {conversationParticipants(
-                    conversation,
-                    membersById,
-                    viewerId,
+                  {/* A group among this person's chats goes by its name, with
+                      who is in it after -- a bare list of names reads as a
+                      private chat with them. */}
+                  {groupThreadName(conversation) ? (
+                    <React.Fragment>
+                      <span className="conversation-thread-group">
+                        {groupThreadName(conversation)}
+                      </span>
+                      <span className="text-muted">
+                        {' · '}
+                        {conversationParticipants(
+                          conversation,
+                          membersById,
+                          viewerId,
+                        )}
+                      </span>
+                    </React.Fragment>
+                  ) : (
+                    conversationParticipants(
+                      conversation,
+                      membersById,
+                      viewerId,
+                    )
                   )}
                   {conversation.isBroadcast && (
                     <span className="badge badge-warning ml-2">Broadcast</span>
@@ -268,9 +293,9 @@ export class ConversationsList extends Component {
                       Announcement reply
                     </span>
                   )}
-                  {conversation.isAcademyChat && (
+                  {conversation.isSharedOneToOne && (
                     <span className="badge badge-success ml-2">
-                      Academy chat
+                      {SHARED_ONE_TO_ONE_LABEL}
                     </span>
                   )}
                 </small>

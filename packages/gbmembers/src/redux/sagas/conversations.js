@@ -295,11 +295,20 @@ function* deliverTo({
       ? broadcastConversationId(memberId, staffId)
       : conversationId(memberId, staffId));
 
+  // A thread shared with the program managers (see lib/programManagers.js)
+  // is left as it is: its people are the Cloud Functions' to keep, and
+  // firestore.rules refuses any write that would change them.
+  let shared = false;
+  if (!existingConversationId) {
+    const snap = yield call(getDoc, doc(store, CONVERSATIONS_COLLECTION, id));
+    shared = snap.exists() && snap.data().pmShared === true;
+  }
+
   // Only when starting a thread. Replying into an existing one must not
   // touch the conversation document: merging staffChat/participantIds onto
   // a thread the app created (a broadcast, say) would quietly rewrite what
   // that thread is.
-  if (!existingConversationId) {
+  if (!existingConversationId && !shared) {
     // Firestore rejects undefined field values, so only send what we have.
     const conversation = {
       [CONVERSATION_FIELDS.participantIds]: [memberId, staffId],
@@ -684,6 +693,93 @@ export function* sendMessage({ payload } = {}) {
  * is part of a two-way conversation the student can see and answer, so
  * removing it half-way through would leave them reading a gap.
  */
+/**
+ * Changes the words of a message, for everyone. firestore.rules decides who
+ * may: its sender; any program manager, for a program manager's message in a
+ * chat shared with them; any staff member, for an announcement. editedAt is
+ * what both clients show as "edited", and what the Cloud Function keys on to
+ * update quotes of it, the thread's preview and -- for an announcement --
+ * every member's delivered copy. Mirrors editMessage() in the app.
+ */
+export function* editMessage({ payload } = {}) {
+  const store = getConversationStore();
+  const { conversationId: id, messageId, text } = payload || {};
+  if (!store || !id || !messageId) {
+    return;
+  }
+  try {
+    yield call(
+      updateDoc,
+      doc(
+        store,
+        CONVERSATIONS_COLLECTION,
+        id,
+        MESSAGES_SUBCOLLECTION,
+        messageId,
+      ),
+      {
+        [MESSAGE_FIELDS.body]: (text || '').trim(),
+        editedAt: serverTimestamp(),
+      },
+    );
+  } catch (e) {
+    const detail = yield call(describeAuthState);
+    yield put(
+      actions.setSendError(
+        `The edit was not saved: ${e.message || String(e)} (${detail})`,
+      ),
+    );
+  }
+}
+
+/**
+ * Changes the words of one broadcast send for everyone it went to. A
+ * broadcast is one thread per recipient (see deliverTo), so the send is the
+ * message carrying its text in each of those threads; each is edited like any
+ * message. firestore.rules allows it for the sender, and for any program
+ * manager when the broadcast was sent by one (it is shared with them all).
+ */
+export function* editBroadcast({ payload } = {}) {
+  const store = getConversationStore();
+  const { conversationIds, previousText, text } = payload || {};
+  if (!store || !conversationIds || !conversationIds.length || !text) {
+    return;
+  }
+  try {
+    for (const id of conversationIds) {
+      const sent = yield call(
+        getDocs,
+        query(
+          collection(
+            store,
+            CONVERSATIONS_COLLECTION,
+            id,
+            MESSAGES_SUBCOLLECTION,
+          ),
+          where(MESSAGE_FIELDS.body, '==', previousText || ''),
+        ),
+      );
+      for (const message of sent.docs) {
+        if (message.data().deleted) {
+          continue;
+        }
+        yield call(updateDoc, message.ref, {
+          [MESSAGE_FIELDS.body]: text.trim(),
+          editedAt: serverTimestamp(),
+        });
+      }
+    }
+  } catch (e) {
+    const detail = yield call(describeAuthState);
+    yield put(
+      actions.setDeleteError(
+        `The broadcast was not fully updated: ${e.message ||
+          String(e)} (${detail})`,
+      ),
+    );
+  }
+}
+
 export function* deleteMessage({ payload } = {}) {
   const store = getConversationStore();
   const { conversationId: id, messageId, announcement } = payload || {};
@@ -912,6 +1008,8 @@ export function* watchConversations() {
   yield takeLatest(types.SUBSCRIBE_CONVERSATIONS, watchAnnouncementThread);
   yield takeLatest(types.SUBSCRIBE_MESSAGES, watchMessageSnapshots);
   yield takeEvery(types.SEND_MESSAGE, sendMessage);
+  yield takeEvery(types.EDIT_MESSAGE, editMessage);
+  yield takeEvery(types.EDIT_BROADCAST, editBroadcast);
   yield takeEvery(types.DELETE_MESSAGE, deleteMessage);
   yield takeEvery(types.MARK_CONVERSATION_READ, markConversationRead);
   yield takeEvery(types.CLEAR_CONVERSATION, clearConversation);

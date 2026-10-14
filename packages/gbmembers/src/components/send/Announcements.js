@@ -22,6 +22,7 @@ import {
   indexMembersById,
   participantName,
 } from '../../lib/conversationSchema';
+import { subscribeProgramManagerIds } from '../../lib/programManagers';
 
 const mapStateToProps = state => ({
   conversations: state.member.conversations.data,
@@ -46,6 +47,8 @@ const mapDispatchToProps = {
   setConversationsError: conversationActions.setConversationsError,
   deleteMessage: conversationActions.deleteMessage,
   deleteConversation: conversationActions.deleteConversation,
+  editMessage: conversationActions.editMessage,
+  editBroadcast: conversationActions.editBroadcast,
   fetchMembers: memberActions.fetchMembers,
 };
 
@@ -100,8 +103,36 @@ const groupBroadcasts = conversations => {
  *   BROADCASTS are one thread per recipient, so each row is a CONVERSATION.
  *   Deleting its message removes it for that person outright; there is no
  *   fan-out to unwind because each delivery is its own thread.
+ *
+ * Any program manager can edit or delete what any program manager sent --
+ * the whole team's posts are listed, not only the viewer's own, so a
+ * colleague who is away is not the only one who can correct or take back a
+ * notice. Editing an announcement updates every member's delivered copy
+ * (onMessageEdited); editing a broadcast updates it in every recipient's
+ * thread (editBroadcast).
  */
 export class Announcements extends Component {
+  state = {
+    // The school's program managers, whose broadcasts are listed here.
+    programManagerIds: new Set(),
+    // The row being edited: { id, text }.
+    editing: null,
+  };
+
+  componentDidUpdate() {
+    // Once Firebase has signed in (the list arriving says it has).
+    if (
+      !this.stopProgramManagers &&
+      this.props.spaceSlug &&
+      !this.props.loading
+    ) {
+      this.stopProgramManagers = subscribeProgramManagerIds(
+        this.props.spaceSlug,
+        ids => this.setState({ programManagerIds: ids }),
+      );
+    }
+  }
+
   componentDidMount() {
     // The announcement thread is fetched by id, so its posts only arrive once
     // this page asks for them.
@@ -119,6 +150,87 @@ export class Announcements extends Component {
     // The posts listener this page started. The conversations listener is
     // started by the container below, which stops it there.
     this.props.unsubscribeMessages();
+    if (this.stopProgramManagers) {
+      this.stopProgramManagers();
+      this.stopProgramManagers = null;
+    }
+  }
+
+  startEdit(id, text) {
+    this.setState({ editing: { id, text: text || '' } });
+  }
+
+  cancelEdit = () => this.setState({ editing: null });
+
+  saveAnnouncement(message) {
+    const text = (this.state.editing && this.state.editing.text.trim()) || '';
+    if (!text) {
+      return;
+    }
+    this.props.editMessage({
+      conversationId: announcementThreadId(
+        this.props.spaceSlug,
+        FRANCHISE_DOMAIN,
+      ),
+      messageId: message.id,
+      text,
+    });
+    this.setState({ editing: null });
+  }
+
+  saveBroadcast(group) {
+    const text = (this.state.editing && this.state.editing.text.trim()) || '';
+    if (!text) {
+      return;
+    }
+    this.props.editBroadcast({
+      conversationIds: group.conversations.map(conversation => conversation.id),
+      previousText: group.text,
+      text,
+    });
+    this.setState({ editing: null });
+  }
+
+  /**
+   * The words of a row, or the box to change them while it is being edited.
+   */
+  renderText(id, text, onSave) {
+    const editing = this.state.editing;
+    if (!editing || editing.id !== id) {
+      return text;
+    }
+    return (
+      <div>
+        <textarea
+          className="form-control form-control-sm"
+          rows="3"
+          value={editing.text}
+          onChange={e =>
+            this.setState({ editing: { id, text: e.target.value } })
+          }
+        />
+        <div className="mt-1">
+          <button
+            type="button"
+            className="btn btn-primary btn-sm mr-2"
+            disabled={!editing.text.trim()}
+            onClick={onSave}
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            className="btn btn-link btn-sm p-0"
+            onClick={this.cancelEdit}
+          >
+            Cancel
+          </button>
+          <small className="text-muted ml-2">
+            Changes it for everyone who received it.
+          </small>
+        </div>
+      </div>
+    );
   }
 
   getBroadcasts() {
@@ -127,11 +239,13 @@ export class Announcements extends Component {
       this.props.conversations
         .toArray()
         .filter(conversation => conversation.isBroadcast)
-        // Only what this staff member sent. Another coach's broadcast is not
-        // theirs to withdraw, and the rules would refuse it anyway.
+        // What this program manager sent, and what any other program manager
+        // sent -- shared with the whole team, so any of them may change it.
         .filter(
           conversation =>
-            !viewerId || conversation.broadcastSender === viewerId,
+            !viewerId ||
+            conversation.broadcastSender === viewerId ||
+            this.state.programManagerIds.has(conversation.broadcastSender),
         )
         .sort(
           (a, b) =>
@@ -141,12 +255,11 @@ export class Announcements extends Component {
     );
   }
 
+  // Every announcement the school has posted, whoever on the team posted it.
   getAnnouncements() {
-    const viewerId = getSignedInUid();
     return this.props.messages
       .toArray()
       .filter(message => !message.deleted)
-      .filter(message => !viewerId || message.senderId === viewerId)
       .sort(
         (a, b) =>
           (b.createdAt ? b.createdAt.getTime() : 0) -
@@ -218,7 +331,7 @@ export class Announcements extends Component {
 
     const announcements = this.getAnnouncements();
     if (announcements.length < 1) {
-      return <p>You have not posted any announcements.</p>;
+      return <p>No announcements have been posted.</p>;
     }
 
     return (
@@ -227,6 +340,7 @@ export class Announcements extends Component {
           <tr>
             <th>Announcement</th>
             <th>Participants</th>
+            <th>Sent by</th>
             <th>Date and time</th>
             <th />
           </tr>
@@ -234,10 +348,25 @@ export class Announcements extends Component {
         <tbody>
           {announcements.map(message => (
             <tr key={message.id}>
-              <td>{message.text}</td>
+              <td>
+                {this.renderText(message.id, message.text, () =>
+                  this.saveAnnouncement(message),
+                )}
+                {message.editedAt && (
+                  <small className="text-muted"> (edited)</small>
+                )}
+              </td>
               <td>{describeAudience(message, membersById)}</td>
+              <td>{participantName(message.senderId, membersById)}</td>
               <td>{when(message.createdAt)}</td>
-              <td className="text-right">
+              <td className="text-right text-nowrap">
+                <button
+                  type="button"
+                  className="btn btn-link btn-sm p-0 mr-3"
+                  onClick={() => this.startEdit(message.id, message.text)}
+                >
+                  <small>Edit</small>
+                </button>
                 <button
                   type="button"
                   className="btn btn-link btn-sm p-0"
@@ -265,7 +394,7 @@ export class Announcements extends Component {
 
     const broadcasts = groupBroadcasts(this.getBroadcasts());
     if (broadcasts.length < 1) {
-      return <p>You have not sent any broadcasts.</p>;
+      return <p>No broadcasts have been sent.</p>;
     }
 
     return (
@@ -274,6 +403,7 @@ export class Announcements extends Component {
           <tr>
             <th>Broadcast</th>
             <th>Participants</th>
+            <th>Sent by</th>
             <th>Date and time</th>
             <th />
           </tr>
@@ -288,7 +418,11 @@ export class Announcements extends Component {
             );
             return (
               <tr key={group.id}>
-                <td>{group.text}</td>
+                <td>
+                  {this.renderText(group.id, group.text, () =>
+                    this.saveBroadcast(group),
+                  )}
+                </td>
                 <td>
                   {names.length > 1 && (
                     <span className="badge badge-secondary mr-2">
@@ -297,8 +431,22 @@ export class Announcements extends Component {
                   )}
                   {names.join(', ')}
                 </td>
+                <td>
+                  {participantName(
+                    group.conversations[0].broadcastSender,
+                    membersById,
+                  )}
+                </td>
                 <td>{when(group.latest)}</td>
-                <td className="text-right">
+                <td className="text-right text-nowrap">
+                  <button
+                    type="button"
+                    className="btn btn-link btn-sm p-0 mr-3"
+                    disabled={busy}
+                    onClick={() => this.startEdit(group.id, group.text)}
+                  >
+                    <small>Edit</small>
+                  </button>
                   <button
                     type="button"
                     className="btn btn-link btn-sm p-0"
@@ -368,8 +516,9 @@ export class Announcements extends Component {
             <h5 className="mt-3">Announcements</h5>
             <p className="text-muted">
               <small>
-                Posted to the whole school. Deleting one withdraws it from every
-                member who received it.
+                Posted to the whole school, by any program manager. Editing one
+                changes it for every member who received it; deleting one
+                withdraws it from all of them.
               </small>
             </p>
             {this.renderAnnouncements(membersById)}
@@ -377,8 +526,9 @@ export class Announcements extends Component {
             <h5 className="mt-4">Broadcasts</h5>
             <p className="text-muted">
               <small>
-                One-way messages, one thread per recipient. Deleting one removes
-                it for that person.
+                One-way messages sent by any program manager. Editing one
+                changes it for everyone it went to; deleting one removes it for
+                all of them.
               </small>
             </p>
             {this.renderBroadcasts(membersById)}
