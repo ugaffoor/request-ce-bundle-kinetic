@@ -4305,38 +4305,87 @@ export class ProShop extends Component {
       scannedSKU: '',
       productCodeValue: '',
     });
-    var skuValue = '';
 
-    var idx = this.props.posBarcodes.findIndex((item, i) => {
-      return item.values['Barcode'] === data;
-    });
-    if (idx === -1) {
-      // If barcode not found as Barcode, look directyl against the SKU
+    const getVersion = name => {
+      const m = /\bV(\d+)\b/i.exec(name || '');
+      return m ? parseInt(m[1], 10) : 0;
+    };
+
+    const matchingBarcodes = this.props.posBarcodes.filter(
+      item => item.values['Barcode'] === data,
+    );
+
+    var skuValue = '';
+    var barcodeProductName = '';
+
+    if (matchingBarcodes.length === 0) {
       skuValue = data;
     } else {
-      skuValue = this.props.posBarcodes[idx].values['SKU'];
+      const bestBarcode =
+        matchingBarcodes.length === 1
+          ? matchingBarcodes[0]
+          : matchingBarcodes.reduce(
+              (best, item) =>
+                getVersion(item.values['Product Name'] || '') >
+                getVersion((best && best.values['Product Name']) || '')
+                  ? item
+                  : best,
+              matchingBarcodes[0],
+            );
+      skuValue = bestBarcode.values['SKU'];
+      barcodeProductName = bestBarcode.values['Product Name'] || '';
     }
 
     if (skuValue !== '') {
       var productSKUValue = '';
-      idx = this.props.posProducts.findIndex((product, i) => {
-        var matched = false;
-        var sizes = product.values['Sizes'];
-        var productSku =
-          product.values['SKU'] !== null ? product.values['SKU'].trim() : '';
-        sizes.forEach((size, i) => {
-          if (
-            productSku + size === skuValue ||
-            productSku.substr(0, productSku.length - 1) + size === skuValue ||
-            (size === 'ALL' && productSku === skuValue)
-          ) {
-            matched = true;
-            productSKUValue = productSku;
-          }
+      var found = false;
+
+      // Try name match first (case-insensitive; barcode name may be "Name - Colour")
+      if (barcodeProductName) {
+        const target = barcodeProductName.toLowerCase();
+        const nameMatch = this.props.posProducts.find(p => {
+          if (p.values['Status'] !== 'Active') return false;
+          const name = (p.values['Name'] || '').toLowerCase();
+          const colour = (p.values['Colour'] || '').toLowerCase();
+          return (
+            name === target || (colour && name + ' - ' + colour === target)
+          );
         });
-        return matched;
-      });
-      if (idx !== -1) {
+        if (nameMatch) {
+          productSKUValue =
+            nameMatch.values['SKU'] !== null
+              ? nameMatch.values['SKU'].trim()
+              : '';
+          found = true;
+        }
+      }
+
+      // Fallback: SKU matching with version preference
+      if (!found) {
+        let bestVersion = -1;
+        this.props.posProducts.forEach(product => {
+          if (product.values['Status'] !== 'Active') return;
+          const sizes = product.values['Sizes'];
+          const productSku =
+            product.values['SKU'] !== null ? product.values['SKU'].trim() : '';
+          sizes.forEach(size => {
+            if (
+              productSku + size === skuValue ||
+              productSku.substr(0, productSku.length - 1) + size === skuValue ||
+              (size === 'ALL' && productSku === skuValue)
+            ) {
+              const version = getVersion(product.values['Name']);
+              if (version > bestVersion) {
+                bestVersion = version;
+                productSKUValue = productSku;
+                found = true;
+              }
+            }
+          });
+        });
+      }
+
+      if (found) {
         console.log('SKU Found:' + skuValue);
         this.setState({
           scanned: true,

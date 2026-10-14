@@ -43,33 +43,84 @@ export class RecordStockDialog extends Component {
 
     var sizeVal = '';
     var skuValue = '';
-    var idx = this.props.posBarcodes.findIndex((item, i) => {
-      return item.values['Barcode'] === data;
-    });
-    if (idx === -1) {
-      // If barcode not found as Barcode, look directyl against the SKU
-      skuValue = data;
-    } else {
-      skuValue = this.props.posBarcodes[idx].values['SKU'];
-    }
-    if (skuValue !== '') {
-      idx = this.props.products.findIndex((product, i) => {
-        var matched = false;
-        var sizes = product.values['Sizes'];
-        var productSku =
+    var idx = -1;
+
+    const matchingBarcodes = this.props.posBarcodes.filter(
+      item => item.values['Barcode'] === data,
+    );
+
+    if (matchingBarcodes.length > 0) {
+      const getVersion = name => {
+        const m = /\bV(\d+)\b/i.exec(name || '');
+        return m ? parseInt(m[1], 10) : 0;
+      };
+
+      // If only one barcode matches, use it directly
+      // Otherwise pick the record with the highest version from its Product Name
+      const bestBarcode =
+        matchingBarcodes.length === 1
+          ? matchingBarcodes[0]
+          : matchingBarcodes.reduce(
+              (best, item) =>
+                getVersion(item.values['Product Name'] || '') >
+                getVersion((best && best.values['Product Name']) || '')
+                  ? item
+                  : best,
+              matchingBarcodes[0],
+            );
+
+      skuValue = bestBarcode.values['SKU'];
+      const barcodeProductName = bestBarcode.values['Product Name'] || '';
+
+      // Prefer name match so the correct version is always selected.
+      // barcodeProductName may be "Product Name - Colour", so try both forms.
+      const nameMatchIdx = this.props.products.findIndex(p => {
+        const name = (p.values['Name'] || '').toLowerCase();
+        const colour = (p.values['Colour'] || '').toLowerCase();
+        const target = barcodeProductName.toLowerCase();
+        return name === target || (colour && name + ' - ' + colour === target);
+      });
+
+      if (nameMatchIdx !== -1) {
+        idx = nameMatchIdx;
+        const product = this.props.products[nameMatchIdx];
+        const productSku =
           product.values['SKU'] !== null ? product.values['SKU'].trim() : '';
-        sizes.forEach((size, i) => {
+        product.values['Sizes'].forEach(size => {
           if (
             productSku + size === skuValue ||
             productSku.substr(0, productSku.length - 1) + size === skuValue ||
             (size === 'ALL' && productSku === skuValue)
           ) {
-            matched = true;
             sizeVal = size;
           }
         });
-        return matched;
-      });
+        if (!sizeVal && product.values['Sizes'].length > 0) {
+          sizeVal = product.values['Sizes'][0];
+        }
+      } else {
+        // Fallback: SKU matching with version preference from product Name
+        let bestVersion = -1;
+        this.props.products.forEach((product, i) => {
+          const sizes = product.values['Sizes'];
+          const productSku =
+            product.values['SKU'] !== null ? product.values['SKU'].trim() : '';
+          sizes.forEach(size => {
+            if (
+              productSku + size === skuValue ||
+              productSku.substr(0, productSku.length - 1) + size === skuValue ||
+              (size === 'ALL' && productSku === skuValue)
+            ) {
+              const version = getVersion(product.values['Name']);
+              if (version > bestVersion) {
+                bestVersion = version;
+                idx = i;
+                sizeVal = size;
+              }
+            }
+          });
+        });
+      }
       if (idx !== -1) {
         console.log('SKU Found:' + skuValue);
         Object.keys(this.state).map(key => {
