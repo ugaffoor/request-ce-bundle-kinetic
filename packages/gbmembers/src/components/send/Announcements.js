@@ -8,7 +8,10 @@ import { StatusMessagesContainer } from '../StatusMessages';
 import { confirm } from '../helpers/Confirmation';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { actions as memberActions } from '../../redux/modules/members';
-import { canUseConversations } from '../../lib/conversationAccess';
+import {
+  canUseConversations,
+  noConversationsAccessMessage,
+} from '../../lib/conversationAccess';
 import { initialiseFirebase } from '../../lib/firebase';
 import {
   ensureFirebaseSignIn,
@@ -467,16 +470,13 @@ export class Announcements extends Component {
   render() {
     // Routes are reachable by URL, so the page guards itself rather than
     // relying on the link having been hidden.
-    if (!canUseConversations(this.props.profile)) {
+    if (!canUseConversations(this.props.profile, this.props.space)) {
       return (
         <div className="container-fluid leads">
           <div className="leadContents">
             <div className="options">
               <h4 className="title">Announcements and broadcasts</h4>
-              <p>
-                You do not have access to messages. Ask a space admin to add you
-                to the Program Managers role.
-              </p>
+              <p>{noConversationsAccessMessage(this.props.space)}</p>
             </div>
           </div>
         </div>
@@ -548,6 +548,12 @@ export const AnnouncementsContainer = compose(
     componentDidMount() {
       if (this.props.allMembers.length === 0 && !this.props.membersLoading) {
         this.props.fetchMembers({ memberInitialLoadComplete: false });
+      }
+
+      // The page draws its no-access message instead; don't start listening
+      // to Firestore for a school or person without messages.
+      if (!canUseConversations(this.props.profile, this.props.space)) {
+        return;
       }
 
       const app = initialiseFirebase(this.props.space);

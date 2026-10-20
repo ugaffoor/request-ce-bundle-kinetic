@@ -9,7 +9,10 @@ import { confirm } from '../helpers/Confirmation';
 import { prepareChatMedia } from '../../lib/chatMedia';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { actions as memberActions } from '../../redux/modules/members';
-import { canUseConversations } from '../../lib/conversationAccess';
+import {
+  canUseConversations,
+  noConversationsAccessMessage,
+} from '../../lib/conversationAccess';
 import { initialiseFirebase } from '../../lib/firebase';
 import {
   sharedOneToOneWith,
@@ -1835,10 +1838,7 @@ export class Conversations extends Component {
         <div className="leadContents">
           <div className="options">
             <h4 className="title">Messages</h4>
-            <p>
-              You do not have access to messages. Ask a space admin to add you
-              to the Program Managers role.
-            </p>
+            <p>{noConversationsAccessMessage(this.props.space)}</p>
           </div>
         </div>
       </div>
@@ -1848,7 +1848,7 @@ export class Conversations extends Component {
   render() {
     // Routes are reachable by URL, so the page guards itself rather than
     // relying on the Send tab having hidden the link.
-    if (!canUseConversations(this.props.profile)) {
+    if (!canUseConversations(this.props.profile, this.props.space)) {
       return this.renderNoAccess();
     }
 
@@ -1966,6 +1966,12 @@ export const ConversationsContainer = compose(
     componentDidMount() {
       if (this.props.allMembers.length === 0 && !this.props.membersLoading) {
         this.props.fetchMembers({ memberInitialLoadComplete: false });
+      }
+
+      // The page draws its no-access message instead; don't start listening
+      // to Firestore for a school or person without messages.
+      if (!canUseConversations(this.props.profile, this.props.space)) {
+        return;
       }
 
       // Every path out of here has to settle `loading`, which starts true:

@@ -46,7 +46,10 @@ export const mapStateToProps = state => {
   return {
     // The whole inbox is hidden from anyone without conversations access,
     // rather than showing an empty dropdown they can never fill.
-    permitted: canUseConversations(app ? app.profile : null),
+    permitted: canUseConversations(
+      app ? app.profile : null,
+      app ? app.space : null,
+    ),
     allMessages: conversations
       .toArray()
       // The inbox is for messages needing a response. A thread whose latest

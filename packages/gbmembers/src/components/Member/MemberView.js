@@ -1520,7 +1520,7 @@ export const MemberView = ({
                   {/* Opens over the profile, like Send SMS, rather than
                       taking you away from it. The full page is still one
                       click away from the Conversation panel's Open link. */}
-                  {canUseConversations(profile) && (
+                  {canUseConversations(profile, space) && (
                     <button
                       type="button"
                       className="btn btn-primary"
@@ -2380,7 +2380,7 @@ export const MemberView = ({
                     profile={profile}
                   />
                 </div>
-                {canUseConversations(profile) && (
+                {canUseConversations(profile, space) && (
                   <div>
                     <MemberConversationContainer
                       memberItem={memberItem}

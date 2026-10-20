@@ -23,7 +23,10 @@ import {
   indexMembersById,
 } from '../../lib/conversationSchema';
 import { matchesMemberFilter } from '../../utils/utils';
-import { canUseConversations } from '../../lib/conversationAccess';
+import {
+  canUseConversations,
+  noConversationsAccessMessage,
+} from '../../lib/conversationAccess';
 import { initialiseFirebase, getFirebaseConfig } from '../../lib/firebase';
 
 const ACTIVE_MEMBERS = '__active_members__';
@@ -677,16 +680,13 @@ export class NewConversation extends Component {
   render() {
     // Routes are reachable by URL, so the page guards itself rather than
     // relying on the Send tab having hidden the button.
-    if (!canUseConversations(this.props.profile)) {
+    if (!canUseConversations(this.props.profile, this.props.space)) {
       return (
         <div className="container-fluid leads">
           <div className="leadContents">
             <div className="options">
               <h4 className="title">New Message</h4>
-              <p>
-                You do not have access to messages. Ask a space admin to add you
-                to the Program Managers role.
-              </p>
+              <p>{noConversationsAccessMessage(this.props.space)}</p>
             </div>
           </div>
         </div>
@@ -983,7 +983,7 @@ export const NewConversationContainer = compose(
       // than discovering it is missing on the first Send.
       const app = initialiseFirebase(this.props.space);
       const username = this.props.profile && this.props.profile.username;
-      if (app) {
+      if (app && canUseConversations(this.props.profile, this.props.space)) {
         ensureFirebaseSignIn(app, identityKey(this.props.spaceSlug, username));
       }
     },

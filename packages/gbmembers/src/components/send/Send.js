@@ -1599,6 +1599,7 @@ export class CreateCampaign extends Component {
 export const CampaignView = ({
   profile,
   memberProfile,
+  space,
   emailCampaigns,
   emailCampaignsLoading,
   emailCampaignsLoadingTimestamp,
@@ -1637,7 +1638,7 @@ export const CampaignView = ({
           <div className="leadContents">
             <CreateCampaign allLeads={allLeads} leadsLoading={leadsLoading} />
           </div>
-          {canUseConversations(memberProfile) && (
+          {canUseConversations(memberProfile, space) && (
             <div className="taskContents">
               <ConversationsListContainer />
             </div>
