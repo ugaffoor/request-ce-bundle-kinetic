@@ -923,7 +923,7 @@ class PayNow extends Component {
         var data = JSON.parse(response.data.data);
         console.log(JSON.stringify(data));
         posThis.setState({
-          status: data['status'],
+          status: String(data['status']),
           status_message: data['status_message'],
           errors: data['errors'],
           auth_code: data['auth_code'],
@@ -933,7 +933,7 @@ class PayNow extends Component {
           datetime: moment(),
         });
 
-        if (data['status'] === '1') {
+        if (String(data['status']) === '1') {
           posThis.completeCheckout();
         } else {
           posThis.setState({
@@ -5108,15 +5108,19 @@ export const ProShopContainer = compose(
             var prodIdx = posProducts.findIndex(
               prod => prod.id === stockProd['productID'],
             );
-            var stockIdx = posProducts[prodIdx].stock.findIndex(
-              stock =>
-                stock.values['Product ID'] === stockProd['productID'] &&
-                stock.values['Size'] === stockProd['size'],
-            );
-            posProducts[prodIdx].stock[stockIdx].values['Quantity'] =
-              parseInt(
-                posProducts[prodIdx].stock[stockIdx].values['Quantity'],
-              ) - 1;
+            if (prodIdx !== -1) {
+              var stockIdx = posProducts[prodIdx].stock.findIndex(
+                stock =>
+                  stock.values['Product ID'] === stockProd['productID'] &&
+                  stock.values['Size'] === stockProd['size'],
+              );
+              if (stockIdx !== -1) {
+                posProducts[prodIdx].stock[stockIdx].values['Quantity'] =
+                  parseInt(
+                    posProducts[prodIdx].stock[stockIdx].values['Quantity'],
+                  ) - 1;
+              }
+            }
           });
         } else if (product['productType'] === 'Service') {
         } else {
@@ -5129,17 +5133,22 @@ export const ProShopContainer = compose(
           var prodIdx = posProducts.findIndex(
             prod => prod.id === product['productID'],
           );
-          var stockIdx = posProducts[prodIdx].stock.findIndex(
-            stock =>
-              stock.values['Product ID'] === product['productID'] &&
-              stock.values['Size'] ===
-                (product['productType'] === 'Concession'
-                  ? 'ALL'
-                  : product['size']),
-          );
-          posProducts[prodIdx].stock[stockIdx].values['Quantity'] =
-            parseInt(posProducts[prodIdx].stock[stockIdx].values['Quantity']) -
-            parseInt(product['quantity']);
+          if (prodIdx !== -1) {
+            var stockIdx = posProducts[prodIdx].stock.findIndex(
+              stock =>
+                stock.values['Product ID'] === product['productID'] &&
+                stock.values['Size'] ===
+                  (product['productType'] === 'Concession'
+                    ? 'ALL'
+                    : product['size']),
+            );
+            if (stockIdx !== -1) {
+              posProducts[prodIdx].stock[stockIdx].values['Quantity'] =
+                parseInt(
+                  posProducts[prodIdx].stock[stockIdx].values['Quantity'],
+                ) - parseInt(product['quantity']);
+            }
+          }
         }
       });
       posCheckout = {

@@ -231,6 +231,7 @@ export class MemberStatistics extends Component {
     let restored = [];
     let newMembers = [];
     members.forEach(member => {
+      if (moment(member.createdAt).isAfter(toDate, 'day')) return;
       let memberStatus = memberStatusInDates(member, fromDate, toDate, true);
       let previousMemberStatus = memberPreviousStatus(
         member,
@@ -836,6 +837,8 @@ export class MemberStatistics extends Component {
   exportAllCSV() {
     const fileDownload = require('js-file-download');
     const md = this.state.memberData;
+    const fromDate = this.state.fromDate;
+    const toDate = this.state.toDate;
     const allowCash =
       getAttributeValue(this.props.space, 'Allow Cash Payments') === 'true';
     const groups = [
@@ -905,7 +908,7 @@ export class MemberStatistics extends Component {
             label,
             `${m.values['Last Name'] || ''} ${m.values['First Name'] ||
               ''}`.trim(),
-            m.values['Status'] || '',
+            memberStatusInDates(m, fromDate, toDate, true) || '',
             m.values['Date Joined'] || '',
             m.createdAt ? moment(m.createdAt).format('YYYY-MM-DD') : '',
             m.updatedAt ? moment(m.updatedAt).format('YYYY-MM-DD') : '',

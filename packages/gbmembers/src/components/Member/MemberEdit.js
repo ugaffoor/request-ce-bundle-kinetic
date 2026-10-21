@@ -221,6 +221,8 @@ export const MemberEdit = ({
   setShowRemoveBlockedConfirm,
   nonPayingUnlocked,
   setNonPayingUnlocked,
+  maxWeeklyClassesValue,
+  setMaxWeeklyClassesValue,
 }) =>
   currentMemberLoading ? (
     <div />
@@ -2038,19 +2040,107 @@ export const MemberEdit = ({
                     type="number"
                     name="maxWeeklyClasses"
                     id="maxWeeklyClasses"
-                    defaultValue={memberItem.values['Max Weekly Classes']}
-                    onChange={e =>
+                    value={maxWeeklyClassesValue}
+                    onChange={e => {
+                      setMaxWeeklyClassesValue(parseInt(e.target.value) || 0);
                       handleChange(
                         memberItem,
                         'Max Weekly Classes',
                         e,
                         setIsDirty,
                         memberChanges,
-                      )
-                    }
+                      );
+                    }}
                   />
                 </div>
               </span>
+              {maxWeeklyClassesValue > 0 && (
+                <span className="line">
+                  <div className="field">
+                    <label>Restricted Training Days</label>
+                    <div
+                      style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}
+                    >
+                      {[
+                        'Monday',
+                        'Tuesday',
+                        'Wednesday',
+                        'Thursday',
+                        'Friday',
+                        'Saturday',
+                        'Sunday',
+                      ].map(day => (
+                        <span
+                          key={day}
+                          className="optionItem"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <label
+                            htmlFor={'restrictDay_' + day}
+                            style={{ minWidth: 'auto' }}
+                          >
+                            {day}
+                          </label>
+                          <input
+                            type="checkbox"
+                            name="restrictedTrainingDays"
+                            id={'restrictDay_' + day}
+                            style={{ clear: 'none', margin: '4px' }}
+                            value={day}
+                            checked={
+                              Array.isArray(
+                                memberItem.values['Restricted Training Days'],
+                              )
+                                ? memberItem.values[
+                                    'Restricted Training Days'
+                                  ].includes(day)
+                                : false
+                            }
+                            onChange={e => {
+                              if (
+                                !Array.isArray(
+                                  memberItem.values['Restricted Training Days'],
+                                )
+                              )
+                                memberItem.values[
+                                  'Restricted Training Days'
+                                ] = [];
+                              if (
+                                memberItem.values[
+                                  'Restricted Training Days'
+                                ].includes(day)
+                              ) {
+                                e.target.value = '';
+                                memberItem.values[
+                                  'Restricted Training Days'
+                                ] = memberItem.values[
+                                  'Restricted Training Days'
+                                ].filter(d => d !== day);
+                              } else {
+                                e.target.value = day;
+                                memberItem.values[
+                                  'Restricted Training Days'
+                                ].push(day);
+                              }
+                              handleChange(
+                                memberItem,
+                                'Restricted Training Days',
+                                e,
+                                setIsDirty,
+                                memberChanges,
+                              );
+                            }}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </span>
+              )}
               <span className="line">
                 <div>
                   <label htmlFor="beltSize">Belt Size</label>
@@ -3243,6 +3333,16 @@ export const MemberEditContainer = compose(
   withState('states', 'setStates', ''),
   withState('showRemoveBlockedConfirm', 'setShowRemoveBlockedConfirm', false),
   withState('nonPayingUnlocked', 'setNonPayingUnlocked', false),
+  withState(
+    'maxWeeklyClassesValue',
+    'setMaxWeeklyClassesValue',
+    props =>
+      parseInt(
+        props.memberItem &&
+          props.memberItem.values &&
+          props.memberItem.values['Max Weekly Classes'],
+      ) || 0,
+  ),
   withHandlers({
     deleteMemberCall: ({
       memberItem,

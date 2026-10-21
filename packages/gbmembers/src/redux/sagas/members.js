@@ -195,7 +195,7 @@ export function* fetchMembers(action) {
             ',values[Membership Cost],values[Family Fee Details],values[Resume Date],values[TAX ID]' +
             ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
             ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
-            ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
+            ',values[Emails Sent Count],values[Max Weekly Classes],values[Restricted Training Days],values[Reminder Date]' +
             ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
             ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
             ',values[Billing Period],values[Admin Fee],values[Last Payment Date],values[Archive Billing Id],values[Archive Billing Reference]',
@@ -234,7 +234,7 @@ export function* fetchMembers(action) {
               ',values[Membership Cost],values[Family Fee Details],values[Resume Date],values[TAX ID]' +
               ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
               ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
-              ',values[Emails Sent Count],values[Max Weekly Classes],values[Reminder Date]' +
+              ',values[Emails Sent Count],values[Max Weekly Classes],values[Restricted Training Days],values[Reminder Date]' +
               ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
               ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
               ',values[Billing Period],values[Admin Fee],values[Last Payment Date],values[Archive Billing Id],values[Archive Billing Reference]',

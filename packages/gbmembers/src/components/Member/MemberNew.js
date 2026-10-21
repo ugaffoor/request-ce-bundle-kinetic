@@ -996,6 +996,97 @@ export const MemberNew = ({
                     />
                   </div>
                 </span>
+                {memberItem.values['Max Weekly Classes'] > 0 && (
+                  <span className="line">
+                    <div className="field">
+                      <label>Restricted Training Days</label>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                        }}
+                      >
+                        {[
+                          'Monday',
+                          'Tuesday',
+                          'Wednesday',
+                          'Thursday',
+                          'Friday',
+                          'Saturday',
+                          'Sunday',
+                        ].map(day => (
+                          <span
+                            key={day}
+                            className="optionItem"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                            }}
+                          >
+                            <label
+                              htmlFor={'restrictDay_' + day}
+                              style={{ minWidth: 'auto' }}
+                            >
+                              {day}
+                            </label>
+                            <input
+                              type="checkbox"
+                              name="restrictedTrainingDays"
+                              id={'restrictDay_' + day}
+                              style={{ clear: 'none', margin: '4px' }}
+                              value={day}
+                              checked={
+                                Array.isArray(
+                                  memberItem.values['Restricted Training Days'],
+                                )
+                                  ? memberItem.values[
+                                      'Restricted Training Days'
+                                    ].includes(day)
+                                  : false
+                              }
+                              onChange={e => {
+                                if (
+                                  !Array.isArray(
+                                    memberItem.values[
+                                      'Restricted Training Days'
+                                    ],
+                                  )
+                                )
+                                  memberItem.values[
+                                    'Restricted Training Days'
+                                  ] = [];
+                                if (
+                                  memberItem.values[
+                                    'Restricted Training Days'
+                                  ].includes(day)
+                                ) {
+                                  e.target.value = '';
+                                  memberItem.values[
+                                    'Restricted Training Days'
+                                  ] = memberItem.values[
+                                    'Restricted Training Days'
+                                  ].filter(d => d !== day);
+                                } else {
+                                  e.target.value = day;
+                                  memberItem.values[
+                                    'Restricted Training Days'
+                                  ].push(day);
+                                }
+                                handleChange(
+                                  memberItem,
+                                  'Restricted Training Days',
+                                  e,
+                                );
+                              }}
+                            />
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </span>
+                )}
                 <span className="line">
                   <div>
                     <label htmlFor="beltSize">Belt Size</label>
@@ -1999,13 +2090,17 @@ export const MemberNewContainer = compose(
               ? this.props.allLeads[idx].values['Additional Email']
               : '';
           values['Phone Number'] =
-            this.props.allLeads[idx].values['Phone Number'] !== undefined
-              ? this.props.allLeads[idx].values['Phone Number']
+            this.props.allLeads[idx].values['Phone Number'] != null
+              ? this.props.allLeads[idx].values['Phone Number'].replace(
+                  /[-() ]/g,
+                  '',
+                )
               : '';
           values['Additional Phone Number'] =
-            this.props.allLeads[idx].values['Additional Phone Number'] !==
-            undefined
-              ? this.props.allLeads[idx].values['Additional Phone Number']
+            this.props.allLeads[idx].values['Additional Phone Number'] != null
+              ? this.props.allLeads[idx].values[
+                  'Additional Phone Number'
+                ].replace(/[-() ]/g, '')
               : '';
           values['Parent or Guardian'] =
             this.props.allLeads[idx].values['Parent or Guardian'] !== undefined

@@ -206,6 +206,7 @@ export class MemberActivityReport extends Component {
       { title: 'Additional Program 1', field: 'additionalProgram1' },
       { title: 'Additional Program 2', field: 'additionalProgram2' },
       { title: 'Max Weekly Classes', field: 'maxWeeklyClasses' },
+      { title: 'Restricted Training Days', field: 'restrictedTrainingDays' },
       { title: 'Date Joined', field: 'dateJoined', sorter: dateSorter },
       { title: 'Days Since Joined', field: 'daysSinceJoined' },
       {
@@ -385,6 +386,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
+      { label: 'Restricted Training Days', value: 'restrictedTrainingDays' },
       { label: 'Date Joined', value: 'dateJoined' },
       { label: 'Status Date', value: 'statusDate' },
       { label: 'Days Since Joined', value: 'daysSinceJoined' },
@@ -473,6 +475,10 @@ export class MemberActivityReport extends Component {
           { label: 'Last Promotion Date', value: 'lastPromotionDate' },
           { label: 'Lead Source', value: 'leadSource' },
           { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
+          {
+            label: 'Restricted Training Days',
+            value: 'restrictedTrainingDays',
+          },
           { label: 'Medical Allergies', value: 'medicalAllergies' },
           { label: 'Member Type', value: 'memberType' },
           { label: 'Name', value: 'name' },
@@ -582,6 +588,7 @@ export class MemberActivityReport extends Component {
       { label: 'Additional Program 1', value: 'additionalProgram1' },
       { label: 'Additional Program 2', value: 'additionalProgram2' },
       { label: 'Max Weekly Classes', value: 'maxWeeklyClasses' },
+      { label: 'Restricted Training Days', value: 'restrictedTrainingDays' },
       { label: 'Lead Source', value: 'leadSource' },
       { label: 'Billing User', value: 'billingUser' },
       { label: 'Biller Migrated', value: 'billerMigrated' },
@@ -1009,7 +1016,17 @@ export class MemberActivityReport extends Component {
   }
 
   includesFilter = (data, params) => {
-    let result = params.includes.some(value => value === data[params.field]);
+    let result = params.includes.some(value => {
+      const fieldVal = data[params.field];
+      if (value === fieldVal) return true;
+      if (typeof fieldVal === 'string') {
+        return fieldVal
+          .split(',')
+          .map(v => v.trim())
+          .includes(value);
+      }
+      return false;
+    });
     return result;
   };
 
@@ -1425,6 +1442,11 @@ export class MemberActivityReport extends Component {
         additionalProgram1: member.values['Additional Program 1'],
         additionalProgram2: member.values['Additional Program 2'],
         maxWeeklyClasses: member.values['Max Weekly Classes'],
+        restrictedTrainingDays: Array.isArray(
+          member.values['Restricted Training Days'],
+        )
+          ? member.values['Restricted Training Days'].join(', ')
+          : member.values['Restricted Training Days'] || '',
         leadSource: member.values['Lead Source'],
         dateJoined:
           member.values['Date Joined'] !== undefined

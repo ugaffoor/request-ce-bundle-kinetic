@@ -1757,6 +1757,30 @@ export const MemberView = ({
                       Max Weekly Classes({
                         memberItem.values['Max Weekly Classes']
                       })
+                      {Array.isArray(
+                        memberItem.values['Restricted Training Days'],
+                      ) &&
+                        memberItem.values['Restricted Training Days'].length >
+                          0 && (
+                          <div className="restrictedDays">
+                            Restricted Training Days:{' '}
+                            {[
+                              'Monday',
+                              'Tuesday',
+                              'Wednesday',
+                              'Thursday',
+                              'Friday',
+                              'Saturday',
+                              'Sunday',
+                            ]
+                              .filter(day =>
+                                memberItem.values[
+                                  'Restricted Training Days'
+                                ].includes(day),
+                              )
+                              .join(', ')}
+                          </div>
+                        )}
                     </div>
                   )}
               </div>

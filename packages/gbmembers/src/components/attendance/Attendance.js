@@ -433,9 +433,23 @@ export class SelfCheckin extends Component {
         memberMaxClassesExceeded: true,
       });
     } else {
+      const restrictedDays = memberItem.values['Restricted Training Days'];
+      const classDay = moment(this.state.classDate).format('dddd');
+      if (
+        Array.isArray(restrictedDays) &&
+        restrictedDays.length > 0 &&
+        !restrictedDays.includes(classDay)
+      ) {
+        this.setState({
+          verifyMemberMaxClasses: false,
+          memberRestrictedDayExceeded: true,
+        });
+        return;
+      }
       this.setState({
         verifyMemberMaxClasses: false,
         memberMaxClassesExceeded: false,
+        memberRestrictedDayExceeded: false,
         checkinClassMember: true,
       });
       let attendance = {
@@ -636,6 +650,7 @@ export class SelfCheckin extends Component {
             memberItem: memberItem,
             verifyMemberMaxClasses: true,
             memberMaxClassesExceeded: false,
+            memberRestrictedDayExceeded: false,
           });
           attendanceThis.props.fetchMemberClassAttendancesByDate({
             memberItem: memberItem,
@@ -897,7 +912,20 @@ export class SelfCheckin extends Component {
       !memberAlreadyCheckedIn &&
       validClassessAllowed
     ) {
-      if (
+      const restrictedDays = memberItem.values['Restricted Training Days'];
+      const classDay = moment(this.state.classDate).format('dddd');
+      const isDayRestricted =
+        Array.isArray(restrictedDays) &&
+        restrictedDays.length > 0 &&
+        !restrictedDays.includes(classDay);
+
+      if (isDayRestricted) {
+        this.setState({
+          memberItem: memberItem,
+          memberRestrictedDayExceeded: true,
+          memberMaxClassesExceeded: false,
+        });
+      } else if (
         memberItem.values['Max Weekly Classes'] !== undefined &&
         memberItem.values['Max Weekly Classes'] !== '' &&
         parseInt(memberItem.values['Max Weekly Classes']) > 0
@@ -909,6 +937,7 @@ export class SelfCheckin extends Component {
           memberItem: memberItem,
           verifyMemberMaxClasses: true,
           memberMaxClassesExceeded: false,
+          memberRestrictedDayExceeded: false,
         });
         attendanceThis.props.fetchMemberClassAttendancesByDate({
           memberItem: memberItem,
@@ -1356,6 +1385,15 @@ export class SelfCheckin extends Component {
                       {this.state.memberItem.values['First Name'] +
                         ' ' +
                         this.state.memberItem.values['Last Name']}
+                    </div>
+                  )}
+                {this.state.memberRestrictedDayExceeded &&
+                  this.state.memberItem !== undefined && (
+                    <div className="exceededMaxClasses">
+                      {this.state.memberItem.values['First Name']}{' '}
+                      {this.state.memberItem.values['Last Name']} you are not
+                      permitted to train on{' '}
+                      {moment(this.state.classDate).format('dddd')}.
                     </div>
                   )}
               </div>
@@ -2232,6 +2270,7 @@ export class AttendanceDetail extends Component {
         this.setState({
           verifyMemberMaxClasses: true,
           memberMaxClassesExceeded: false,
+          memberRestrictedDayExceeded: false,
         });
         attendanceThis.props.fetchMemberClassAttendancesByDate({
           memberItem: memberItem,
@@ -2488,9 +2527,26 @@ export class AttendanceDetail extends Component {
         memberMaxClassesExceeded: true,
       });
     } else {
+      const restrictedDays = memberItem.values['Restricted Training Days'];
+      const classDay = moment(this.state.classDate).format('dddd');
+      if (
+        Array.isArray(restrictedDays) &&
+        restrictedDays.length > 0 &&
+        !restrictedDays.includes(classDay)
+      ) {
+        this.setState({
+          verifyMemberMaxClasses: false,
+          memberRestrictedDayExceeded: true,
+        });
+        setTimeout(function() {
+          $('#checkinMember').focus();
+        }, 500);
+        return;
+      }
       this.setState({
         verifyMemberMaxClasses: false,
         memberMaxClassesExceeded: false,
+        memberRestrictedDayExceeded: false,
       });
     }
     setTimeout(function() {
@@ -2554,6 +2610,7 @@ export class AttendanceDetail extends Component {
         memberItem: memberItem,
         verifyMemberMaxClasses: true,
         memberMaxClassesExceeded: false,
+        memberRestrictedDayExceeded: false,
       });
       attendanceThis.props.fetchMemberClassAttendancesByDate({
         memberItem: memberItem,
@@ -3174,6 +3231,16 @@ export class AttendanceDetail extends Component {
                             class limit of (
                             {this.state.memberItem.values['Max Weekly Classes']}
                             )
+                          </div>
+                        )}
+                      {!this.state.memberAlreadyCheckedIn &&
+                        this.state.memberRestrictedDayExceeded &&
+                        this.state.memberItem !== undefined && (
+                          <div className="exceededMaxClasses">
+                            {this.state.memberItem.values['First Name']}{' '}
+                            {this.state.memberItem.values['Last Name']} is not
+                            permitted to train on{' '}
+                            {moment(this.state.classDate).format('dddd')}.
                           </div>
                         )}
                       {this.state.noProgramSet ? (

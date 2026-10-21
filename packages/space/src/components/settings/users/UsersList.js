@@ -80,7 +80,7 @@ const UsersListComponent = ({
       membershipFilters.every(teamName =>
         (user.memberships || []).some(m => m.team && m.team.name === teamName),
       );
-    return nameMatch && emailMatch && membershipMatch;
+    return nameMatch && emailMatch && membershipMatch && !user.spaceAdmin;
   });
 
   return (
