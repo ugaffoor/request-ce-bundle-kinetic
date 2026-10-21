@@ -17,13 +17,13 @@ import { getAttributeValues } from '../utils/utils';
 export const CONVERSATION_ROLES = ['Role::Program Managers'];
 
 /**
- * The space attribute that rolls BJJ Members features out school by school
- * while they are being tested. It allows several values: YES turns on every
- * feature it covers, or a value may name one feature on its own -- Messages,
- * for message threads and chats. Matched without regard to case or spacing,
- * since the values are typed in by hand.
+ * The space attribute that rolls the chat features (message threads and
+ * chats) out school by school while they are being tested. YES turns them on;
+ * the attribute may hold several values, and Messages also turns them on, so
+ * other features can be given values of their own later. Matched without
+ * regard to case or spacing, since the values are typed in by hand.
  */
-export const FEATURE_ROLLOUT_ATTRIBUTE = 'BJJ Members feature roll out';
+export const FEATURE_ROLLOUT_ATTRIBUTE = 'GB Members Chat feature';
 export const MESSAGING_FEATURE = 'Messages';
 
 const ALL_FEATURES = 'YES';
