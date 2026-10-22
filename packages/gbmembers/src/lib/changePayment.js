@@ -33,6 +33,31 @@ import moment from 'moment';
 import { updateSubmission } from '@kineticdata/react';
 import { NOTICE_TYPES } from '../redux/modules/errors';
 import { getAttributeValue } from './react-kinops-components/src/utils';
+import { notifyPaymentChangeApproved } from './paymentChangeNotice';
+import { getAttributeValues } from '../utils/utils';
+
+/**
+ * The space attribute that turns Change Payment on for a school while it is
+ * being rolled out. YES turns it on (Enabled, True and On count too, in any
+ * case -- the same values the BJJ Members app accepts, src/features.ts there).
+ * Not set, or anything else, and it is off: this profile offers no Change
+ * Payment button, an approval is refused, and the app never offers "Change
+ * payment method" even for one that is still open.
+ */
+export const CHANGE_PAYMENT_FEATURE_ATTRIBUTE =
+  'GB Members Change Payment feature';
+const ENABLED_VALUES = ['YES', 'ENABLED', 'TRUE', 'ON'];
+
+/** Whether this school has Change Payment turned on. No space means no. */
+export const isChangePaymentRolledOut = space =>
+  getAttributeValues(space || {}, CHANGE_PAYMENT_FEATURE_ATTRIBUTE, []).some(
+    value =>
+      ENABLED_VALUES.includes(
+        String(value || '')
+          .trim()
+          .toUpperCase(),
+      ),
+  );
 
 export const BILLING_CHANGES_FIELD = 'Billing Changes';
 export const REQUESTED_ACTION = 'Payment Change Requested';
@@ -194,6 +219,9 @@ export const changePaymentFormFor = (member, space) => {
  * means the member can actually use what they were sent.
  */
 const blockedReason = (member, space) => {
+  if (!isChangePaymentRolledOut(space)) {
+    return 'Change Payment is not available for this school yet.';
+  }
   const values = (member && member.values) || {};
   if ((values['Non Paying'] || '').toString().toUpperCase() === 'YES') {
     // The app hides the option entirely for a non-paying member.
@@ -261,7 +289,9 @@ const appendEntry = async ({ member, staff, action, reason, update, now }) => {
 /**
  * Approves the member to change their payment method and says how it went:
  * green "Sent" clears itself; red "Not sent" stays until closed, as every
- * failure does in the portal. `update` and `now` are replaceable for testing.
+ * failure does in the portal. Once saved, the member is also sent a push
+ * notification in the BJJ Members app (paymentChangeNotice.js).
+ * `update`, `notify` and `now` are replaceable for testing.
  */
 export const requestPaymentChange = async ({
   member,
@@ -270,6 +300,7 @@ export const requestPaymentChange = async ({
   addNotification,
   setSaving = () => {},
   update = updateSubmission,
+  notify = notifyPaymentChangeApproved,
   now = () => new Date(),
 }) => {
   const name = nameOf(member);
@@ -303,6 +334,8 @@ export const requestPaymentChange = async ({
     `${name} can now change their payment method in the BJJ Members app.`,
     'Sent',
   );
+  // Not awaited: the approval is saved either way, and the push is a bonus.
+  notify({ member, staff });
   return true;
 };
 

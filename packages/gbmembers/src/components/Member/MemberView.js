@@ -39,6 +39,7 @@ import {
   isPaymentChangeRequested,
   paymentChangeRequestedBy,
   paymentChangeCompletedAt,
+  isChangePaymentRolledOut,
 } from '../../lib/changePayment';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
@@ -1544,7 +1545,10 @@ export const MemberView = ({
                       the member has made it, the app records "Payment Change
                       Completed" in their Billing Changes and this offers
                       Change Payment again, so the next one needs a fresh
-                      approval. */}
+                      approval. Only where the school has the "GB Members
+                      Change Payment feature" attribute on; Cancel stays for
+                      an approval left open from before, so it can still be
+                      cleared. */}
                   {Utils.isMemberOf(profile, 'Role::Program Managers') &&
                     (isPaymentChangeRequested(memberItem) ? (
                       <button
@@ -1566,7 +1570,7 @@ export const MemberView = ({
                           ? 'Saving...'
                           : 'Cancel Change Payment'}
                       </button>
-                    ) : (
+                    ) : isChangePaymentRolledOut(space) ? (
                       <button
                         type="button"
                         className="btn btn-primary"
@@ -1585,7 +1589,7 @@ export const MemberView = ({
                       >
                         {changePaymentSaving ? 'Sending...' : 'Change Payment'}
                       </button>
-                    ))}
+                    ) : null)}
                   {/* The member's BJJ Members app account (appAccounts.js):
                       green once they have signed in to the app, red if they
                       have since deleted the account, nothing if they have
