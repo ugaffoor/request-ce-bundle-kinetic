@@ -145,6 +145,9 @@ export class NewConversation extends Component {
       // shown as a confirmation without navigating away. Cleared when the next
       // message is typed.
       sent: null,
+      // The class the students were filled in from, when the page was opened
+      // from Attendance; shown so it's clear where the selection came from.
+      prefilledFrom: null,
     };
   }
 
@@ -522,7 +525,52 @@ export class NewConversation extends Component {
     });
   };
 
+  /**
+   * Fills in the students from a link -- the class Message Send in
+   * Attendance passes everyone checked in, as ?members=id,id&group=name. Done
+   * once, as soon as the roster is loaded, so it never overrides changes made
+   * on the page. Ids not on the roster are dropped rather than shown as blank
+   * picks.
+   */
+  prefillFromLink() {
+    if (this.prefilled || this.props.allMembers.length === 0) {
+      return;
+    }
+    this.prefilled = true;
+
+    const search = this.props.location ? this.props.location.search : '';
+    const params = new URLSearchParams(search || '');
+    const ids = (params.get('members') || '').split(',').filter(Boolean);
+    if (ids.length === 0) {
+      return;
+    }
+
+    const byId = indexMembersById(this.props.allMembers);
+    const memberOptions = Array.from(new Set(ids))
+      .map(id => byId[id])
+      .filter(Boolean)
+      .sort(byName)
+      .map(member => ({
+        value: member.id,
+        label: memberLabel(member),
+        isTiny: isTinyChampion(member),
+      }));
+    const groupName = (params.get('group') || '').trim();
+
+    this.setState({
+      memberOptions,
+      groupName,
+      prefilledFrom: groupName || 'the class',
+    });
+  }
+
+  componentDidMount() {
+    this.prefillFromLink();
+  }
+
   componentDidUpdate(prevProps) {
+    this.prefillFromLink();
+
     // Only once a send has actually landed -- the text survives a failure so
     // it can be retried rather than being lost.
     if (
@@ -790,6 +838,16 @@ export class NewConversation extends Component {
                         {studentOptions.length} available)
                       </small>
                     </label>
+                    {this.state.prefilledFrom &&
+                      this.state.memberOptions.length > 0 && (
+                        <div className="alert alert-info py-1 px-2 mb-2">
+                          <small>
+                            Filled in with everyone checked in to{' '}
+                            <strong>{this.state.prefilledFrom}</strong>. Remove
+                            anyone you don&rsquo;t want to message.
+                          </small>
+                        </div>
+                      )}
                     {this.sendingToList() && (
                       <div className="alert alert-info py-1 px-2 mb-2">
                         <small>

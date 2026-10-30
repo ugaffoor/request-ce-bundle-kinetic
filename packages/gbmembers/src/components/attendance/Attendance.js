@@ -38,6 +38,7 @@ import Countdown from 'react-countdown';
 import * as selectors from '../../lib/react-kinops-components/src/redux/kinopsSelectors';
 import { FullScreen, useFullScreenHandle } from 'react-full-screen';
 import { SettingsContainer } from './Settings';
+import { canUseConversations } from '../../lib/conversationAccess';
 import { Utils } from 'common';
 
 const mapStateToProps = state => ({
@@ -1624,6 +1625,48 @@ export class SelfCheckin extends Component {
     );
   }
 }
+
+/**
+ * The New Message page, filled in with everyone checked in to the class --
+ * the conversations counterpart of the class Email and SMS sends. Each
+ * member is listed once, however many times they were checked in. The class
+ * and its time come along as a group name, used if the message is sent as a
+ * group.
+ */
+const classMessageLink = (
+  classAttendances,
+  classTime,
+  className,
+  classTitle,
+) => {
+  const memberIds = Array.from(
+    new Set(
+      classAttendances
+        .filter(
+          checkin =>
+            checkin.values['Class Time'] === classTime &&
+            (checkin.values['Title'] === undefined ||
+              checkin.values['Title'] === null ||
+              checkin.values['Title'] === '' ||
+              classTitle === undefined ||
+              checkin.values['Title'] === classTitle) &&
+            checkin.values['Class'] === className,
+        )
+        .map(checkin => checkin.values['Member GUID'])
+        .filter(Boolean),
+    ),
+  );
+  const groupName = `${classTitle || className} ${moment(
+    classTime,
+    'HH:mm',
+  ).format('h:mm A')}`;
+  return {
+    memberIds,
+    to: `/NewConversation?members=${memberIds.join(
+      ',',
+    )}&group=${encodeURIComponent(groupName)}`,
+  };
+};
 
 export class AttendanceDetail extends Component {
   constructor(props) {
@@ -3415,6 +3458,27 @@ export class AttendanceDetail extends Component {
                     >
                       SMS Send
                     </NavLink>
+                    {canUseConversations(
+                      this.props.profile,
+                      this.props.space,
+                    ) &&
+                      (() => {
+                        const link = classMessageLink(
+                          this.props.classAttendances,
+                          this.state.classTime,
+                          this.state.className,
+                          this.state.classTitle,
+                        );
+                        return (
+                          <NavLink
+                            to={link.to}
+                            className="btn btn-primary"
+                            disabled={link.memberIds.length === 0}
+                          >
+                            Message Send
+                          </NavLink>
+                        );
+                      })()}
                   </div>
                 </h4>
                 {this.props.fetchingClassAttendances ? (
