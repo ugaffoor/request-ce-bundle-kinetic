@@ -64,6 +64,10 @@
       .DayPicker-Day--holidays {
         background-color: pink;
       }
+      // BJJ Members App running indicator: a read-only status badge.
+      .activeIndicator .badge {
+        min-width: 60px;
+      }
       .detailsSection {
         background-color: #fdfafa;
         padding: 10px;

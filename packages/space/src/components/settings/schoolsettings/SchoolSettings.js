@@ -142,6 +142,7 @@ class SchoolAttributes extends Component {
       'Interested In Choices',
       'School Start Date',
       'School Closed Dates',
+      'BJJ Members App running indicator',
     ];
 
     this.state = {
@@ -321,6 +322,22 @@ class SchoolAttributes extends Component {
             helpText="This date indicates the date which all members should have completed a waiver as a Lead or a Member.<br>
 If a new waiver is generate and all members are required to complete, <br>this date is used to ensure a member has completed their waiver.
 Indications in the application will identify members not compliant."
+            updateSpaceAttribute={this.props.updateSpaceAttribute}
+            space={this.props.space}
+            appSpace={this.props.appSpace}
+            profile={this.props.profile}
+          />
+        </span>
+        {/* Settings for the school's BJJ Members mobile app, each one an
+            EditAttributeValue like the other sections. */}
+        <span className="detailsSection bjjMembersApp">
+          <h6>BJJ Members App</h6>
+          <EditAttributeValue
+            attributeID="bjjMembersAppRunning"
+            attributeName="BJJ Members App running indicator"
+            inputType="activeIndicator"
+            labelName="App status"
+            helpText="Whether this school is actively using the BJJ Members app.<br>Set by the BJJ Members App running indicator attribute in Kinetic."
             updateSpaceAttribute={this.props.updateSpaceAttribute}
             space={this.props.space}
             appSpace={this.props.appSpace}

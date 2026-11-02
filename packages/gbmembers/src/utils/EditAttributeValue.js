@@ -304,6 +304,22 @@ export class EditAttributeValue extends Component {
               />
             </span>
           )}
+          {/* A read-only status: YES shows as Active, anything else
+              (including no value) as Inactive. Changed in Kinetic, not
+              here, so it has no input and no Save button. */}
+          {this.props.inputType === 'activeIndicator' && (
+            <span className="activeIndicator">
+              <span
+                className={`badge ${
+                  this.state.value === 'YES'
+                    ? 'badge-success'
+                    : 'badge-secondary'
+                }`}
+              >
+                {this.state.value === 'YES' ? 'Active' : 'Inactive'}
+              </span>
+            </span>
+          )}
           {this.props.inputType === 'Phone' && (
             <NumberFormat
               id={this.props.attributeID + 'Attribute'}
@@ -849,40 +865,42 @@ export class EditAttributeValue extends Component {
             </span>
           )}
         </div>
-        <button
-          type="button"
-          disabled={this.state.value === this.state.origValue}
-          className="btn btn-primary"
-          onClick={e => {
-            var values = {};
-            values['Status'] = 'New';
-            values['Attribute Name'] = this.props.attributeName;
-            values['Original Value'] = this.state.origValue;
-            values['New Value'] = this.state.value;
-            values['Updated By'] = this.props.profile.username;
+        {this.props.inputType !== 'activeIndicator' && (
+          <button
+            type="button"
+            disabled={this.state.value === this.state.origValue}
+            className="btn btn-primary"
+            onClick={e => {
+              var values = {};
+              values['Status'] = 'New';
+              values['Attribute Name'] = this.props.attributeName;
+              values['Original Value'] = this.state.origValue;
+              values['New Value'] = this.state.value;
+              values['Updated By'] = this.props.profile.username;
 
-            this.setState({
-              origValue: this.state.value,
-            });
+              this.setState({
+                origValue: this.state.value,
+              });
 
-            this.props.updateSpaceAttribute({
-              space: this.props.space,
-              values,
-            });
-            setAttributeValue(
-              this.props.space,
-              this.props.attributeName,
-              this.state.value,
-            );
-            setAttributeValue(
-              this.props.appSpace,
-              this.props.attributeName,
-              this.state.value,
-            );
-          }}
-        >
-          Save
-        </button>
+              this.props.updateSpaceAttribute({
+                space: this.props.space,
+                values,
+              });
+              setAttributeValue(
+                this.props.space,
+                this.props.attributeName,
+                this.state.value,
+              );
+              setAttributeValue(
+                this.props.appSpace,
+                this.props.attributeName,
+                this.state.value,
+              );
+            }}
+          >
+            Save
+          </button>
+        )}
         <br />
       </div>
     );
