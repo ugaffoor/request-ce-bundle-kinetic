@@ -1,5 +1,3 @@
-import { getAttributeValues } from '../utils/utils';
-
 /**
  * Who may use the conversations feature in GB Members.
  *
@@ -15,35 +13,6 @@ import { getAttributeValues } from '../utils/utils';
  * would show the feature to someone whose every query is then refused.
  */
 export const CONVERSATION_ROLES = ['Role::Program Managers'];
-
-/**
- * The space attribute that rolls the chat features (message threads and
- * chats) out school by school while they are being tested. YES turns them on;
- * the attribute may hold several values, and Messages also turns them on, so
- * other features can be given values of their own later. Matched without
- * regard to case or spacing, since the values are typed in by hand.
- */
-export const FEATURE_ROLLOUT_ATTRIBUTE = 'GB Members Chat feature';
-export const MESSAGING_FEATURE = 'Messages';
-
-const ALL_FEATURES = 'YES';
-
-const rolloutKey = value =>
-  String(value || '')
-    .trim()
-    .toUpperCase();
-
-/**
- * Whether this school has message threads and chats rolled out. With no
- * space loaded, or the attribute unset, the answer is no: a feature still in
- * testing stays off until a school is given it.
- */
-export const isMessagingRolledOut = space =>
-  getAttributeValues(space || {}, FEATURE_ROLLOUT_ATTRIBUTE, []).some(
-    value =>
-      rolloutKey(value) === ALL_FEATURES ||
-      rolloutKey(value) === rolloutKey(MESSAGING_FEATURE),
-  );
 
 /**
  * Team membership only. Being a space admin does NOT grant access on its own
@@ -67,19 +36,15 @@ const hasConversationRole = profile => {
 };
 
 /**
- * Messaging needs both: the school has it rolled out, and this person is in
- * a conversations role. The space is required -- a caller that leaves it out
- * hides the feature rather than showing it to a school that hasn't got it.
+ * Messaging is on for every school (the BJJ Members app has it always on
+ * too); what decides is whether this person is in a conversations role.
+ * `space` is still taken so callers needn't change, but nothing reads it.
  */
+// eslint-disable-next-line no-unused-vars
 export const canUseConversations = (profile, space) =>
-  isMessagingRolledOut(space) && hasConversationRole(profile);
+  hasConversationRole(profile);
 
-/**
- * Why someone is not seeing messages, for the pages reachable by URL. The
- * school comes first: if messaging is not rolled out there, joining a role
- * would not help.
- */
+/** Why someone is not seeing messages, for the pages reachable by URL. */
+// eslint-disable-next-line no-unused-vars
 export const noConversationsAccessMessage = space =>
-  isMessagingRolledOut(space)
-    ? 'You do not have access to messages. Ask a space admin to add you to the Program Managers role.'
-    : 'Messages are not available for this school yet.';
+  'You do not have access to messages. Ask a space admin to add you to the Program Managers role.';
