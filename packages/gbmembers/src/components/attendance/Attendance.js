@@ -236,9 +236,11 @@ export class SelfCheckin extends Component {
     }
   };
   loadAttendanceData() {
-    attendanceThis.props.fetchClassAttendances({
-      classDate: moment().format('YYYY-MM-DD'),
-    });
+    if (attendanceThis.props.memberInitialLoadComplete) {
+      attendanceThis.props.fetchClassAttendances({
+        classDate: moment().format('YYYY-MM-DD'),
+      });
+    }
     var classScheduleDateDay = moment().day() === 0 ? 7 : moment().day();
     var schedules = attendanceThis.props.classSchedules.filter(schedule => {
       var scheduleDay =
@@ -406,6 +408,14 @@ export class SelfCheckin extends Component {
     }
   }
   UNSAFE_componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.attendanceThis.attendanceThis.props.memberInitialLoadComplete &&
+      this.props.attendanceThis.attendanceThis.props.classAttendances.size === 0
+    ) {
+      attendanceThis.props.fetchClassAttendances({
+        classDate: moment().format('YYYY-MM-DD'),
+      });
+    }
     if (
       nextProps.attendanceAdded.id !== undefined &&
       this.state.attendanceAdded === undefined &&
@@ -1738,6 +1748,10 @@ export class AttendanceDetail extends Component {
             this.props.space,
             'Bambora Cutoff Date',
           ),
+          stripeCutoverDate: getAttributeValue(
+            this.props.space,
+            'Stripe Cutover Date',
+          ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
               ? true
@@ -1764,6 +1778,10 @@ export class AttendanceDetail extends Component {
           bamboraCutoverDate: getAttributeValue(
             this.props.space,
             'Bambora Cutoff Date',
+          ),
+          stripeCutoverDate: getAttributeValue(
+            this.props.space,
+            'Stripe Cutover Date',
           ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
@@ -3709,6 +3727,7 @@ export class AttendanceDetail extends Component {
 export const AttendanceView = ({
   allMembers,
   membersLoading,
+  memberInitialLoadComplete,
   programs,
   additionalPrograms,
   checkinMember,
@@ -3745,6 +3764,7 @@ export const AttendanceView = ({
   <AttendanceDetail
     allMembers={allMembers}
     membersLoading={membersLoading}
+    memberInitialLoadComplete={memberInitialLoadComplete}
     programs={programs}
     additionalPrograms={additionalPrograms}
     checkinMember={checkinMember}

@@ -5378,6 +5378,7 @@ export const BillingContainer = compose(
               ? true
               : false,
           bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
+          stripeCutoverDate: getAttributeValue(space, 'Stripe Cutover Date'),
           bamboraCustomerId:
             memberItem.values['Archive Billing Id'] !== null &&
             memberItem.values['Archive Billing Id'] !== undefined &&

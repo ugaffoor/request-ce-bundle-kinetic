@@ -109,6 +109,7 @@ export class MemberViewNotes extends Component {
       setSystemError: setSystemError,
       timezone: getTimezone(profile.timezone, space.defaultTimezone),
       bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
+      stripeCutoverDate: getAttributeValue(space, 'Stripe Cutover Date'),
       useSubAccount: false,
     });
   }

@@ -1484,6 +1484,7 @@ export function* fetchPaymentHistory(action) {
       timezone: action.payload.timezone,
       useSubAccount: action.payload.useSubAccount,
       bamboraCutoverDate: action.payload.bamboraCutoverDate,
+      stripeCutoverDate: action.payload.stripeCutoverDate,
       bamboraCustomerId: action.payload.bamboraCustomerId,
     };
     console.log('action:' + action.payload);
@@ -1512,6 +1513,7 @@ export function* fetchPaymentHistory(action) {
             args.timezoneOffset = null;
             args.timezone = action.payload.timezone;
             args.bamboraCutoverDate = action.payload.bamboraCutoverDate;
+            args.stripeCutoverDate = action.payload.stripeCutoverDate;
 
             axios
               .post(appSettings.kineticBillingServerUrl + getRefundsUrl, args)

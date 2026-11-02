@@ -837,6 +837,10 @@ export class MigratingBamboraToStripe extends Component {
                           getAttributeValue(space, 'PaySmart SubAccount') ===
                             'YES'),
                       bamboraCutoverDate: moment().format('YYYY-MM-DD'),
+                      stripeCutoverDate: getAttributeValue(
+                        space,
+                        'Stripe Cutover Date',
+                      ),
                       bamboraCustomerId: bamboraCustomerIdRef,
                       setPaymentHistory: ({ data }) => {
                         this.setState(prev => {

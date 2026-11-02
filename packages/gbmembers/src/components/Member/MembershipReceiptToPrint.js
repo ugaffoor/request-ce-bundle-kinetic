@@ -53,7 +53,7 @@ export class MembershipReceiptToPrint extends React.Component {
     memberStatus = memberStatus === '' ? 'Active' : memberStatus;
 
     // Determine the Family Members relevant at the time of this receipt
-    for (let i = 0; i < this.props.membershipServices.length; i++) {
+    for (let i = 0; i < (this.props.membershipServices || []).length; i++) {
       if (
         this.props.datetime.isSameOrAfter(
           this.props.membershipServices[i].submittedAtDate,
@@ -69,7 +69,7 @@ export class MembershipReceiptToPrint extends React.Component {
     }
 
     if (this.props.paymentMethod === 'Cash') {
-      for (let i = 0; i < this.props.cashRegistrations.length; i++) {
+      for (let i = 0; i < (this.props.cashRegistrations || []).length; i++) {
         if (
           this.props.datetime.isAfter(
             moment(
@@ -93,7 +93,7 @@ export class MembershipReceiptToPrint extends React.Component {
     }
 
     if (feeDetails === undefined) {
-      if (this.props.membershipServices.length === 0) {
+      if ((this.props.membershipServices || []).length === 0) {
         feeDetails = getJson(
           this.props.memberItem.values['Family Fee Details'],
         );

@@ -422,6 +422,10 @@ export class MemberFinancialReport extends Component {
         this.props.space,
         'Bambora Cutoff Date',
       ),
+      stripeCutoverDate: getAttributeValue(
+        this.props.space,
+        'Stripe Cutover Date',
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -447,6 +451,10 @@ export class MemberFinancialReport extends Component {
       bamboraCutoverDate: getAttributeValue(
         this.props.space,
         'Bambora Cutoff Date',
+      ),
+      stripeCutoverDate: getAttributeValue(
+        this.props.space,
+        'Stripe Cutover Date',
       ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
@@ -491,6 +499,10 @@ export class MemberFinancialReport extends Component {
       bamboraCutoverDate: getAttributeValue(
         this.props.space,
         'Bambora Cutoff Date',
+      ),
+      stripeCutoverDate: getAttributeValue(
+        this.props.space,
+        'Stripe Cutover Date',
       ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
@@ -650,6 +662,10 @@ export class MemberFinancialReport extends Component {
         this.props.space,
         'Bambora Cutoff Date',
       ),
+      stripeCutoverDate: getAttributeValue(
+        this.props.space,
+        'Stripe Cutover Date',
+      ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
           ? true
@@ -675,6 +691,10 @@ export class MemberFinancialReport extends Component {
       bamboraCutoverDate: getAttributeValue(
         this.props.space,
         'Bambora Cutoff Date',
+      ),
+      stripeCutoverDate: getAttributeValue(
+        this.props.space,
+        'Stripe Cutover Date',
       ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
@@ -708,6 +728,10 @@ export class MemberFinancialReport extends Component {
       bamboraCutoverDate: getAttributeValue(
         this.props.space,
         'Bambora Cutoff Date',
+      ),
+      stripeCutoverDate: getAttributeValue(
+        this.props.space,
+        'Stripe Cutover Date',
       ),
       useSubAccount:
         getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'

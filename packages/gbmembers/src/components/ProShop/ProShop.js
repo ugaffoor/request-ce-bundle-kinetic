@@ -5417,6 +5417,10 @@ export const ProShopContainer = compose(
             this.props.space,
             'Bambora Cutoff Date',
           ),
+          stripeCutoverDate: getAttributeValue(
+            this.props.space,
+            'Stripe Cutover Date',
+          ),
           useSubAccount:
             getAttributeValue(this.props.space, 'PaySmart SubAccount') === 'YES'
               ? true

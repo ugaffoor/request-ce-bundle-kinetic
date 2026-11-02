@@ -167,6 +167,10 @@ export class StripeBillingTransactions extends Component {
         this.props.space,
         'Bambora Cutoff Date',
       ),
+      stripeCutoverDate: getAttributeValue(
+        this.props.space,
+        'Stripe Cutover Date',
+      ),
       timezone: getTimezone(
         this.props.profile.timezone,
         this.props.space.defaultTimezone,

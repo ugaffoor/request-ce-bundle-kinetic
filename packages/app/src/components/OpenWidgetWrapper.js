@@ -1,7 +1,15 @@
-import { Component } from 'react';
+import React, { Component } from 'react';
 
 const SCRIPT_ID = 'openwidget-script';
 const ORGANIZATION_ID = 'eea25ff5-b29a-4287-b366-823757bb237a';
+const STORAGE_KEY = 'openwidget_corner';
+
+const CORNERS = [
+  { bottom: '20px', right: '20px', top: 'auto', left: 'auto' }, // bottom-right (default)
+  { bottom: '20px', left: '20px', top: 'auto', right: 'auto' }, // bottom-left
+  { top: '20px', left: '20px', bottom: 'auto', right: 'auto' }, // top-left
+  { top: '20px', right: '20px', bottom: 'auto', left: 'auto' }, // top-right
+];
 
 const NORTH_AMERICAN_TIMEZONES = new Set([
   // United States
@@ -88,6 +96,47 @@ export const isNorthAmericanUser = () => {
 };
 
 export class OpenWidgetWrapper extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      cornerIdx: parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10),
+      widgetReady: false,
+    };
+    this.applyCorner = this.applyCorner.bind(this);
+    this.cycleCorner = this.cycleCorner.bind(this);
+  }
+
+  applyCorner(idx) {
+    const corner = CORNERS[idx];
+    // OpenWidget injects its container — try common container IDs/selectors
+    const container =
+      document.getElementById('chat-widget-container') ||
+      document.querySelector('[id^="chat-widget"]');
+    if (container) {
+      Object.assign(container.style, corner);
+    }
+  }
+
+  cycleCorner() {
+    const next = (this.state.cornerIdx + 1) % CORNERS.length;
+    localStorage.setItem(STORAGE_KEY, String(next));
+    this.setState({ cornerIdx: next }, () => this.applyCorner(next));
+  }
+
+  startWidgetObserver() {
+    const observer = new MutationObserver(() => {
+      const container =
+        document.getElementById('chat-widget-container') ||
+        document.querySelector('[id^="chat-widget"]');
+      if (container) {
+        observer.disconnect();
+        this.applyCorner(this.state.cornerIdx);
+        this.setState({ widgetReady: true });
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   initWidget() {
     window.__ow = window.__ow || {};
     window.__ow.organizationId = ORGANIZATION_ID;
@@ -143,6 +192,8 @@ export class OpenWidgetWrapper extends Component {
       s.src = 'https://cdn.openwidget.com/openwidget.js';
       document.head.appendChild(s);
     }
+
+    this.startWidgetObserver();
   }
 
   componentDidMount() {
@@ -158,6 +209,34 @@ export class OpenWidgetWrapper extends Component {
   }
 
   render() {
-    return null;
+    if (!this.state.widgetReady) return null;
+
+    const btnStyle = {
+      position: 'fixed',
+      zIndex: 99999,
+      cursor: 'pointer',
+      background: 'rgba(0,0,0,0.35)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: '50%',
+      width: '18px',
+      height: '18px',
+      fontSize: '11px',
+      lineHeight: '18px',
+      textAlign: 'center',
+      padding: 0,
+      bottom: '90px',
+      right: '10px',
+    };
+
+    return (
+      <button
+        style={btnStyle}
+        title="Move chat widget"
+        onClick={this.cycleCorner}
+      >
+        ↕
+      </button>
+    );
   }
 }

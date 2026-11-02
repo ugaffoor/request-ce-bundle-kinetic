@@ -1347,6 +1347,7 @@ export const ReportsContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
         bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
+        stripeCutoverDate: getAttributeValue(space, 'Stripe Cutover Date'),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
@@ -1374,6 +1375,7 @@ export const ReportsContainer = compose(
         addNotification: addNotification,
         setSystemError: setSystemError,
         bamboraCutoverDate: getAttributeValue(space, 'Bambora Cutoff Date'),
+        stripeCutoverDate: getAttributeValue(space, 'Stripe Cutover Date'),
         useSubAccount:
           getAttributeValue(space, 'PaySmart SubAccount') === 'YES'
             ? true
