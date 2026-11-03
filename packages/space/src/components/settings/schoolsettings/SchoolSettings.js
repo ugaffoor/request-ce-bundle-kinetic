@@ -329,21 +329,28 @@ Indications in the application will identify members not compliant."
           />
         </span>
         {/* Settings for the school's BJJ Members mobile app, each one an
-            EditAttributeValue like the other sections. */}
-        <span className="detailsSection bjjMembersApp">
-          <h6>BJJ Members App</h6>
-          <EditAttributeValue
-            attributeID="bjjMembersAppRunning"
-            attributeName="BJJ Members App running indicator"
-            inputType="activeIndicator"
-            labelName="App status"
-            helpText="Whether this school is actively using the BJJ Members app.<br>Set by the BJJ Members App running indicator attribute in Kinetic."
-            updateSpaceAttribute={this.props.updateSpaceAttribute}
-            space={this.props.space}
-            appSpace={this.props.appSpace}
-            profile={this.props.profile}
-          />
-        </span>
+            EditAttributeValue like the other sections. Only for an academy
+            using the app: with the BJJ Members App running indicator
+            attribute not on, the whole section is left out. */}
+        {Utils.getAttributeValue(
+          this.props.space,
+          'BJJ Members App running indicator',
+        ) === 'YES' && (
+          <span className="detailsSection bjjMembersApp">
+            <h6>BJJ Members App</h6>
+            <EditAttributeValue
+              attributeID="bjjMembersAppRunning"
+              attributeName="BJJ Members App running indicator"
+              inputType="activeIndicator"
+              labelName="App status"
+              helpText="Whether this school is actively using the BJJ Members app.<br>Set by the BJJ Members App running indicator attribute in Kinetic."
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.props.space}
+              appSpace={this.props.appSpace}
+              profile={this.props.profile}
+            />
+          </span>
+        )}
         <span className="detailsSection">
           <h6>Email</h6>
           <EditAttributeValue
