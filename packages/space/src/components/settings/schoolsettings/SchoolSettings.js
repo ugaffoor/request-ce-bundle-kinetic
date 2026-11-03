@@ -143,6 +143,7 @@ class SchoolAttributes extends Component {
       'School Start Date',
       'School Closed Dates',
       'BJJ Members App running indicator',
+      'GB Members Book a Class feature',
     ];
 
     this.state = {
@@ -344,6 +345,22 @@ Indications in the application will identify members not compliant."
               inputType="activeIndicator"
               labelName="App status"
               helpText="Whether this school is actively using the BJJ Members app.<br>Set by the BJJ Members App running indicator attribute in Kinetic."
+              updateSpaceAttribute={this.props.updateSpaceAttribute}
+              space={this.props.space}
+              appSpace={this.props.appSpace}
+              profile={this.props.profile}
+            />
+            {/* The app reads this same attribute (features.ts in BJJ
+                Members): ticked (YES) shows Book a Class; unticked hides its
+                Dashboard sections, screens and class reminders, and stops
+                bookings being made from the app. */}
+            <EditAttributeValue
+              attributeID="bookClassFeature"
+              attributeName="GB Members Book a Class feature"
+              inputType="yesToggleValue"
+              width="400px"
+              labelName="Class Booking"
+              helpText="Tick to let members book classes in the BJJ Members app.<br>Untick to turn Book a Class off in the app for this school.<br>Members see the change the next time their app loads."
               updateSpaceAttribute={this.props.updateSpaceAttribute}
               space={this.props.space}
               appSpace={this.props.appSpace}
