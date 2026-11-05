@@ -499,7 +499,22 @@ class PayNow extends Component {
     var posSystem = getAttributeValue(this.props.space, 'POS System');
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
-    if (
+    var customerId = this.props.memberItem.values['Billing Customer Id'];
+    var isMigratedToStripe =
+      getAttributeValue(this.props.space, 'Bambora Stripe Migration') ===
+        'YES' && String(customerId || '').startsWith('cus_');
+
+    if (isMigratedToStripe) {
+      this.processStripePayment(
+        posServiceURL,
+        this.props.spaceSlug,
+        'Stripe',
+        customerId,
+        schoolName,
+        uuid(),
+        this,
+      );
+    } else if (
       posSystem === 'Bambora' ||
       (posSystem === 'Stripe' &&
         billingSystem === 'Bambora' &&
@@ -516,16 +531,14 @@ class PayNow extends Component {
         this.props.spaceSlug,
         'Bambora',
         schoolName,
-        this.props.memberItem.values['Billing Customer Id'],
+        customerId,
       );
     } else if (billingSystem === 'Stripe') {
       this.processStripePayment(
         posServiceURL,
         this.props.spaceSlug,
         billingSystem,
-        this.props.memberItem.values['Billing Customer Id'].includes('cus_')
-          ? this.props.memberItem.values['Billing Customer Id']
-          : undefined,
+        String(customerId || '').startsWith('cus_') ? customerId : undefined,
         schoolName,
         uuid(),
         this,
@@ -769,7 +782,7 @@ class PayNow extends Component {
 
     var data = JSON.stringify({
       space: spaceSlug,
-      billingService: posSystem,
+      billingService: this.isMigratedToStripe() ? 'Stripe' : posSystem,
       currency: currency,
       id: id,
     });
@@ -1088,6 +1101,7 @@ class PayNow extends Component {
         console.log('checkout.setSaveButton() disabled: ' + !enabled);
 
         var payButton = document.getElementById('save-to-profile');
+        if (!payButton) return;
         if (enabled) {
           payButton.disabled = false;
           payButton.className = 'btn btn-primary';
@@ -1105,12 +1119,14 @@ class PayNow extends Component {
       showErrorFeedback: function(message) {
         var xMark = '\u2718';
         this.feedback = document.getElementById('feedback');
+        if (!this.feedback) return;
         this.feedback.innerHTML = xMark + ' ' + message;
         this.feedback.classList.add('error');
       },
       showSuccessFeedback: function(message) {
         var checkMark = '\u2714';
         this.feedback = document.getElementById('feedback');
+        if (!this.feedback) return;
         this.feedback.innerHTML = checkMark + ' ' + message;
         this.feedback.classList.add('success');
       },
@@ -1124,8 +1140,10 @@ class PayNow extends Component {
         this.setPayButton(true);
         this.toggleProcessingScreen();
         var saveButton = document.getElementById('save-to-profile');
-        saveButton.disabled = true;
-        $(saveButton).addClass('disabled');
+        if (saveButton) {
+          saveButton.disabled = true;
+          $(saveButton).addClass('disabled');
+        }
       },
       processTokenSuccess: function(token) {
         console.log('processTokenSuccess: ' + token);
@@ -1387,6 +1405,30 @@ class PayNow extends Component {
     });
   }
 
+  isMigratedToStripe() {
+    const customerId = this.props.memberItem
+      ? this.props.memberItem.values['Billing Customer Id']
+      : '';
+    return (
+      getAttributeValue(this.props.space, 'Bambora Stripe Migration') ===
+        'YES' && String(customerId || '').startsWith('cus_')
+    );
+  }
+
+  isLegacyBambora() {
+    return (
+      getAttributeValue(this.props.space, 'POS System') === 'Bambora' &&
+      !this.isMigratedToStripe()
+    );
+  }
+
+  isStripeMode() {
+    return (
+      getAttributeValue(this.props.space, 'POS System') === 'Stripe' ||
+      this.isMigratedToStripe()
+    );
+  }
+
   render() {
     return (
       <div>
@@ -1445,8 +1487,7 @@ class PayNow extends Component {
                   </div>
                 </span>
               </span>
-              {getAttributeValue(this.props.space, 'POS System') ===
-                'Bambora' &&
+              {this.isLegacyBambora() &&
               this.state.posProfileID !== undefined &&
               this.state.posProfileID !== null &&
               this.state.posProfileID !== '' &&
@@ -1456,8 +1497,7 @@ class PayNow extends Component {
                 </span>
               ) : (
                 <span className="paymentType">
-                  {getAttributeValue(this.props.space, 'POS System') ===
-                    'Bambora' && (
+                  {this.isLegacyBambora() && (
                     <span>
                       <div className="label">Saved Card</div>
                       <table className="savedCards">
@@ -1503,8 +1543,9 @@ class PayNow extends Component {
                         Use Saved Card
                       </label>
                     )}
-                    {getAttributeValue(this.props.space, 'Billing Company') ===
-                      'Stripe' &&
+                    {(getAttributeValue(this.props.space, 'Billing Company') ===
+                      'Stripe' ||
+                      this.isMigratedToStripe()) &&
                       this.props.memberItem !== undefined &&
                       this.props.memberItem.values['Billing Customer Id'] !==
                         undefined &&
@@ -1529,10 +1570,7 @@ class PayNow extends Component {
                           Current Payment Method
                         </label>
                       )}
-                    {(getAttributeValue(this.props.space, 'POS System') ===
-                      'Bambora' ||
-                      getAttributeValue(this.props.space, 'POS System') ===
-                        'Stripe') && (
+                    {(this.isLegacyBambora() || this.isStripeMode()) && (
                       <label htmlFor="useAnotherCreditCard" className="radio">
                         <input
                           id="useAnotherCreditCard"
@@ -1651,8 +1689,7 @@ class PayNow extends Component {
                 </span>
               )}
               {this.state.payment === 'creditcard' &&
-                getAttributeValue(this.props.space, 'POS System') ===
-                  'Bambora' && (
+                this.isLegacyBambora() && (
                   <span className="creditCard" id="bamboraCheckout">
                     {/* Load the myExternalLib.js library. */}
                     <Helmet
@@ -1690,7 +1727,11 @@ class PayNow extends Component {
                   </span>
                 )}
               {this.state.payment === 'creditcard' &&
-              getAttributeValue(this.props.space, 'POS System') === 'Stripe' ? (
+              this.isStripeMode() &&
+              getAttributeValue(
+                this.props.space,
+                'POS Stripe Publishable Key',
+              ) ? (
                 <span className="creditCard">
                   <Elements
                     stripe={loadStripe(
@@ -5531,8 +5572,14 @@ export const BillingContainer = compose(
           '/kapps/gbmembers/Member/' + this.props.match.params['id'],
         );
       } else {
+        const isMigratedToStripe =
+          getAttributeValue(this.props.space, 'Bambora Stripe Migration') ===
+            'YES' &&
+          String(member.values['Billing Customer Id'] || '').startsWith('cus_');
         if (
-          getAttributeValue(this.props.space, 'Billing Company') === 'Bambora'
+          getAttributeValue(this.props.space, 'Billing Company') ===
+            'Bambora' &&
+          !isMigratedToStripe
         ) {
           if (
             member.values['POS Profile ID'] !== undefined &&

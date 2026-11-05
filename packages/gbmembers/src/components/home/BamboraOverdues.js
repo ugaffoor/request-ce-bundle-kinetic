@@ -240,7 +240,7 @@ export class BamboraOverdues extends React.Component {
       return {
         _id: payment.paymentID,
         paymentAmount: payment.paymentAmount,
-        overdueAmount: overdueAmount,
+        overdueAmount: parseFloat(overdueAmount.toFixed(2)),
         successDate: getLastBillingStartDate(member, successfulPayments),
         debitDate: payment.debitDate,
         memberGUID: member !== undefined ? member.id : '',
@@ -249,7 +249,7 @@ export class BamboraOverdues extends React.Component {
       };
     });
 
-    return data;
+    return data.filter(item => item.overdueAmount > 0);
   }
 
   getColumns(data) {

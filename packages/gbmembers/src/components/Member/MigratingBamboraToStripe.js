@@ -221,6 +221,8 @@ const getSpaceAttr = (space, key) => Utils.getAttributeValue(space, key) || '';
 export class MigratingBamboraToStripe extends Component {
   constructor(props) {
     super(props);
+    this._isMounted = false;
+    this._archiveAbortController = null;
     const { space } = props;
 
     const ls = key =>
@@ -244,6 +246,7 @@ export class MigratingBamboraToStripe extends Component {
       showMigrationHistory: false,
       historyNameFilter: '',
       archivingBambora: false,
+      archiveElapsedSeconds: 0,
       migrationComplete: false,
       migrationCompleteMessage: false,
       bamboraCutoffDate: getAttributeValue(space, 'Bambora Cutoff Date') || '',
@@ -272,6 +275,17 @@ export class MigratingBamboraToStripe extends Component {
         return isNaN(parsed) ? '' : parsed;
       })(),
     };
+  }
+
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+    if (this._archiveAbortController) {
+      this._archiveAbortController.abort();
+    }
   }
 
   toggleRow(id) {
@@ -535,17 +549,36 @@ export class MigratingBamboraToStripe extends Component {
       setSystemError,
     } = this.props;
     const cutoverDate = moment().format('YYYY-MM-DD');
-    const timezone = space.defaultTimezone || 'UTC';
+    const timezone = getTimezone(profile.timezone, space.defaultTimezone);
 
-    this.setState({ archivingBambora: true });
+    this._archiveAbortController = new AbortController();
+    this.setState({ archivingBambora: true, archiveElapsedSeconds: 0 });
+
+    const elapsedTimer = setInterval(() => {
+      if (this._isMounted) {
+        this.setState(prev => ({
+          archiveElapsedSeconds: prev.archiveElapsedSeconds + 1,
+        }));
+      }
+    }, 1000);
+
+    const cleanup = () => {
+      clearInterval(elapsedTimer);
+      this._archiveAbortController = null;
+    };
 
     axios
-      .post(kineticBillingServerUrl + '/archiveBambora', {
-        space: spaceSlug,
-        cutoverDate,
-        timezone,
-      })
+      .post(
+        kineticBillingServerUrl + '/archiveBambora',
+        { space: spaceSlug, cutoverDate, timezone },
+        {
+          signal: this._archiveAbortController.signal,
+          timeout: 300000,
+        },
+      )
       .then(result => {
+        cleanup();
+        if (!this._isMounted) return;
         if (result.data.error && result.data.error > 0) {
           this.setState({ archivingBambora: false });
           addNotification(
@@ -578,9 +611,20 @@ export class MigratingBamboraToStripe extends Component {
         }
       })
       .catch(error => {
-        console.error('archiveBambora error', error);
+        cleanup();
+        if (!this._isMounted) return;
         this.setState({ archivingBambora: false });
-        setSystemError(error);
+        if (axios.isCancel(error)) return;
+        console.error('archiveBambora error', error);
+        if (error.code === 'ECONNABORTED') {
+          addNotification(
+            'error',
+            'Archive timed out after 5 minutes. Please retry.',
+            'Set Migrated Date',
+          );
+        } else {
+          setSystemError(error);
+        }
       });
   }
 
@@ -1759,6 +1803,8 @@ export class MigratingBamboraToStripe extends Component {
                 this.state.archivingBambora && (
                   <span className="text-muted" style={{ fontSize: '13px' }}>
                     Archiving Bambora records, please wait...
+                    {this.state.archiveElapsedSeconds > 0 &&
+                      ` (${this.state.archiveElapsedSeconds}s)`}
                   </span>
                 )}
               {!this.state.archivingBambora &&

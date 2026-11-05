@@ -1924,17 +1924,18 @@ export const MemberNewContainer = compose(
       var duplicateUser = false;
       for (var i = 0; i < memberItem.myThis.props.allMembers.length; i++) {
         if (
-          memberItem.myThis.props.allMembers[i].values[
-            'Member ID'
-          ].toLowerCase() === memberItem.values['Member ID'].toLowerCase() &&
-          (memberItem.values['First Name'].toLowerCase() ===
-            memberItem.myThis.props.allMembers[i].values[
-              'First Name'
-            ].toLowerCase() &&
-            memberItem.values['Last Name'].toLowerCase() ===
-              memberItem.myThis.props.allMembers[i].values[
-                'Last Name'
-              ].toLowerCase())
+          String(
+            memberItem.myThis.props.allMembers[i].values['Member ID'] || '',
+          ).toLowerCase() ===
+            String(memberItem.values['Member ID'] || '').toLowerCase() &&
+          (String(memberItem.values['First Name'] || '').toLowerCase() ===
+            String(
+              memberItem.myThis.props.allMembers[i].values['First Name'] || '',
+            ).toLowerCase() &&
+            String(memberItem.values['Last Name'] || '').toLowerCase() ===
+              String(
+                memberItem.myThis.props.allMembers[i].values['Last Name'] || '',
+              ).toLowerCase())
         ) {
           duplicateUser = true;
         }

@@ -697,6 +697,12 @@ export class MemberActivityReport extends Component {
     };
   }
 
+  componentDidMount() {
+    if (!this.props.memberNotesLoaded) {
+      this.loadMemberNotes();
+    }
+  }
+
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (!this.props.reportPreferences.equals(nextProps.reportPreferences)) {
       let preferences = this.getTablePreferences(nextProps.reportPreferences);
@@ -2410,18 +2416,6 @@ export class MemberActivityReport extends Component {
                   onClick={e => this.downLoadTableAsCsv(e)}
                 >
                   <i className="fa fa-download" /> Download Data as CSV
-                </button>
-                <span className="vl" />
-                <button
-                  name="download"
-                  className="btn"
-                  onClick={e => this.loadMemberNotes(e)}
-                >
-                  {this.props.memberNotesLoaded
-                    ? 'Member Notes Loaded'
-                    : this.props.memberNotesLoading
-                      ? 'Loading Member Notes'
-                      : 'Load Member Notes'}
                 </button>
               </div>
             </div>

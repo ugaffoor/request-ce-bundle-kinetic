@@ -3393,8 +3393,8 @@ export const MemberEditContainer = compose(
       var duplicateUser = false;
       for (var i = 0; i < allMembers.length; i++) {
         if (
-          allMembers[i].values['Member ID'].toLowerCase() ===
-            memberItem.values['Member ID'].toLowerCase() &&
+          String(allMembers[i].values['Member ID'] || '').toLowerCase() ===
+            String(memberItem.values['Member ID'] || '').toLowerCase() &&
           allMembers[i].id !== memberItem.id &&
           memberItem.values['Status'] === 'Active'
         ) {

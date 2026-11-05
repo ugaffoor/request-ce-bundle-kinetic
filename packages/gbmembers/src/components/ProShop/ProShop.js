@@ -969,8 +969,22 @@ class PayNow extends Component {
     var posSystem = getAttributeValue(this.props.space, 'POS System');
     var posServiceURL = getAttributeValue(this.props.space, 'POS Service URL');
     var schoolName = getAttributeValue(this.props.space, 'School Name');
+    var customerId =
+      this.state.memberItem !== undefined
+        ? this.state.memberItem.values['Billing Customer Id']
+        : undefined;
 
-    if (
+    if (this.isMigratedToStripe()) {
+      this.processStripePayment(
+        posServiceURL,
+        this.props.spaceSlug,
+        'Stripe',
+        customerId,
+        schoolName,
+        uuid(),
+        this,
+      );
+    } else if (
       posSystem === 'Bambora' ||
       (posSystem === 'Stripe' &&
         billingSystem === 'Bambora' &&
@@ -993,10 +1007,7 @@ class PayNow extends Component {
         posServiceURL,
         this.props.spaceSlug,
         'Stripe',
-        this.state.memberItem !== undefined &&
-        this.state.memberItem.values['Billing Customer Id'].includes('cus_')
-          ? this.state.memberItem.values['Billing Customer Id']
-          : undefined,
+        String(customerId || '').startsWith('cus_') ? customerId : undefined,
         schoolName,
         uuid(),
         this,
@@ -1812,6 +1823,30 @@ class PayNow extends Component {
     });
   }
 
+  isMigratedToStripe() {
+    const customerId = this.state.memberItem
+      ? this.state.memberItem.values['Billing Customer Id']
+      : '';
+    return (
+      getAttributeValue(this.props.space, 'Bambora Stripe Migration') ===
+        'YES' && String(customerId || '').startsWith('cus_')
+    );
+  }
+
+  isLegacyBambora() {
+    return (
+      getAttributeValue(this.props.space, 'POS System') === 'Bambora' &&
+      !this.isMigratedToStripe()
+    );
+  }
+
+  isStripeMode() {
+    return (
+      getAttributeValue(this.props.space, 'POS System') === 'Stripe' ||
+      this.isMigratedToStripe()
+    );
+  }
+
   render() {
     return (
       <div>
@@ -1970,11 +2005,20 @@ class PayNow extends Component {
                         cardId: cardId,
                         payment: undefined,
                       });
+                      const isMigratedToStripe =
+                        getAttributeValue(
+                          this.props.space,
+                          'Bambora Stripe Migration',
+                        ) === 'YES' &&
+                        String(
+                          memberItem.values['Billing Customer Id'] || '',
+                        ).startsWith('cus_');
                       if (
                         getAttributeValue(
                           this.props.space,
                           'Billing Company',
-                        ) === 'Bambora'
+                        ) === 'Bambora' &&
+                        !isMigratedToStripe
                       ) {
                         if (
                           posProfileID !== undefined &&
@@ -2090,12 +2134,15 @@ class PayNow extends Component {
                 </span>
               </span>
               {getAttributeValue(this.props.space, 'Billing Company') ===
-                'Bambora' && this.props.posAutoCreateCardProcessing ? (
+                'Bambora' &&
+              !this.isMigratedToStripe() &&
+              this.props.posAutoCreateCardProcessing ? (
                 <span className="paymentType">
                   <div className="label">Auto Creating Saved Card...</div>
                 </span>
               ) : getAttributeValue(this.props.space, 'Billing Company') ===
                 'Bambora' &&
+              !this.isMigratedToStripe() &&
               this.state.posProfileID !== undefined &&
               this.state.posProfileID !== null &&
               this.state.posProfileID !== '' ? (
@@ -2168,10 +2215,7 @@ class PayNow extends Component {
                           Update Credit Card
                         </label>
                       */}
-                      {(getAttributeValue(this.props.space, 'POS System') ===
-                        'Bambora' ||
-                        getAttributeValue(this.props.space, 'POS System') ===
-                          'Stripe') && (
+                      {(this.isLegacyBambora() || this.isStripeMode()) && (
                         <label htmlFor="useAnotherCreditCard" className="radio">
                           <input
                             id="useAnotherCreditCard"
@@ -2352,8 +2396,9 @@ class PayNow extends Component {
                 <span className="paymentType">
                   <div className="label">Payment Type</div>
                   <div className="radioGroup">
-                    {getAttributeValue(this.props.space, 'Billing Company') ===
-                      'Stripe' &&
+                    {(getAttributeValue(this.props.space, 'Billing Company') ===
+                      'Stripe' ||
+                      this.isMigratedToStripe()) &&
                       this.state.memberItem !== undefined &&
                       this.state.memberItem.values['Billing Customer Id'] !==
                         undefined &&
@@ -2690,8 +2735,7 @@ class PayNow extends Component {
               )}
               {(this.state.payment === 'creditcard' ||
                 this.state.payment === 'updateCreditCard') &&
-              getAttributeValue(this.props.space, 'POS System') ===
-                'Bambora' ? (
+              this.isLegacyBambora() ? (
                 <span className="creditCard" id="bamboraCheckout">
                   {/* Load the myExternalLib.js library. */}
                   <Helmet
@@ -2731,7 +2775,11 @@ class PayNow extends Component {
                 <div />
               )}
               {this.state.payment === 'creditcard' &&
-              getAttributeValue(this.props.space, 'POS System') === 'Stripe' ? (
+              this.isStripeMode() &&
+              getAttributeValue(
+                this.props.space,
+                'POS Stripe Publishable Key',
+              ) ? (
                 <span className="creditCard">
                   <Elements
                     stripe={loadStripe(

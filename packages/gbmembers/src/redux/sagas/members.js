@@ -184,19 +184,18 @@ export function* fetchMembers(action) {
             ',values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number],values[Last Promotion],values[Photo]' +
             ',values[Alternate Barcode],values[Address],values[Suburb],values[Country],values[State]' +
             ',values[Postcode],values[Date Joined],values[DOB],values[Member Type]' +
-            ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
-            ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Belt Size],values[Attendance Count]' +
+            ',values[Opt-Out]' +
+            ',values[Ranking Program],values[Ranking Belt],values[Belt Size],values[Attendance Count]' +
             ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
             ',values[Billing Customer Reference],values[Billing Parent Member],values[Lead Source]' +
             ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
             ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
-            ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
+            ',values[Billing Cash Term End Date]' +
             ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
             ',values[Membership Cost],values[Family Fee Details],values[Resume Date],values[TAX ID]' +
             ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
             ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
-            ',values[Emails Sent Count],values[Max Weekly Classes],values[Restricted Training Days],values[Reminder Date]' +
-            ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
+            ',values[Max Weekly Classes],values[Restricted Training Days],values[Reminder Date]' +
             ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
             ',values[Billing Period],values[Admin Fee],values[Last Payment Date],values[Archive Billing Id],values[Archive Billing Reference]',
         ])
@@ -223,19 +222,18 @@ export function* fetchMembers(action) {
               ',values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number],values[Last Promotion],values[Photo]' +
               ',values[Alternate Barcode],values[Address],values[Suburb],values[Country],values[State]' +
               ',values[Postcode],values[Date Joined],values[DOB],values[Member Type]' +
-              ',values[Opt-Out],values[Emergency Contact Name],values[Emergency Contact Phone],values[Emergency Contact Relationship]' +
-              ',values[Medical Allergies],values[Ranking Program],values[Ranking Belt],values[Belt Size],values[Attendance Count]' +
+              ',values[Opt-Out]' +
+              ',values[Ranking Program],values[Ranking Belt],values[Belt Size],values[Attendance Count]' +
               ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
               ',values[Billing Customer Reference],values[Billing Parent Member],values[Lead Source]' +
               ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
               ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
-              ',values[Billing Cash Term End Date],values[Credit Card Expiry Year],values[Credit Card Expiry Month],values[Billing Members]' +
+              ',values[Billing Cash Term End Date]' +
               ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
               ',values[Membership Cost],values[Family Fee Details],values[Resume Date],values[TAX ID]' +
               ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
               ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
-              ',values[Emails Sent Count],values[Max Weekly Classes],values[Restricted Training Days],values[Reminder Date]' +
-              ',values[Emails Received Count],values[Is New Reply Received],values[SMS Sent Count],values[SMS Received Count]' +
+              ',values[Max Weekly Classes],values[Restricted Training Days],values[Reminder Date]' +
               ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
               ',values[Billing Period],values[Admin Fee],values[Last Payment Date],values[Archive Billing Id],values[Archive Billing Reference]',
           ])
@@ -305,7 +303,27 @@ export function* fetchMembers(action) {
 
       while (nextPageTokenValue) {
         let search2 = new SubmissionSearch()
-          .includes(['details', 'values'])
+          .includes([
+            'details',
+            'values[Member ID],values[Status],values[Status History],values[First Name],values[Last Name],values[Gender]' +
+              ',values[Email],values[Additional Email],values[Phone Number],values[Additional Phone Number],values[Last Promotion],values[Photo]' +
+              ',values[Alternate Barcode],values[Address],values[Suburb],values[Country],values[State]' +
+              ',values[Postcode],values[Date Joined],values[DOB],values[Member Type]' +
+              ',values[Opt-Out]' +
+              ',values[Ranking Program],values[Ranking Belt],values[Belt Size],values[Attendance Count]' +
+              ',values[Additional Program 1],values[Additional Program 2],values[Non Paying]' +
+              ',values[Billing Customer Reference],values[Billing Parent Member],values[Lead Source]' +
+              ',values[Billing User],values[Billing Customer Id],values[Billing Setup Fee Id],values[Billing Start Date]' +
+              ',values[Billing Payment Period],values[Billing Payment Type],values[Billing Cash Term Start Date]' +
+              ',values[Billing Cash Term End Date]' +
+              ',values[Billing Family Members],values[Biller Migrated],values[Payment]' +
+              ',values[Membership Cost],values[Family Fee Details],values[Resume Date],values[TAX ID]' +
+              ',values[Last Attendance Date],values[Is New Reply Received],values[Waiver Complete Date]' +
+              ',values[useSubAccount],values[POS Profile ID],values[Fee Program],values[Parent or Guardian]' +
+              ',values[Max Weekly Classes],values[Restricted Training Days],values[Reminder Date]' +
+              ',values[Payment Method],values[Lead Submission ID],values[Send Payment Receipt]' +
+              ',values[Billing Period],values[Admin Fee],values[Last Payment Date],values[Archive Billing Id],values[Archive Billing Reference]',
+          ])
           .sortBy('updatedAt')
           .limit(1000)
           .pageToken(nextPageTokenValue)
