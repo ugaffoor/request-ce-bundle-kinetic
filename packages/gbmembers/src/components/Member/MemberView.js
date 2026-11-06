@@ -33,14 +33,6 @@ import Barcode from 'react-barcode';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { StatusMessagesContainer } from '../StatusMessages';
 import { actions as errorActions } from '../../redux/modules/errors';
-import {
-  requestPaymentChange,
-  clearPaymentChange,
-  isPaymentChangeRequested,
-  paymentChangeRequestedBy,
-  paymentChangeCompletedAt,
-  isChangePaymentRolledOut,
-} from '../../lib/changePayment';
 import ReactSpinner from 'react16-spinjs';
 import { CallScriptModalContainer } from './CallScriptModalContainer';
 import { SMSModalContainer } from './SMSModalContainer';
@@ -1033,9 +1025,6 @@ export const MemberView = ({
   showSMSModal,
   setShowMessageModal,
   showMessageModal,
-  requestChangePayment,
-  cancelChangePayment,
-  changePaymentSaving,
   appAccountStatus,
   setShowChangeStatusModal,
   showChangeStatusModal,
@@ -1956,60 +1945,6 @@ export const MemberView = ({
                   setIsDirty={setIsDirty}
                 />
               </div>
-              {/* Asks the member to change how they pay, through the BJJ
-                  Members app: while the request is open the app shows them
-                  "Change payment method". Once it has been dealt with, the
-                  same button clears it -- see lib/changePayment. A request
-                  covers one change: once the member has made it, the app
-                  records "Payment Change Completed" in their Billing Changes
-                  and this offers Enable Change Payment again, so the next one
-                  needs a fresh approval. Only where the school has the "GB
-                  Members Change Payment feature" attribute on; Cancel stays
-                  for an approval left open from before, so it can still be
-                  cleared. */}
-              {Utils.isMemberOf(profile, 'Role::Program Managers') &&
-                (isPaymentChangeRequested(memberItem) ? (
-                  <div className="changePayment">
-                    <button
-                      type="button"
-                      // btn-muted so it reads as undoing, not starting,
-                      // something.
-                      className="btn btn-primary btn-muted"
-                      disabled={changePaymentSaving}
-                      onClick={cancelChangePayment}
-                      title={`Approved by ${paymentChangeRequestedBy(
-                        memberItem,
-                      ) ||
-                        'a program manager'} (see Billing Changes). The member sees "Change payment method" in the BJJ Members app until this is cleared.`}
-                    >
-                      {changePaymentSaving
-                        ? 'Saving...'
-                        : 'Cancel Change Payment'}
-                    </button>
-                  </div>
-                ) : isChangePaymentRolledOut(space) ? (
-                  <div className="changePayment">
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      disabled={changePaymentSaving}
-                      onClick={requestChangePayment}
-                      title={
-                        paymentChangeCompletedAt(memberItem)
-                          ? `Changed their payment method in the BJJ Members app on ${moment(
-                              paymentChangeCompletedAt(memberItem),
-                            ).format(
-                              'L LT',
-                            )}. Press to let them change it again.`
-                          : 'Lets this member change their payment method in the BJJ Members app. They are sent a notification, and the option is available for one change.'
-                      }
-                    >
-                      {changePaymentSaving
-                        ? 'Sending...'
-                        : 'Enable Change Payment'}
-                    </button>
-                  </div>
-                ) : null)}
               {Utils.getAttributeValue(space, 'Billing Company') ===
                 'PaySmart' &&
                 memberItem.values['Non Paying'] !== 'YES' &&
@@ -2440,7 +2375,6 @@ export const MemberViewContainer = compose(
   withState('showAttendanceDialog', 'setShowAttendanceDialog', false),
   withState('showSMSModal', 'setShowSMSModal', false),
   withState('showMessageModal', 'setShowMessageModal', false),
-  withState('changePaymentSaving', 'setChangePaymentSaving', false),
   // This member's BJJ Members app account: an APP_ACCOUNT_STATUS, or null
   // until Firestore answers.
   withState('appAccountStatus', 'setAppAccountStatus', null),
@@ -2456,36 +2390,6 @@ export const MemberViewContainer = compose(
     false,
   ),
   withHandlers({
-    // The save and the notifications live in lib/changePayment, where they
-    // can be tested; these only hand over what the profile has. Each is
-    // recorded in the member's Billing Changes under the program manager's
-    // name, which the app shows the member as "Requested by ...".
-    requestChangePayment: ({
-      memberItem,
-      space,
-      profile,
-      addNotification,
-      setChangePaymentSaving,
-    }) => () =>
-      requestPaymentChange({
-        member: memberItem,
-        space,
-        staff: profile,
-        addNotification,
-        setSaving: setChangePaymentSaving,
-      }),
-    cancelChangePayment: ({
-      memberItem,
-      profile,
-      addNotification,
-      setChangePaymentSaving,
-    }) => () =>
-      clearPaymentChange({
-        member: memberItem,
-        staff: profile,
-        addNotification,
-        setSaving: setChangePaymentSaving,
-      }),
     handleDateChange: ({ setContactDate }) => date => {
       setContactDate(moment(date).format(contact_date_format));
     },

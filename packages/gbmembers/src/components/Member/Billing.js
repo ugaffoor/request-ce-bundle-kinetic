@@ -8,7 +8,7 @@ import {
   withProps,
 } from 'recompose';
 import { actions } from '../../redux/modules/members';
-import { KappNavLink as NavLink } from 'common';
+import { KappNavLink as NavLink, Utils } from 'common';
 import $ from 'jquery';
 import { ModalContainer, ModalDialog } from 'react-modal-dialog-react16';
 import { PaymentPeriod, PaymentType } from './BillingUtils';
@@ -76,6 +76,14 @@ import {
 import { loadStripeTerminal } from '@stripe/terminal-js/pure';
 import uuid from 'uuid';
 import ReactTooltip from 'react-tooltip';
+import {
+  requestPaymentChange,
+  clearPaymentChange,
+  isPaymentChangeRequested,
+  paymentChangeRequestedBy,
+  paymentChangeCompletedAt,
+  isChangePaymentRolledOut,
+} from '../../lib/changePayment';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -3390,6 +3398,94 @@ class BillingAudit extends Component {
   }
 }
 
+/**
+ * Asks the member to change how they pay, through the BJJ Members app: while
+ * the request is open the app shows them "Change payment method". Once it has
+ * been dealt with, the same place clears it -- see lib/changePayment. A request
+ * covers one change: once the member has made it, the app records "Payment
+ * Change Completed" in their Billing Changes and this offers Enable Change
+ * Payment again, so the next one needs a fresh approval. Only where the school
+ * has the "GB Members Change Payment feature" attribute on; Cancel stays for an
+ * approval left open from before, so it can still be cleared.
+ *
+ * The save updates the member's values in place, so finishing it (setSaving)
+ * is also what redraws this as the other button.
+ */
+export class ChangePaymentApproval extends Component {
+  state = { saving: false };
+
+  setSaving = saving => this.setState({ saving });
+
+  enable = () =>
+    requestPaymentChange({
+      member: this.props.memberItem,
+      space: this.props.space,
+      staff: this.props.profile,
+      addNotification: this.props.addNotification,
+      setSaving: this.setSaving,
+    });
+
+  cancel = () =>
+    clearPaymentChange({
+      member: this.props.memberItem,
+      staff: this.props.profile,
+      addNotification: this.props.addNotification,
+      setSaving: this.setSaving,
+    });
+
+  render() {
+    const { memberItem, profile, space } = this.props;
+    const { saving } = this.state;
+
+    if (!Utils.isMemberOf(profile, 'Role::Program Managers')) {
+      return null;
+    }
+
+    if (isPaymentChangeRequested(memberItem)) {
+      return (
+        <div className="changePayment">
+          <button
+            type="button"
+            // btn-muted so it reads as undoing, not starting, something.
+            className="btn btn-primary btn-muted"
+            disabled={saving}
+            onClick={this.cancel}
+            title={`Approved by ${paymentChangeRequestedBy(memberItem) ||
+              'a program manager'} (see Billing Changes). The member sees "Change payment method" in the BJJ Members app until this is cleared.`}
+          >
+            {saving ? 'Saving...' : 'Cancel Change Payment'}
+          </button>
+        </div>
+      );
+    }
+
+    if (!isChangePaymentRolledOut(space)) {
+      return null;
+    }
+
+    const completedAt = paymentChangeCompletedAt(memberItem);
+    return (
+      <div className="changePayment">
+        <button
+          type="button"
+          className="btn btn-primary"
+          disabled={saving}
+          onClick={this.enable}
+          title={
+            completedAt
+              ? `Changed their payment method in the BJJ Members app on ${moment(
+                  completedAt,
+                ).format('L LT')}. Press to let them change it again.`
+              : 'Lets this member change their payment method in the BJJ Members app. They are sent a notification, and the option is available for one change.'
+          }
+        >
+          {saving ? 'Sending...' : 'Enable Change Payment'}
+        </button>
+      </div>
+    );
+  }
+}
+
 export class BillingInfo extends Component {
   constructor(props) {
     super(props);
@@ -3653,6 +3749,12 @@ export class BillingInfo extends Component {
           {this.props.memberItem.values['Last Name']}
         </h1>
         <hr />
+        <ChangePaymentApproval
+          memberItem={this.props.memberItem}
+          profile={this.props.profile}
+          space={this.props.space}
+          addNotification={this.props.addNotification}
+        />
         {this.props.memberItem.values['Billing Payment Type'] === 'Cash' &&
           !this.state.cashRenewal && (
             <div

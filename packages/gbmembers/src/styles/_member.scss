@@ -4,6 +4,21 @@
   }
 }
 
+// Enable / Cancel Change Payment, under the Billing Details heading.
+.memberBillingDetails .changePayment {
+  margin: 10px 5px;
+  // "Cancel Change Payment": a quieter colour, because it withdraws an
+  // approval rather than starting something.
+  .btn-primary.btn-muted,
+  .btn-primary.btn-muted:hover,
+  .btn-primary.btn-muted:focus,
+  .btn-primary.btn-muted:not(:disabled):not(.disabled):active {
+    background-color: $secondary;
+    border-color: $secondary;
+    color: $white;
+  }
+}
+
 .migrationSection {
   .classSection {
     .memberFilter {
@@ -916,19 +931,6 @@
       border-top: 1px solid $darkgray;
       margin: 20px;
       margin-left: 0;
-      .changePayment {
-        margin-top: 8px;
-      }
-      // "Cancel Change Payment": a quieter colour, because it withdraws an
-      // approval rather than starting something.
-      .btn-primary.btn-muted,
-      .btn-primary.btn-muted:hover,
-      .btn-primary.btn-muted:focus,
-      .btn-primary.btn-muted:not(:disabled):not(.disabled):active {
-        background-color: $secondary;
-        border-color: $secondary;
-        color: $white;
-      }
       .billingPlan {
         padding: 10px;
         background-color: #f7f7f7;

@@ -1,7 +1,7 @@
 /**
- * The Enable Change Payment button, in the Billing section of a member's
- * profile: approves the member, in the BJJ Members app, to change how they
- * pay. Without an approval the app never offers "Change payment method".
+ * The Enable Change Payment button, on a member's Billing Details page:
+ * approves the member, in the BJJ Members app, to change how they pay. Without
+ * an approval the app never offers "Change payment method".
  *
  * The approval is kept in the member's existing "Billing Changes" history on
  * their Kinetic record -- the list the portal already appends to for every
@@ -22,7 +22,7 @@
  * the member as `user`/`by` and the services submission as `submissionId`
  * (recordPaymentChangeCompleted in the app's src/api/kinetic.ts). Like a
  * withdrawal it closes the approval: the app stops offering the option, and
- * this profile offers Enable Change Payment again for the next one.
+ * Billing Details offers Enable Change Payment again for the next one.
  *
  * The newest of those three actions is the current state, by `at`. Not by
  * position: the Billing tab sorts the list in place when it shows it, so the
@@ -40,9 +40,9 @@ import { getAttributeValues } from '../utils/utils';
  * The space attribute that turns Change Payment on for a school while it is
  * being rolled out. YES turns it on (Enabled, True and On count too, in any
  * case -- the same values the BJJ Members app accepts, src/features.ts there).
- * Not set, or anything else, and it is off: this profile offers no Change
- * Payment button, an approval is refused, and the app never offers "Change
- * payment method" even for one that is still open.
+ * Not set, or anything else, and it is off: Billing Details offers no Enable
+ * Change Payment button, an approval is refused, and the app never offers
+ * "Change payment method" even for one that is still open.
  */
 export const CHANGE_PAYMENT_FEATURE_ATTRIBUTE =
   'GB Members Change Payment feature';
@@ -256,7 +256,7 @@ const save = async (update, member, values) => {
  * it. Refuses rather than writing when the existing history cannot be read:
  * saving a fresh list over it would wipe the member's billing history.
  * On success the member's values are updated in place, so the profile and
- * its Billing tab show the change at once.
+ * Billing Details show the change at once.
  */
 const appendEntry = async ({ member, staff, action, reason, update, now }) => {
   const changes = billingChangesOf(member);
