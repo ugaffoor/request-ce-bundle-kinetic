@@ -1,3 +1,5 @@
+import { isBjjMembersAppRunning } from './bjjMembersApp';
+
 /**
  * Who may use the conversations feature in GB Members.
  *
@@ -36,15 +38,18 @@ const hasConversationRole = profile => {
 };
 
 /**
- * Messaging is on for every school (the BJJ Members app has it always on
- * too); what decides is whether this person is in a conversations role.
- * `space` is still taken so callers needn't change, but nothing reads it.
+ * Messaging needs both: the school is using the BJJ Members app (bjjMembersApp.js)
+ * and this person is in a conversations role. A caller that leaves out the
+ * space hides the feature rather than showing it to a school not using the app.
  */
-// eslint-disable-next-line no-unused-vars
 export const canUseConversations = (profile, space) =>
-  hasConversationRole(profile);
+  isBjjMembersAppRunning(space) && hasConversationRole(profile);
 
-/** Why someone is not seeing messages, for the pages reachable by URL. */
-// eslint-disable-next-line no-unused-vars
+/**
+ * Why someone is not seeing messages, for the pages reachable by URL. The
+ * school comes first: if it isn't using the app, joining a role would not help.
+ */
 export const noConversationsAccessMessage = space =>
-  'You do not have access to messages. Ask a space admin to add you to the Program Managers role.';
+  isBjjMembersAppRunning(space)
+    ? 'You do not have access to messages. Ask a space admin to add you to the Program Managers role.'
+    : 'Messages are not available for this school.';

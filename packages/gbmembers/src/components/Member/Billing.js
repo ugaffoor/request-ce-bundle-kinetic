@@ -82,7 +82,6 @@ import {
   isPaymentChangeRequested,
   paymentChangeRequestedBy,
   paymentChangeCompletedAt,
-  isChangePaymentRolledOut,
 } from '../../lib/changePayment';
 
 <script src="../helpers/jquery.multiselect.js" />;
@@ -3404,9 +3403,7 @@ class BillingAudit extends Component {
  * been dealt with, the same place clears it -- see lib/changePayment. A request
  * covers one change: once the member has made it, the app records "Payment
  * Change Completed" in their Billing Changes and this offers Enable Change
- * Payment again, so the next one needs a fresh approval. Only where the school
- * has the "GB Members Change Payment feature" attribute on; Cancel stays for an
- * approval left open from before, so it can still be cleared.
+ * Payment again, so the next one needs a fresh approval.
  *
  * The save updates the member's values in place, so finishing it (setSaving)
  * is also what redraws this as the other button.
@@ -3434,7 +3431,7 @@ export class ChangePaymentApproval extends Component {
     });
 
   render() {
-    const { memberItem, profile, space } = this.props;
+    const { memberItem, profile } = this.props;
     const { saving } = this.state;
 
     if (!Utils.isMemberOf(profile, 'Role::Program Managers')) {
@@ -3457,10 +3454,6 @@ export class ChangePaymentApproval extends Component {
           </button>
         </div>
       );
-    }
-
-    if (!isChangePaymentRolledOut(space)) {
-      return null;
     }
 
     const completedAt = paymentChangeCompletedAt(memberItem);

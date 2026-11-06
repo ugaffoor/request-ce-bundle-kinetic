@@ -15,6 +15,7 @@ import ReactTable from 'react-table';
 import 'react-table/react-table.css';
 import { Loading } from 'common';
 import { setAttributeValue } from '../../../../../gbmembers/src/lib/react-kinops-components/src/utils';
+import { isBjjMembersAppRunning } from 'gbmembers/src/lib/bjjMembersApp';
 
 class SettingsAudit extends Component {
   handleClick = () => this.setState({ isShowingModal: true });
@@ -333,10 +334,7 @@ Indications in the application will identify members not compliant."
             EditAttributeValue like the other sections. Only for an academy
             using the app: with the BJJ Members App running indicator
             attribute not on, the whole section is left out. */}
-        {Utils.getAttributeValue(
-          this.props.space,
-          'BJJ Members App running indicator',
-        ) === 'YES' && (
+        {isBjjMembersAppRunning(this.props.space) && (
           <span className="detailsSection bjjMembersApp">
             <h6>BJJ Members App</h6>
             <EditAttributeValue

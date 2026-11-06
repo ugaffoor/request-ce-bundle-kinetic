@@ -5,6 +5,8 @@ import {
   signOut,
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import { fetchSpace } from '@kineticdata/react';
+import { isBjjMembersAppRunning } from './bjjMembersApp';
 import {
   getFirebaseApp,
   getConversationStore,
@@ -133,14 +135,31 @@ export const stashCredentials = credentials => {
 };
 
 /**
+ * Whether this school is using the BJJ Members app, asked of Kinetic directly:
+ * this runs at login, before the portal has loaded the space. Not knowing
+ * counts as no, so a failed read leaves Firebase off rather than on.
+ */
+const schoolIsRunningApp = async () => {
+  try {
+    const { space } = await fetchSpace({ include: 'attributes' });
+    return isBjjMembersAppRunning(space);
+  } catch (e) {
+    console.warn('[firebase] could not read the school settings', e);
+    return false;
+  }
+};
+
+/**
  * Trades the stashed credentials for a Firebase custom token. Call once the
  * Kinetic login has succeeded. Returns the member GUID on success, or null if
- * the bridge failed for any reason.
+ * the bridge failed for any reason -- or if the school isn't using the BJJ
+ * Members app, in which case Firebase is not contacted at all. A school that
+ * turns the app on signs in to Firebase at its staff's next login.
  */
 export const exchangeStashedCredentials = async () => {
   const credentials = stashedCredentials;
   stashedCredentials = null;
-  if (!credentials) {
+  if (!credentials || !(await schoolIsRunningApp())) {
     return null;
   }
   return requestFirebaseToken(credentials);

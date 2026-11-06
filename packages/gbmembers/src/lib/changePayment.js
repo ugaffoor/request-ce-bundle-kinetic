@@ -33,31 +33,8 @@ import moment from 'moment';
 import { updateSubmission } from '@kineticdata/react';
 import { NOTICE_TYPES } from '../redux/modules/errors';
 import { getAttributeValue } from './react-kinops-components/src/utils';
+import { isBjjMembersAppRunning } from './bjjMembersApp';
 import { notifyPaymentChangeApproved } from './paymentChangeNotice';
-import { getAttributeValues } from '../utils/utils';
-
-/**
- * The space attribute that turns Change Payment on for a school while it is
- * being rolled out. YES turns it on (Enabled, True and On count too, in any
- * case -- the same values the BJJ Members app accepts, src/features.ts there).
- * Not set, or anything else, and it is off: Billing Details offers no Enable
- * Change Payment button, an approval is refused, and the app never offers
- * "Change payment method" even for one that is still open.
- */
-export const CHANGE_PAYMENT_FEATURE_ATTRIBUTE =
-  'GB Members Change Payment feature';
-const ENABLED_VALUES = ['YES', 'ENABLED', 'TRUE', 'ON'];
-
-/** Whether this school has Change Payment turned on. No space means no. */
-export const isChangePaymentRolledOut = space =>
-  getAttributeValues(space || {}, CHANGE_PAYMENT_FEATURE_ATTRIBUTE, []).some(
-    value =>
-      ENABLED_VALUES.includes(
-        String(value || '')
-          .trim()
-          .toUpperCase(),
-      ),
-  );
 
 export const BILLING_CHANGES_FIELD = 'Billing Changes';
 export const REQUESTED_ACTION = 'Payment Change Requested';
@@ -219,9 +196,6 @@ export const changePaymentFormFor = (member, space) => {
  * means the member can actually use what they were sent.
  */
 const blockedReason = (member, space) => {
-  if (!isChangePaymentRolledOut(space)) {
-    return 'Change Payment is not available for this school yet.';
-  }
   const values = (member && member.values) || {};
   if ((values['Non Paying'] || '').toString().toUpperCase() === 'YES') {
     // The app hides the option entirely for a non-paying member.
@@ -335,7 +309,10 @@ export const requestPaymentChange = async ({
     'Sent',
   );
   // Not awaited: the approval is saved either way, and the push is a bonus.
-  notify({ member, staff });
+  // It goes through Firebase, so not for a school that isn't using the app.
+  if (isBjjMembersAppRunning(space)) {
+    notify({ member, staff });
+  }
   return true;
 };
 

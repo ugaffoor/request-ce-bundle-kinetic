@@ -1,5 +1,6 @@
 import { doc, onSnapshot } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { isBjjMembersAppRunning } from './bjjMembersApp';
 import { initialiseFirebase, getConversationStore } from './firebase';
 import { ensureFirebaseSignIn, identityKey } from './firebaseAuth';
 
@@ -41,7 +42,8 @@ const statusOf = snap => {
  *
  * Anything that goes wrong -- no Firebase, not signed in, rules refusing --
  * reports null: the profile then shows no status at all, rather than a
- * status it could not confirm.
+ * status it could not confirm. The same for a school not using the app: Firebase
+ * is not started for it at all.
  */
 export const subscribeAppAccountStatus = ({
   space,
@@ -50,6 +52,11 @@ export const subscribeAppAccountStatus = ({
   memberId,
   onChange,
 }) => {
+  if (!isBjjMembersAppRunning(space)) {
+    onChange(null);
+    return () => {};
+  }
+
   const app = initialiseFirebase(space);
   const store = getConversationStore();
   if (!app || !store || !spaceSlug || !memberId) {

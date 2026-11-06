@@ -1036,12 +1036,18 @@ export const NewConversationContainer = compose(
         this.props.fetchMembers({ memberInitialLoadComplete: false });
       }
 
+      // The page draws its no-access message instead; don't start Firebase
+      // for a school or person without messages.
+      if (!canUseConversations(this.props.profile, this.props.space)) {
+        return;
+      }
+
       // Firestore rules reject an unauthenticated write, so get the Firebase
       // sign-in out of the way while the composer is being filled in rather
       // than discovering it is missing on the first Send.
       const app = initialiseFirebase(this.props.space);
       const username = this.props.profile && this.props.profile.username;
-      if (app && canUseConversations(this.props.profile, this.props.space)) {
+      if (app) {
         ensureFirebaseSignIn(app, identityKey(this.props.spaceSlug, username));
       }
     },
