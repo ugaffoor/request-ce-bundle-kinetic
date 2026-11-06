@@ -10,7 +10,7 @@ import { isBjjMembersAppRunning } from './bjjMembersApp';
 import {
   getFirebaseApp,
   getConversationStore,
-  initialiseFirebase,
+  startFirebaseApp,
 } from './firebase';
 
 /**
@@ -21,7 +21,7 @@ import {
  */
 const signInImmediately = async token => {
   try {
-    const app = initialiseFirebase();
+    const app = startFirebaseApp();
     if (!app) {
       return false;
     }
@@ -165,7 +165,7 @@ export const exchangeStashedCredentials = async () => {
   return requestFirebaseToken(credentials);
 };
 
-export const requestFirebaseToken = async ({ userName, password }) => {
+const requestFirebaseToken = async ({ userName, password }) => {
   const spaceSlug = resolveSpaceSlug();
   if (!spaceSlug || !userName || !password) {
     return null;

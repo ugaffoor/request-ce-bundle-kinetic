@@ -83,6 +83,7 @@ import {
   paymentChangeRequestedBy,
   paymentChangeCompletedAt,
 } from '../../lib/changePayment';
+import { isBjjMembersAppRunning } from '../../lib/bjjMembersApp';
 
 <script src="../helpers/jquery.multiselect.js" />;
 
@@ -3403,7 +3404,9 @@ class BillingAudit extends Component {
  * been dealt with, the same place clears it -- see lib/changePayment. A request
  * covers one change: once the member has made it, the app records "Payment
  * Change Completed" in their Billing Changes and this offers Enable Change
- * Payment again, so the next one needs a fresh approval.
+ * Payment again, so the next one needs a fresh approval. Only offered to a
+ * school using the app; Cancel stays for an approval left open from before, so
+ * it can still be cleared.
  *
  * The save updates the member's values in place, so finishing it (setSaving)
  * is also what redraws this as the other button.
@@ -3431,7 +3434,7 @@ export class ChangePaymentApproval extends Component {
     });
 
   render() {
-    const { memberItem, profile } = this.props;
+    const { memberItem, profile, space } = this.props;
     const { saving } = this.state;
 
     if (!Utils.isMemberOf(profile, 'Role::Program Managers')) {
@@ -3454,6 +3457,10 @@ export class ChangePaymentApproval extends Component {
           </button>
         </div>
       );
+    }
+
+    if (!isBjjMembersAppRunning(space)) {
+      return null;
     }
 
     const completedAt = paymentChangeCompletedAt(memberItem);

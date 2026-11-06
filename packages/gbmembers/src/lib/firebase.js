@@ -1,9 +1,12 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { getAttributeValue } from '../utils/utils';
+import { isBjjMembersAppRunning } from './bjjMembersApp';
 
 /**
- * Connects this portal to the shared Firebase project.
+ * Connects this portal to the shared Firebase project, for a school using the
+ * BJJ Members app (bjjMembersApp.js). For any other school nothing here starts:
+ * see initialiseFirebase.
  *
  * Every GB Members space talks to the same project, so the web config ships
  * with the portal: conversations then work on any device, in any space, with
@@ -82,11 +85,12 @@ export const getFirebaseConfig = space => {
 };
 
 /**
- * Initialises the Firebase app once and returns it. Safe to call repeatedly.
- * Returns undefined when the space has no Firebase config, so callers can
- * degrade rather than throw on spaces that have not been rolled out yet.
+ * Creates the Firebase app once and returns it, without asking whether the
+ * school is using the BJJ Members app. Only for the login, which has asked
+ * already (schoolIsRunningApp in firebaseAuth.js) because the space has not
+ * loaded yet. Everything else goes through initialiseFirebase.
  */
-export const initialiseFirebase = space => {
+export const startFirebaseApp = space => {
   const existing = getApps();
   if (existing.length > 0) {
     return existing[0];
@@ -99,6 +103,16 @@ export const initialiseFirebase = space => {
 
   return initializeApp(config);
 };
+
+/**
+ * Initialises the Firebase app once and returns it. Safe to call repeatedly.
+ * Returns undefined for a school not using the BJJ Members app, or with no
+ * space to read, so callers degrade rather than throw and Firebase is never
+ * contacted. The pages check this too, to hide themselves; this is what holds
+ * if one of them doesn't.
+ */
+export const initialiseFirebase = space =>
+  isBjjMembersAppRunning(space) ? startFirebaseApp(space) : undefined;
 
 export const getFirebaseApp = () => {
   const apps = getApps();
