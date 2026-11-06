@@ -1,7 +1,7 @@
 /**
- * The Change Payment button on a member's profile: approves the member, in
- * the BJJ Members app, to change how they pay. Without an approval the app
- * never offers "Change payment method".
+ * The Enable Change Payment button, in the Billing section of a member's
+ * profile: approves the member, in the BJJ Members app, to change how they
+ * pay. Without an approval the app never offers "Change payment method".
  *
  * The approval is kept in the member's existing "Billing Changes" history on
  * their Kinetic record -- the list the portal already appends to for every
@@ -22,7 +22,7 @@
  * the member as `user`/`by` and the services submission as `submissionId`
  * (recordPaymentChangeCompleted in the app's src/api/kinetic.ts). Like a
  * withdrawal it closes the approval: the app stops offering the option, and
- * this profile offers Change Payment again for the next one.
+ * this profile offers Enable Change Payment again for the next one.
  *
  * The newest of those three actions is the current state, by `at`. Not by
  * position: the Billing tab sorts the list in place when it shows it, so the

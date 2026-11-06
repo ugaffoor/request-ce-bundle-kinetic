@@ -1537,59 +1537,6 @@ export const MemberView = ({
                       onClose={() => setShowMessageModal(false)}
                     />
                   )}
-                  {/* Asks the member to change how they pay, through the BJJ
-                      Members app: while the request is open the app shows
-                      them "Change payment method". Once it has been dealt
-                      with, the same button clears it -- see
-                      lib/changePayment. A request covers one change: once
-                      the member has made it, the app records "Payment Change
-                      Completed" in their Billing Changes and this offers
-                      Change Payment again, so the next one needs a fresh
-                      approval. Only where the school has the "GB Members
-                      Change Payment feature" attribute on; Cancel stays for
-                      an approval left open from before, so it can still be
-                      cleared. */}
-                  {Utils.isMemberOf(profile, 'Role::Program Managers') &&
-                    (isPaymentChangeRequested(memberItem) ? (
-                      <button
-                        type="button"
-                        // btn-primary for the profile's button layout --
-                        // the stack on the right is positioned by that class
-                        // -- and btn-muted so it reads as undoing, not
-                        // starting, something.
-                        className="btn btn-primary btn-muted"
-                        style={{ marginLeft: '10px' }}
-                        disabled={changePaymentSaving}
-                        onClick={cancelChangePayment}
-                        title={`Approved by ${paymentChangeRequestedBy(
-                          memberItem,
-                        ) ||
-                          'a program manager'} (see Billing Changes). The member sees "Change payment method" in the BJJ Members app until this is cleared.`}
-                      >
-                        {changePaymentSaving
-                          ? 'Saving...'
-                          : 'Cancel Change Payment'}
-                      </button>
-                    ) : isChangePaymentRolledOut(space) ? (
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        style={{ marginLeft: '10px' }}
-                        disabled={changePaymentSaving}
-                        onClick={requestChangePayment}
-                        title={
-                          paymentChangeCompletedAt(memberItem)
-                            ? `Changed their payment method in the BJJ Members app on ${moment(
-                                paymentChangeCompletedAt(memberItem),
-                              ).format(
-                                'L LT',
-                              )}. Press to let them change it again.`
-                            : undefined
-                        }
-                      >
-                        {changePaymentSaving ? 'Sending...' : 'Change Payment'}
-                      </button>
-                    ) : null)}
                   {/* The member's BJJ Members app account (appAccounts.js):
                       green once they have signed in to the app, red if they
                       have since deleted the account, nothing if they have
@@ -2009,6 +1956,60 @@ export const MemberView = ({
                   setIsDirty={setIsDirty}
                 />
               </div>
+              {/* Asks the member to change how they pay, through the BJJ
+                  Members app: while the request is open the app shows them
+                  "Change payment method". Once it has been dealt with, the
+                  same button clears it -- see lib/changePayment. A request
+                  covers one change: once the member has made it, the app
+                  records "Payment Change Completed" in their Billing Changes
+                  and this offers Enable Change Payment again, so the next one
+                  needs a fresh approval. Only where the school has the "GB
+                  Members Change Payment feature" attribute on; Cancel stays
+                  for an approval left open from before, so it can still be
+                  cleared. */}
+              {Utils.isMemberOf(profile, 'Role::Program Managers') &&
+                (isPaymentChangeRequested(memberItem) ? (
+                  <div className="changePayment">
+                    <button
+                      type="button"
+                      // btn-muted so it reads as undoing, not starting,
+                      // something.
+                      className="btn btn-primary btn-muted"
+                      disabled={changePaymentSaving}
+                      onClick={cancelChangePayment}
+                      title={`Approved by ${paymentChangeRequestedBy(
+                        memberItem,
+                      ) ||
+                        'a program manager'} (see Billing Changes). The member sees "Change payment method" in the BJJ Members app until this is cleared.`}
+                    >
+                      {changePaymentSaving
+                        ? 'Saving...'
+                        : 'Cancel Change Payment'}
+                    </button>
+                  </div>
+                ) : isChangePaymentRolledOut(space) ? (
+                  <div className="changePayment">
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      disabled={changePaymentSaving}
+                      onClick={requestChangePayment}
+                      title={
+                        paymentChangeCompletedAt(memberItem)
+                          ? `Changed their payment method in the BJJ Members app on ${moment(
+                              paymentChangeCompletedAt(memberItem),
+                            ).format(
+                              'L LT',
+                            )}. Press to let them change it again.`
+                          : 'Lets this member change their payment method in the BJJ Members app. They are sent a notification, and the option is available for one change.'
+                      }
+                    >
+                      {changePaymentSaving
+                        ? 'Sending...'
+                        : 'Enable Change Payment'}
+                    </button>
+                  </div>
+                ) : null)}
               {Utils.getAttributeValue(space, 'Billing Company') ===
                 'PaySmart' &&
                 memberItem.values['Non Paying'] !== 'YES' &&
