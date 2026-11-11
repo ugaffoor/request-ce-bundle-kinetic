@@ -8,6 +8,7 @@ import { actions as leadActions } from '../redux/modules/leads';
 import { actions as memberActions } from '../redux/modules/members';
 import { actions as servicesActions } from '../redux/modules/services';
 import { getAttributeValue } from '../lib/react-kinops-components/src/utils';
+import { keepFirebaseConnected } from '../lib/firebaseAuth';
 
 import { App } from './App';
 
@@ -23,6 +24,9 @@ const mapStateToProps = state => {
     memberLastFetchTime: state.member.members.memberLastFetchTime,
     memberNotesLoading: state.member.members.memberNotesLoading,
     migrationsLastFetchTime: state.member.services.migrationsLastFetchTime,
+    // With their attributes, which keepFirebaseConnected reads.
+    appSpace: state.member.app.space,
+    appProfile: state.member.app.profile,
   };
 };
 
@@ -73,9 +77,33 @@ export const AppContainer = compose(
 
       let timer = setInterval(tick, 30 * 1000, this); // refresh every 30 seconds
       this.setState({ timer: timer });
+      if (!this.props.loading) {
+        this.connectFirebase();
+      }
+    },
+    componentDidUpdate(prevProps) {
+      // Once the school's settings and the signed-in profile have loaded.
+      if (prevProps.loading && !this.props.loading) {
+        this.connectFirebase();
+      }
+    },
+    // Keeps Firebase connected while the portal is open, for a school using
+    // the BJJ Members app -- not only at the login form, which a resumed
+    // session never passes through (lib/firebaseAuth).
+    connectFirebase() {
+      if (this.stopFirebase) {
+        this.stopFirebase();
+      }
+      this.stopFirebase = keepFirebaseConnected({
+        space: this.props.appSpace,
+        profile: this.props.appProfile,
+      });
     },
     componentWillUnmount() {
       clearInterval(this.state.timer);
+      if (this.stopFirebase) {
+        this.stopFirebase();
+      }
     },
     UNSAFE_componentWillReceiveProps(nextProps) {
       if (nextProps.space !== undefined && this.props.space === undefined) {

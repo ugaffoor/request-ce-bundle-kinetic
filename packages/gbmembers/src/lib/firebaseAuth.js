@@ -5,11 +5,12 @@ import {
   signOut,
 } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { fetchSpace } from '@kineticdata/react';
+import { fetchSpace, retrieveJwt } from '@kineticdata/react';
 import { isBjjMembersAppRunning } from './bjjMembersApp';
 import {
   getFirebaseApp,
   getConversationStore,
+  initialiseFirebase,
   startFirebaseApp,
 } from './firebase';
 
@@ -156,31 +157,36 @@ const schoolIsRunningApp = async () => {
  * Members app, in which case Firebase is not contacted at all. A school that
  * turns the app on signs in to Firebase at its staff's next login.
  */
-export const exchangeStashedCredentials = async () => {
+export const exchangeStashedCredentials = () => {
   const credentials = stashedCredentials;
   stashedCredentials = null;
-  if (!credentials || !(await schoolIsRunningApp())) {
-    return null;
+  if (!credentials) {
+    return Promise.resolve(null);
   }
-  return requestFirebaseToken(credentials);
+  loginExchange = (async () =>
+    (await schoolIsRunningApp()) ? requestFirebaseToken(credentials) : null)()
+    .catch(() => null)
+    .finally(() => {
+      loginExchange = null;
+    });
+  return loginExchange;
 };
 
-const requestFirebaseToken = async ({ userName, password }) => {
-  const spaceSlug = resolveSpaceSlug();
-  if (!spaceSlug || !userName || !password) {
-    return null;
-  }
+// The login's exchange while it runs, so a connection check that arrives in
+// the meantime waits for it instead of signing in a second time.
+let loginExchange = null;
 
+/**
+ * Asks mintFirebaseToken for a custom token, with either a username and
+ * password or the Kinetic session's token. Returns its answer -- { token,
+ * memberGuid, userName } -- or null, with lastTokenFailure saying why.
+ */
+const mintCustomToken = async body => {
   try {
     const response = await fetch(`${FUNCTIONS_BASE_URL}/mintFirebaseToken`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        spaceSlug,
-        userName,
-        password,
-        domain: FRANCHISE_DOMAIN,
-      }),
+      body: JSON.stringify({ ...body, domain: FRANCHISE_DOMAIN }),
     });
 
     if (!response.ok) {
@@ -191,27 +197,15 @@ const requestFirebaseToken = async ({ userName, password }) => {
       return null;
     }
 
-    const { token, memberGuid } = await response.json();
-    if (!token) {
+    const minted = await response.json();
+    if (!minted || !minted.token) {
       console.warn('[firebase] mintFirebaseToken returned no token');
       lastTokenFailure = 'the sign-in service returned no token';
       return null;
     }
 
     lastTokenFailure = null;
-    rememberMintedFor(identityKey(spaceSlug, userName));
-
-    // Sign in NOW rather than holding the token for a conversations screen
-    // to spend later. Custom tokens expire after an hour, so a login followed
-    // by an hour of other work used to leave the first visit to Conversations
-    // failing with nothing to explain why. This is possible because the
-    // shared Firebase config is built into the portal -- the app no longer
-    // has to wait for the space to load before it can be created.
-    //
-    // If it fails the token is kept, so the lazy path in ensureFirebaseSignIn
-    // still gets its chance when a screen opens.
-    pendingToken = (await signInImmediately(token)) ? null : token;
-    return memberGuid || null;
+    return minted;
   } catch (e) {
     // fetch() rejects with a TypeError for anything that never reached the
     // server: an extension blocking the request, DNS or TLS failure, or a
@@ -222,9 +216,93 @@ const requestFirebaseToken = async ({ userName, password }) => {
       `could not reach the sign-in service at ${FUNCTIONS_BASE_URL} ` +
       `(${e && e.message ? e.message : e}). An ad or privacy blocker will ` +
       `do this -- allow cloudfunctions.net and firestore.googleapis.com, ` +
-      `then sign out and in again`;
+      `then reload the page`;
     return null;
   }
+};
+
+const requestFirebaseToken = async ({ userName, password }) => {
+  const spaceSlug = resolveSpaceSlug();
+  if (!spaceSlug || !userName || !password) {
+    return null;
+  }
+
+  const minted = await mintCustomToken({ spaceSlug, userName, password });
+  if (!minted) {
+    return null;
+  }
+  rememberMintedFor(identityKey(spaceSlug, userName));
+
+  // Sign in NOW rather than holding the token for a conversations screen
+  // to spend later. Custom tokens expire after an hour, so a login followed
+  // by an hour of other work used to leave the first visit to Conversations
+  // failing with nothing to explain why. This is possible because the
+  // shared Firebase config is built into the portal -- the app no longer
+  // has to wait for the space to load before it can be created.
+  //
+  // If it fails the token is kept, so the lazy path in ensureFirebaseSignIn
+  // still gets its chance when a screen opens.
+  pendingToken = (await signInImmediately(minted.token)) ? null : minted.token;
+  return minted.memberGuid || null;
+};
+
+// How long to wait for Kinetic to hand over the session's token.
+const KINETIC_TOKEN_TIMEOUT_MS = 10 * 1000;
+
+/**
+ * The signed-in Kinetic session's token, or null. Kinetic issues it to the
+ * page itself (OAuth, the same way @kineticdata/react gets the one it uses),
+ * so it exists whenever the portal is signed in -- including a session that
+ * was resumed rather than started at the login form.
+ */
+const kineticSessionToken = () =>
+  Promise.race([
+    retrieveJwt().catch(() => null),
+    new Promise(resolve =>
+      setTimeout(() => resolve(null), KINETIC_TOKEN_TIMEOUT_MS),
+    ),
+  ]);
+
+// The session sign-in in progress, shared by everything that asks at once.
+let sessionSignIn = null;
+
+/**
+ * Signs in to Firebase with the Kinetic session rather than a password, and
+ * returns the uid, or null. This is what keeps Firebase connected when there
+ * is no login to take a password from: a resumed session, a Firebase session
+ * that was dropped, or a browser that has moved to another school. The Cloud
+ * Function asks Kinetic who the token belongs to, so it can only ever sign in
+ * as the person who is signed in to the portal.
+ */
+const signInWithKineticSession = (auth, expectedIdentity) => {
+  if (!sessionSignIn) {
+    sessionSignIn = (async () => {
+      const spaceSlug = resolveSpaceSlug();
+      const kineticToken = spaceSlug ? await kineticSessionToken() : null;
+      if (!kineticToken) {
+        lastTokenFailure =
+          'the Kinetic session could not be used to sign in -- reload the page';
+        return null;
+      }
+      const minted = await mintCustomToken({ spaceSlug, kineticToken });
+      if (!minted) {
+        return null;
+      }
+      const credential = await signInWithCustomToken(auth, minted.token);
+      rememberMintedFor(
+        expectedIdentity || identityKey(spaceSlug, minted.userName),
+      );
+      return credential.user.uid;
+    })()
+      .catch(e => {
+        console.warn('[firebase] session sign-in failed', e);
+        return null;
+      })
+      .finally(() => {
+        sessionSignIn = null;
+      });
+  }
+  return sessionSignIn;
 };
 
 /**
@@ -373,6 +451,12 @@ export const ensureFirebaseSignIn = async (app, expectedIdentity) => {
     return null;
   }
 
+  // A login that's still exchanging its password is about to sign in: wait
+  // for it rather than race it with a second token.
+  if (loginExchange) {
+    await loginExchange;
+  }
+
   const auth = getAuth(app);
   const existing = await waitForInitialAuth(auth);
   const token = pendingToken;
@@ -418,10 +502,54 @@ export const ensureFirebaseSignIn = async (app, expectedIdentity) => {
       } catch (e) {
         console.warn('[firebase] could not clear the mismatched session', e);
       }
-      return null;
+      // Then connect as the right person, from the Kinetic session.
+      return signInWithKineticSession(auth, expectedIdentity);
     }
     return existing.uid;
   }
 
-  return null;
+  // No Firebase session at all -- one that was never started this session,
+  // because the portal was resumed rather than logged in to. Connect from the
+  // Kinetic session instead of giving up until the next login.
+  return signInWithKineticSession(auth, expectedIdentity);
+};
+
+// How often a portal that's left open checks it is still connected.
+const CONNECTION_CHECK_MS = 5 * 60 * 1000;
+
+/**
+ * Keeps Firebase connected for as long as the portal is open, for a school
+ * using the BJJ Members app: checks once now, again whenever the tab comes back
+ * into view, and every few minutes. A check that finds the right session costs
+ * nothing (no network); one that finds none, or another person's or another
+ * school's, connects again from the Kinetic session. Returns a function that
+ * stops it.
+ */
+export const keepFirebaseConnected = ({ space, profile }) => {
+  const username = profile && profile.username;
+  if (!isBjjMembersAppRunning(space) || !username || !space.slug) {
+    return () => {};
+  }
+  const identity = identityKey(space.slug, username);
+  const check = () => {
+    const app = initialiseFirebase(space);
+    if (app) {
+      ensureFirebaseSignIn(app, identity).catch(e =>
+        console.warn('[firebase] connection check failed', e),
+      );
+    }
+  };
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') {
+      check();
+    }
+  };
+
+  check();
+  document.addEventListener('visibilitychange', onVisible);
+  const timer = setInterval(check, CONNECTION_CHECK_MS);
+  return () => {
+    document.removeEventListener('visibilitychange', onVisible);
+    clearInterval(timer);
+  };
 };
