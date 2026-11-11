@@ -7,6 +7,7 @@ import {
   withHandlers,
   withProps,
 } from 'recompose';
+import { fetchSubmission } from '@kineticdata/react';
 import { actions } from '../../redux/modules/leads';
 import { actions as memberActions } from '../../redux/modules/members';
 import { actions as appActions } from '../../redux/modules/memberApp';
@@ -2215,8 +2216,17 @@ export const LeadDetailContainer = compose(
       journeyTriggers,
       createJourneyEvent,
       setIsDirty,
-    }) => newHistory => {
-      let history = getJson(leadItem.values['History']);
+    }) => async newHistory => {
+      const { submission: freshSubmission } = await fetchSubmission({
+        id: leadItem.id,
+        include: 'values[History]',
+      }).catch(() => ({ submission: null }));
+
+      const history = getJson(
+        freshSubmission
+          ? freshSubmission.values['History']
+          : leadItem.values['History'],
+      );
       history.push(newHistory);
       leadItem.values['History'] = history;
       if (
