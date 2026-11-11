@@ -1526,23 +1526,12 @@ export const MemberView = ({
                     />
                   )}
                   {/* The member's BJJ Members app account (appAccounts.js):
-                      green once they have signed in to the app, red if they
-                      have since deleted the account, nothing if they have
-                      never used it. Statuses, not actions: disabled, with no
-                      handler. btn-primary for the profile's button layout;
-                      the second class gives the colour. */}
-                  {appAccountStatus === APP_ACCOUNT_STATUS.ACTIVATED && (
-                    <button
-                      type="button"
-                      className="btn btn-primary account-activated"
-                      style={{ marginLeft: '10px' }}
-                      disabled
-                      aria-disabled="true"
-                      title="This member has activated their BJJ Members app account."
-                    >
-                      Account Activated
-                    </button>
-                  )}
+                      red here if they have deleted the account; once they
+                      have signed in to the app, their username below turns
+                      green instead; nothing if they have never used it.
+                      A status, not an action: disabled, with no handler.
+                      btn-primary for the profile's button layout; the second
+                      class gives the colour. */}
                   {appAccountStatus === APP_ACCOUNT_STATUS.DEACTIVATED && (
                     <button
                       type="button"
@@ -1611,7 +1600,20 @@ export const MemberView = ({
                                 memberItem.values['Member ID']}
                           </button>
                         ) : (
-                          <div className="username">
+                          <div
+                            // Green once they have activated their BJJ
+                            // Members app account.
+                            className={
+                              appAccountStatus === APP_ACCOUNT_STATUS.ACTIVATED
+                                ? 'username app-activated'
+                                : 'username'
+                            }
+                            title={
+                              appAccountStatus === APP_ACCOUNT_STATUS.ACTIVATED
+                                ? 'This member has activated their BJJ Members app account.'
+                                : undefined
+                            }
+                          >
                             <div className="label">Username:</div>{' '}
                             <div className="value">
                               {memberItem.user.username}
