@@ -63,6 +63,8 @@
     .message-item {
       @include ms-respond(font-size, -2);
       padding: 0.5rem 1.5rem;
+      // Each entry opens its chat.
+      cursor: pointer;
       &:hover {
         background-color: lighten($gray4, 5%);
       }

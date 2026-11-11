@@ -1,4 +1,5 @@
 import { connect } from 'react-redux';
+import { push } from 'connected-react-router';
 import { compose, withHandlers, withProps, withState } from 'recompose';
 import { List } from 'immutable';
 import { Inbox } from './Inbox';
@@ -88,7 +89,10 @@ export const mapStateToProps = state => {
 };
 
 export const InboxContainer = compose(
-  connect(mapStateToProps),
+  connect(
+    mapStateToProps,
+    { push },
+  ),
   withState('readMarkers', 'setReadMarkers', () => loadReadMarkers()),
   withProps(({ allMessages, readMarkers }) => ({
     // Read entries leave the inbox entirely -- it is a list of things still
@@ -112,5 +116,13 @@ export const InboxContainer = compose(
   withState('isOpen', 'setIsOpen', false),
   withHandlers({
     toggle: props => () => props.setIsOpen(open => !open),
+    // Clicking a message opens its chat, and counts as reading it -- the same
+    // as pressing Mark as read. Always the gbmembers kapp's Messages page, so
+    // it works from whichever kapp the header is showing in.
+    openMessage: ({ markRead, setIsOpen, push }) => message => {
+      markRead(message);
+      setIsOpen(false);
+      push(`/kapps/gbmembers/Conversations/${message.id}`);
+    },
   }),
 )(Inbox);

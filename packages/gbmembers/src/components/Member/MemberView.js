@@ -81,7 +81,6 @@ import { getAttributeValue } from '../../lib/react-kinops-components/src/utils';
 import styled from 'styled-components';
 import { confirm } from '../helpers/Confirmation';
 import { canUseConversations } from '../../lib/conversationAccess';
-import { MemberConversationContainer } from './MemberConversation';
 import {
   subscribeAppAccountStatus,
   APP_ACCOUNT_STATUS,
@@ -2320,16 +2319,6 @@ export const MemberView = ({
                     profile={profile}
                   />
                 </div>
-                {canUseConversations(profile, space) && (
-                  <div>
-                    <MemberConversationContainer
-                      memberItem={memberItem}
-                      allMembers={allMembers}
-                      space={space}
-                      profile={profile}
-                    />
-                  </div>
-                )}
                 <div>
                   <MemberOrders
                     memberItem={memberItem}

@@ -20,6 +20,7 @@ export const Inbox = ({
   toggle,
   markRead,
   markAllRead,
+  openMessage,
 }) =>
   !permitted ? null : (
     <Dropdown isOpen={isOpen} toggle={toggle}>
@@ -54,7 +55,21 @@ export const Inbox = ({
         </div>
         <ul className="messages-list">
           {messages.map(message => (
-            <li key={message.id} className="message-item unread">
+            // The whole entry opens the chat (and marks it read); Mark as read
+            // below only marks it read.
+            <li
+              key={message.id}
+              className="message-item unread"
+              role="link"
+              tabIndex={0}
+              title="Open this chat"
+              onClick={() => openMessage(message)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  openMessage(message);
+                }
+              }}
+            >
               <h1>
                 <I18n>{message.subject}</I18n>
               </h1>
@@ -66,7 +81,11 @@ export const Inbox = ({
                 <button
                   type="button"
                   className="link-action mark-read"
-                  onClick={() => markRead(message)}
+                  onClick={e => {
+                    // Not also a click on the entry, which would open it.
+                    e.stopPropagation();
+                    markRead(message);
+                  }}
                 >
                   <I18n>Mark as read</I18n>
                 </button>
