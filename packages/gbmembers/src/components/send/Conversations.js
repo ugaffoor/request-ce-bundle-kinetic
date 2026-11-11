@@ -1218,15 +1218,16 @@ export class Conversations extends Component {
 
   renderKindFilter() {
     return (
-      <ul className="nav nav-tabs mb-2 conversation-filter" role="tablist">
+      <ul className="nav mb-2 conversation-filter" role="tablist">
         {Object.keys(CONVERSATION_KIND_LABELS).map(kind => (
           <li className="nav-item" key={kind}>
             <button
               type="button"
               role="tab"
               aria-selected={this.state.kind === kind}
+              // The same grey buttons as Send; the selected one is darker.
               className={
-                'nav-link btn btn-link' +
+                'nav-link btn btn-primary' +
                 (this.state.kind === kind ? ' active' : '')
               }
               onClick={() => this.setState({ kind })}
@@ -1868,18 +1869,30 @@ export class Conversations extends Component {
       return this.renderMemberThread(membersById);
     }
 
+    // Laid out like a member's profile: the title in a dark tab, on a grey
+    // band, with each part in a white section of its own.
     return (
-      <div className="container-fluid leads">
+      <div className="container-fluid leads conversationsPage">
         <StatusMessagesContainer />
         <div className="leadContents">
           <div className="options">
-            <h4 className="title">Messages</h4>
-            <div className="row">
-              <div className="col-md-4">{this.renderList(membersById)}</div>
+            <div className="conversationsHeader">
+              <h4 className="title">Messages</h4>
+            </div>
+            <div className="row conversationsBody">
+              <div className="col-md-4">
+                <div className="conversationsSection">
+                  <h4>Conversations</h4>
+                  {this.renderList(membersById)}
+                </div>
+              </div>
               <div className="col-md-8">
-                {this.state.selectedId && this.renderThreadActions()}
-                {this.renderThread(membersById)}
-                {this.state.selectedId && this.renderComposer()}
+                <div className="conversationsSection">
+                  <h4>Chat</h4>
+                  {this.state.selectedId && this.renderThreadActions()}
+                  {this.renderThread(membersById)}
+                  {this.state.selectedId && this.renderComposer()}
+                </div>
               </div>
             </div>
           </div>
@@ -1903,13 +1916,15 @@ export class Conversations extends Component {
       null;
 
     return (
-      <div className="container-fluid leads">
+      <div className="container-fluid leads conversationsPage">
         <StatusMessagesContainer />
         <div className="leadContents">
           <div className="options">
-            <h4 className="title">
-              {withId ? participantName(withId, membersById) : 'Messages'}
-              <span className="pull-right">
+            <div className="conversationsHeader">
+              <h4 className="title">
+                {withId ? participantName(withId, membersById) : 'Messages'}
+              </h4>
+              <span className="conversationsLinks">
                 <NavLink to={`/Member/${memberId}`} className="btn btn-link">
                   Back to profile
                 </NavLink>
@@ -1917,8 +1932,13 @@ export class Conversations extends Component {
                   All messages
                 </NavLink>
               </span>
-            </h4>
-            {this.renderMemberThreadBody(membersById)}
+            </div>
+            <div className="conversationsBody">
+              <div className="conversationsSection">
+                <h4>Chat</h4>
+                {this.renderMemberThreadBody(membersById)}
+              </div>
+            </div>
           </div>
         </div>
       </div>
