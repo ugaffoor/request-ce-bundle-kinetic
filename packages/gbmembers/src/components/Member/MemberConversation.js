@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import { push } from 'connected-react-router';
 import ReactTable from 'react-table';
 import ReactSpinner from 'react16-spinjs';
 import moment from 'moment';
-import { KappNavLink as NavLink } from 'common';
 import { email_sent_date_format } from '../leads/LeadsUtils';
 import { actions as conversationActions } from '../../redux/modules/conversations';
 import { initialiseFirebase } from '../../lib/firebase';
@@ -13,48 +13,63 @@ import {
   FRANCHISE_DOMAIN,
 } from '../../lib/firebaseAuth';
 import {
-  conversationId,
+  conversationKind,
+  conversationTitle,
   indexMembersById,
-  participantName,
-  DELETED_MESSAGE_TEXT,
-  ANNOUNCEMENT_REMOVED_TEXT,
-  quotedMediaLabel,
+  previewSenderLabel,
+  CONVERSATION_KINDS,
 } from '../../lib/conversationSchema';
-import { sharedOneToOneWith } from '../../lib/programManagers';
 
 const mapStateToProps = state => ({
   conversations: state.member.conversations.data,
   loading: state.member.conversations.loading,
   error: state.member.conversations.error,
-  messages: state.member.conversations.messages,
-  messagesLoading: state.member.conversations.messagesLoading,
-  messagesError: state.member.conversations.messagesError,
   spaceSlug: state.member.app.spaceSlug,
 });
 
 const mapDispatchToProps = {
   subscribeConversations: conversationActions.subscribeConversations,
-  subscribeMessages: conversationActions.subscribeMessages,
   unsubscribeConversations: conversationActions.unsubscribeConversations,
-  unsubscribeMessages: conversationActions.unsubscribeMessages,
   setConversationsError: conversationActions.setConversationsError,
+  push,
+};
+
+// What each kind of thread is called in the Type column.
+const TYPE_LABELS = {
+  [CONVERSATION_KINDS.CONVERSATION]: 'Message',
+  [CONVERSATION_KINDS.GROUP]: 'Group',
+  [CONVERSATION_KINDS.BROADCAST]: 'Broadcast',
+  [CONVERSATION_KINDS.ANNOUNCEMENT]: 'Announcement',
 };
 
 /**
- * The 1:1 conversation with this member, on their profile beside the SMS
- * and email history -- read-only here, with a link through to the thread
- * for replying.
+ * Whether a thread involves this member: they are in it, it is their reply to
+ * (or delivery of) an announcement, or it is the school's announcement
+ * thread, which goes to every member.
+ */
+const involves = (conversation, memberId) =>
+  (conversation.participantIds || []).includes(memberId) ||
+  conversation.otherParticipantId === memberId ||
+  conversation.announcementMember === memberId ||
+  !!conversation.isAnnouncementThread;
+
+/**
+ * The member's message history on their profile, between Requests and Emails
+ * Sent: every thread involving them -- one-to-one messages, groups,
+ * broadcasts and announcements -- newest first, with the latest message in
+ * each. Read-only: no Send here. A row opens the thread on the Messages page.
+ *
+ * Only threads the signed-in staff member may read are listed. firestore.rules
+ * lets staff read the threads they are in, plus their school's announcements
+ * and replies to them; a member's private chats with other members are not
+ * readable by staff at all, so they never appear here.
  */
 export class MemberConversation extends Component {
   constructor(props) {
     super(props);
-    this._columns = this.getColumns();
     this.state = {
-      // The signed-in Firebase uid, which the thread id depends on.
+      // The signed-in Firebase uid: who "You" is in the list.
       viewerId: null,
-      // The thread this component last asked for messages from, so a new
-      // list snapshot does not re-subscribe to the same thread.
-      subscribedId: null,
     };
   }
 
@@ -69,7 +84,7 @@ export class MemberConversation extends Component {
       .then(uid => {
         if (!uid) {
           this.props.setConversationsError(
-            'Not signed in to Firebase — sign out and sign in again.',
+            'Not signed in to Firebase — reload the page to try again.',
           );
           return;
         }
@@ -80,6 +95,8 @@ export class MemberConversation extends Component {
           return;
         }
         this.setState({ viewerId: uid });
+        // The same list the Messages page shows, which also follows the
+        // school's announcement thread.
         this.props.subscribeConversations({
           participantId: uid,
           spaceSlug: this.props.spaceSlug,
@@ -93,100 +110,71 @@ export class MemberConversation extends Component {
       });
   }
 
-  /**
-   * Opens the full thread. Every row here leads to the same place -- this
-   * panel is a read-only preview of one conversation, so a click anywhere
-   * in it means "take me to it".
-   *
-   * The heading's own Open link is what navigates: KappNavLink builds the
-   * URL with the kapp it belongs to, and activating that link keeps the
-   * routing in one place rather than assembling a path here.
-   */
-  openThread = () => {
-    const link = this.panel && this.panel.querySelector('.conversation-open');
-    if (link) {
-      link.click();
-    }
-  };
-
-  /**
-   * Makes each message row a target for that click. Header rows come
-   * through with no rowInfo and are left alone.
-   */
-  messageRowProps = (state, rowInfo) =>
-    rowInfo ? { onClick: this.openThread, style: { cursor: 'pointer' } } : {};
-
   componentWillUnmount() {
-    // Both listeners were started here, so both end here -- a profile is
-    // opened and left far more often than the conversations page is.
+    // Started here, so stopped here -- a profile is opened and left far more
+    // often than the Messages page is.
     this.unmounted = true;
     this.props.unsubscribeConversations();
-    this.props.unsubscribeMessages();
   }
 
-  componentDidUpdate() {
-    // Once the thread shows up in the list, follow its messages. Guarded on
-    // subscribedId so each list snapshot does not start another listener.
-    const conversation = this.getConversation();
-    if (conversation && conversation.id !== this.state.subscribedId) {
-      this.setState({ subscribedId: conversation.id });
-      this.props.subscribeMessages({ conversationId: conversation.id });
-    }
-  }
+  openThread = conversation =>
+    this.props.push(`/kapps/gbmembers/Conversations/${conversation.id}`);
 
-  getConversation() {
-    if (!this.state.viewerId) {
-      return null;
-    }
-    // The viewer's own thread with them, else one of theirs shared with the
-    // program managers -- a colleague's chat with this member, which every
-    // program manager is in (see lib/programManagers.js).
-    const all = this.props.conversations.toArray();
-    const pair = conversationId(this.props.memberItem.id, this.state.viewerId);
-    return (
-      all.find(conversation => conversation.id === pair) ||
-      sharedOneToOneWith(all, this.props.memberItem.id)
-    );
-  }
+  // A row opens its thread.
+  rowProps = (state, rowInfo) =>
+    rowInfo
+      ? {
+          onClick: () => this.openThread(rowInfo.original),
+          style: { cursor: 'pointer' },
+          title: 'Open this thread',
+        }
+      : {};
 
-  getColumns() {
+  getColumns(membersById) {
     return [
       {
-        Header: 'Message',
-        className: 'text',
+        Header: 'Type',
+        width: 130,
         Cell: row => (
-          <span className="nowrap">
-            {row.original.deleted ? (
-              <em className="text-muted">
-                {row.original.announcementRemoved
-                  ? ANNOUNCEMENT_REMOVED_TEXT
-                  : DELETED_MESSAGE_TEXT}
-              </em>
-            ) : (
-              // A photo or voice message sent without words is named rather
-              // than left as an empty row.
-              row.original.text ||
-              (row.original.mediaKind
-                ? quotedMediaLabel(row.original.mediaKind)
-                : '')
-            )}
+          <span className="badge badge-secondary">
+            {row.original.isAnnouncementReply
+              ? 'Announcement reply'
+              : TYPE_LABELS[conversationKind(row.original)] || 'Message'}
           </span>
         ),
       },
       {
-        Header: 'From',
-        width: 200,
-        className: 'direction',
+        Header: 'Thread',
+        width: 220,
         Cell: row => (
-          <span>
-            {row.original.senderId === this.state.viewerId
-              ? 'You'
-              : participantName(
-                  row.original.senderId,
-                  indexMembersById(this.props.allMembers),
-                )}
+          <span className="nowrap">
+            {/* The school's announcement thread has no members to name. */}
+            {row.original.isAnnouncementThread
+              ? 'Whole school'
+              : conversationTitle(row.original, membersById)}
           </span>
         ),
+      },
+      {
+        Header: 'Last message',
+        className: 'text',
+        Cell: row => {
+          const last = row.original.lastMessage;
+          if (!last || !last.text) {
+            return <span className="text-muted">No messages yet</span>;
+          }
+          const sender = previewSenderLabel(
+            row.original,
+            membersById,
+            this.state.viewerId,
+          );
+          return (
+            <span className="nowrap">
+              {sender && <strong>{sender}: </strong>}
+              {last.text}
+            </span>
+          );
+        },
       },
       {
         Header: 'Date and time',
@@ -194,8 +182,8 @@ export class MemberConversation extends Component {
         className: 'date',
         Cell: row => (
           <span>
-            {row.original.createdAt
-              ? moment(row.original.createdAt).format(email_sent_date_format)
+            {row.original.updatedAt
+              ? moment(row.original.updatedAt).format(email_sent_date_format)
               : ''}
           </span>
         ),
@@ -217,60 +205,37 @@ export class MemberConversation extends Component {
       return <ReactSpinner />;
     }
 
-    const conversation = this.getConversation();
-    if (!conversation) {
-      return <p className="text-muted">No messages yet.</p>;
-    }
-
-    // The messages slice belongs to whichever thread was subscribed last;
-    // only trust it once it is this one.
-    if (
-      this.state.subscribedId !== conversation.id ||
-      this.props.messagesLoading
-    ) {
-      return <ReactSpinner />;
-    }
-
-    if (this.props.messagesError) {
-      return (
-        <div className="alert alert-danger">
-          <strong>Could not load messages.</strong>
-          <div>{this.props.messagesError}</div>
-        </div>
+    const memberId = this.props.memberItem.id;
+    const data = this.props.conversations
+      .toArray()
+      .filter(conversation => involves(conversation, memberId))
+      .sort(
+        (a, b) =>
+          (b.updatedAt ? b.updatedAt.getTime() : 0) -
+          (a.updatedAt ? a.updatedAt.getTime() : 0),
       );
-    }
-
-    const data = this.props.messages.toArray();
     if (data.length < 1) {
       return <p className="text-muted">No messages yet.</p>;
     }
 
     return (
       <ReactTable
-        columns={this._columns}
+        columns={this.getColumns(indexMembersById(this.props.allMembers))}
         data={data}
         defaultPageSize={data.length}
         pageSize={data.length}
         showPagination={false}
-        getTrProps={this.messageRowProps}
+        getTrProps={this.rowProps}
       />
     );
   }
 
   render() {
     return (
-      <div className="row smsTable" ref={element => (this.panel = element)}>
+      <div className="row smsTable">
         <div className="col-sm-10">
           <span style={{ width: '100%' }}>
-            <h3>
-              Messages
-              <NavLink
-                to={`/MemberConversation/${this.props.memberItem.id}`}
-                className="btn btn-link btn-sm conversation-open"
-              >
-                Open
-              </NavLink>
-            </h3>
+            <h3>Messages</h3>
             {this.renderBody()}
           </span>
         </div>

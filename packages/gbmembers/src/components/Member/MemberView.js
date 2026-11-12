@@ -86,6 +86,7 @@ import {
   APP_ACCOUNT_STATUS,
 } from '../../lib/appAccounts';
 import { MemberMessageModal } from './MemberMessageModal';
+import { MemberConversationContainer } from './MemberConversation';
 import 'react-datetime/css/react-datetime.css';
 import ReactToPrint from 'react-to-print';
 import ReactTooltip from 'react-tooltip';
@@ -2294,6 +2295,18 @@ export const MemberView = ({
                     setSystemError={setSystemError}
                   />
                 </div>
+                {/* Every thread involving the member -- messages, groups,
+                    broadcasts, announcements. Read-only: no Send here. */}
+                {canUseConversations(profile, space) && (
+                  <div>
+                    <MemberConversationContainer
+                      memberItem={memberItem}
+                      allMembers={allMembers}
+                      space={space}
+                      profile={profile}
+                    />
+                  </div>
+                )}
                 <div>
                   <MemberEmails
                     memberItem={memberItem}
