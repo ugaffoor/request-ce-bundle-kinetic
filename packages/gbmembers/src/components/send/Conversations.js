@@ -1409,13 +1409,14 @@ export class Conversations extends Component {
     }
     const busy = this.props.deletingId === conversation.id;
     return (
-      <div className="text-right mb-2">
+      // The same buttons as Send; deleting for everyone in red.
+      <div className="text-right mb-2 conversation-actions">
         <button
           type="button"
-          className="btn btn-link btn-sm p-0"
+          className="btn btn-primary"
           onClick={this.removeConversation}
         >
-          <small>Remove from my list</small>
+          Remove from my list
         </button>
         {/*
           The school's announcement thread is managed from the Announcements
@@ -1424,11 +1425,11 @@ export class Conversations extends Component {
         {!conversation.isAnnouncementThread && (
           <button
             type="button"
-            className="btn btn-link btn-sm p-0 ml-3 text-danger"
+            className="btn btn-primary conversation-delete"
             disabled={busy}
             onClick={this.deleteConversationForEveryone}
           >
-            <small>{busy ? 'Deleting...' : 'Delete for everyone'}</small>
+            {busy ? 'Deleting...' : 'Delete for everyone'}
           </button>
         )}
       </div>
@@ -1859,8 +1860,13 @@ export class Conversations extends Component {
     // out, so only the thread itself is drawn.
     if (this.props.embedded) {
       return (
-        <div className="conversation-embedded">
-          {this.renderMemberThreadBody(membersById)}
+        // Inside the pop-up's dark name tab (MemberMessageModal): the same
+        // grey band and white Chat section as the Messages page.
+        <div className="conversation-embedded conversationsBody">
+          <div className="conversationsSection">
+            <h4>Chat</h4>
+            {this.renderMemberThreadBody(membersById)}
+          </div>
         </div>
       );
     }

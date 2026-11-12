@@ -491,7 +491,8 @@ tr.conversation-row {
     }
   }
   .leadContents .conversationsBody,
-  .leadContents .row.conversationsBody {
+  .leadContents .row.conversationsBody,
+  .conversation-embedded.conversationsBody {
     margin: 0 0 20px;
     padding: 15px 5px;
     background-color: #cccccc;
@@ -508,6 +509,31 @@ tr.conversation-row {
       color: $darkgray;
     }
   }
+}
+
+// The profile's Message pop-up: its name tab starts clear of the close
+// control in the corner.
+.conversationsPopup .conversationsHeader {
+  margin-top: 24px;
+}
+
+// Remove from my list and Delete for everyone, above a chat: the same buttons
+// as Send, with Delete in the portal's danger red. !important where the theme
+// paints every .btn-primary grey on hover and near-black when disabled.
+.conversation-actions .btn + .btn {
+  margin-left: 8px;
+}
+.btn-primary.conversation-delete,
+.btn-primary.conversation-delete:disabled {
+  background-color: #ca332d !important;
+  border-color: #ca332d !important;
+  color: $white !important;
+}
+.btn-primary.conversation-delete:hover,
+.btn-primary.conversation-delete:focus,
+.btn-primary.conversation-delete:active {
+  background-color: darken(#ca332d, 10%) !important;
+  border-color: darken(#ca332d, 10%) !important;
 }
 
 // The Messages filters: a row of the portal's grey buttons, like Send. The

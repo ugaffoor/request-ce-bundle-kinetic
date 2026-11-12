@@ -5,8 +5,8 @@ import { inlineStyle } from './SMSModalContainer';
 
 /**
  * The member's conversation, opened over their profile from the Message
- * button -- the same frame, heading and close control as Send SMS, so the
- * two ways of reaching someone feel like one feature.
+ * button -- the same frame and close control as Send SMS, laid out like the
+ * Messages page.
  *
  * The thread inside is the Conversations page itself, embedded: sending,
  * the pending bubble, the Tiny Champion safeguard and read marking all
@@ -22,13 +22,16 @@ export const MemberMessageModal = ({ memberItem, onClose }) => (
         dismissOnBackgroundClick={false}
         className="smsDialog conversationDialog"
       >
-        <div className="row">
-          <div className="col-md-12" style={{ textAlign: 'center' }}>
-            Member - {memberItem.values['First Name']}{' '}
-            {memberItem.values['Last Name']}
+        {/* Laid out like the Messages page: the member's name in the dark
+            tab, the chat below it on the grey band. */}
+        <div className="conversationsPage conversationsPopup">
+          <div className="conversationsHeader">
+            <h4 className="title">
+              {memberItem.values['First Name']} {memberItem.values['Last Name']}
+            </h4>
           </div>
+          <ConversationsContainer memberId={memberItem.id} embedded />
         </div>
-        <ConversationsContainer memberId={memberItem.id} embedded />
       </ModalDialog>
     </ModalContainer>
   </div>
