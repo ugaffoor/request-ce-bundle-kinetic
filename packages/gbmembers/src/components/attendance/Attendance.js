@@ -444,7 +444,7 @@ export class SelfCheckin extends Component {
       });
     } else {
       const restrictedDays = memberItem.values['Restricted Training Days'];
-      const classDay = moment(this.state.classDate).format('dddd');
+      const classDay = moment(this.state.classDate, 'L hh:mm A').format('dddd');
       if (
         Array.isArray(restrictedDays) &&
         restrictedDays.length > 0 &&
@@ -923,7 +923,7 @@ export class SelfCheckin extends Component {
       validClassessAllowed
     ) {
       const restrictedDays = memberItem.values['Restricted Training Days'];
-      const classDay = moment(this.state.classDate).format('dddd');
+      const classDay = moment(this.state.classDate, 'L hh:mm A').format('dddd');
       const isDayRestricted =
         Array.isArray(restrictedDays) &&
         restrictedDays.length > 0 &&
@@ -1403,7 +1403,7 @@ export class SelfCheckin extends Component {
                       {this.state.memberItem.values['First Name']}{' '}
                       {this.state.memberItem.values['Last Name']} you are not
                       permitted to train on{' '}
-                      {moment(this.state.classDate).format('dddd')}.
+                      {moment(this.state.classDate, 'L hh:mm A').format('dddd')}.
                     </div>
                   )}
               </div>
@@ -2315,7 +2315,7 @@ export class AttendanceDetail extends Component {
     });
     if (
       moment(classDate).format('L hh:mm A') !==
-        moment(this.state.classDate).format('L hh:mm A') ||
+        moment(this.state.classDate, 'L hh:mm A').format('L hh:mm A') ||
       classTime !== this.state.classTime ||
       this.state.classTitle !== classTitle ||
       this.state.className !== className
@@ -2546,7 +2546,7 @@ export class AttendanceDetail extends Component {
       });
     } else {
       const restrictedDays = memberItem.values['Restricted Training Days'];
-      const classDay = moment(this.state.classDate).format('dddd');
+      const classDay = moment(this.state.classDate, 'L hh:mm A').format('dddd');
       if (
         Array.isArray(restrictedDays) &&
         restrictedDays.length > 0 &&
@@ -3258,7 +3258,9 @@ export class AttendanceDetail extends Component {
                             {this.state.memberItem.values['First Name']}{' '}
                             {this.state.memberItem.values['Last Name']} is not
                             permitted to train on{' '}
-                            {moment(this.state.classDate).format('dddd')}.
+                            {moment(this.state.classDate, 'L hh:mm A').format(
+                              'dddd',
+                            )}.
                           </div>
                         )}
                       {this.state.noProgramSet ? (
