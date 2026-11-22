@@ -285,6 +285,7 @@ var currencies = {
 };
 
 export function formatPhone(phone, mask) {
+  if (!phone || !mask) return '';
   let formatted = '';
   let phoneIndex = 0;
 
@@ -304,7 +305,7 @@ export function formatPhone(phone, mask) {
 }
 
 export function isBirthday(member) {
-  if (member === undefined) return false;
+  if (member == null) return false;
   if (
     member.values['DOB'] === undefined ||
     member.values['DOB'] === '' ||
@@ -337,6 +338,7 @@ export function getUseBillingSystem(space, member) {
 }
 
 export function isBamboraFailedPayment(payment) {
+  if (!payment) return false;
   return (
     (payment.paymentStatus === 'Transaction Declined' ||
       payment.paymentStatus === 'DECLINED' ||
@@ -874,7 +876,7 @@ export function getBeltSVG(belt) {
 }
 export function getLocalePreference(space, profile) {
   if (
-    profile !== undefined &&
+    profile != null &&
     profile.preferredLocale !== undefined &&
     profile.preferredLocale !== null
   )
@@ -972,7 +974,7 @@ export function handleChange(
     memberItem.values[key] = event.target.value;
   }
   if ($(event.target).attr('required')) {
-    var val = memberItem.values[key].trim();
+    var val = (memberItem.values[key] || '').trim();
     if (val === undefined || val === null || val === '') {
       $(event.target)
         .siblings('label')
@@ -1088,7 +1090,7 @@ export function handleFormattedChange(
   memberChanges,
 ) {
   if (setIsDirty !== undefined) setIsDirty(true);
-  const { formattedValue, value } = values;
+  const { formattedValue, value } = values || {};
 
   if (memberChanges) {
     let memberChange = memberChanges.find(change => change.field === key);
@@ -1525,7 +1527,11 @@ export function isBillingParent(member) {
 
   var dependants = member.values['Billing Family Members'];
   if (dependants === undefined || dependants === null) return false;
-  dependants = JSON.parse(dependants);
+  try {
+    dependants = JSON.parse(dependants);
+  } catch (e) {
+    return false;
+  }
   var isPrimary = false;
   dependants.forEach(id => {
     if (id !== member.id) {
@@ -1560,7 +1566,7 @@ export function validOverdue(member, successfulPayments, payment) {
     payment.debitDate !== null &&
     member.values['Non Paying'] !== 'YES' &&
     (member.values['Billing Payment Type'] === 'Credit Card' ||
-      member.values['Billing Payment Type'].startsWith('Bank Account'))
+      (member.values['Billing Payment Type'] || '').startsWith('Bank Account'))
   ) {
     valid = true;
   }
@@ -1586,6 +1592,7 @@ export function getLastBillingStartDate(member, successfulPayments) {
   ) {
     billingStartDate = resumeDate;
   }
+  if (!successfulPayments) return billingStartDate;
   var idx = successfulPayments.findIndex(successful => {
     return (
       (member.values['Member ID'] === successful.yourSystemReference ||
@@ -1615,6 +1622,7 @@ export function getLastBillingStartDate(member, successfulPayments) {
 }
 
 export function setMemberPromotionValues(member, belts) {
+  if (!belts) return member;
   let statusIndicator = 'notready';
   let statusText = 'NOT READY';
   let programOrder = 100;
@@ -1733,6 +1741,7 @@ export function handleCountryChange(
       $(event.target).css('border-color', '');
     }
   }
+  if (!memberItem.myThis) return;
   var billingSystem = getAttributeValue(
     memberItem.myThis.props.space,
     'Billing Company',
