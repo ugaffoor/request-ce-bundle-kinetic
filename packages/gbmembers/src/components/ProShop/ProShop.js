@@ -3322,7 +3322,9 @@ class Checkout extends Component {
                               <div className="name">
                                 {product['name'] +
                                   ' ' +
-                                  product['colour'] +
+                                  (product['colour'] !== undefined
+                                    ? product['colour']
+                                    : '') +
                                   ' ' +
                                   product['size']}
                               </div>
@@ -5226,7 +5228,8 @@ export const ProShopContainer = compose(
           colour: stock.values['Colour'],
           sku: stock.values['SKU'],
           price:
-            product.values['Discount'] !== null ||
+            product.values['Discount'] !== null &&
+            product.values['Discount'] !== undefined &&
             product.values['Discount'] === ''
               ? product.values['Discount']
               : product.values['Price'],
